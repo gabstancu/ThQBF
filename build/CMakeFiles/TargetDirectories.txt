@@ -1,0 +1,3 @@
+/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles/solve.dir
+/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles/edit_cache.dir
+/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles/rebuild_cache.dir
