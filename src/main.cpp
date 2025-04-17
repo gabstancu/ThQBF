@@ -12,7 +12,8 @@ int main (int argc, char* argv[])
         return 1;
     }
     std::string filename = argv[1];
-    std::cout << "reading QDIMACS " << filename << '\n';
+    std::cout << "Reading QDIMACS " << filename << "...\n";
+    read_QDIMACS(filename);
 
     return 0;
 }

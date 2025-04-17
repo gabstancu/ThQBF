@@ -6,7 +6,7 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/Users/gabrielastancu/Documents/thesisproject/solver/include
 
-CXX_FLAGSarm64 =  -Wpedantic -std=c++17 -Wall -Wextra -Wpedantic -std=c++17 -std=gnu++17 -arch arm64
+CXX_FLAGSarm64 =  -Wall -Wextra -Wpedantic -std=c++17 -std=gnu++17 -arch arm64
 
-CXX_FLAGS =  -Wpedantic -std=c++17 -Wall -Wextra -Wpedantic -std=c++17 -std=gnu++17 -arch arm64
+CXX_FLAGS =  -Wall -Wextra -Wpedantic -std=c++17 -std=gnu++17 -arch arm64
 

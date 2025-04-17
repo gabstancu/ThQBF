@@ -129,6 +129,78 @@ solve/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/build
 .PHONY : solve/fast
 
+src/Block.o: src/Block.cpp.o
+.PHONY : src/Block.o
+
+# target to build an object file
+src/Block.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Block.cpp.o
+.PHONY : src/Block.cpp.o
+
+src/Block.i: src/Block.cpp.i
+.PHONY : src/Block.i
+
+# target to preprocess a source file
+src/Block.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Block.cpp.i
+.PHONY : src/Block.cpp.i
+
+src/Block.s: src/Block.cpp.s
+.PHONY : src/Block.s
+
+# target to generate assembly for a file
+src/Block.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Block.cpp.s
+.PHONY : src/Block.cpp.s
+
+src/Clause.o: src/Clause.cpp.o
+.PHONY : src/Clause.o
+
+# target to build an object file
+src/Clause.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Clause.cpp.o
+.PHONY : src/Clause.cpp.o
+
+src/Clause.i: src/Clause.cpp.i
+.PHONY : src/Clause.i
+
+# target to preprocess a source file
+src/Clause.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Clause.cpp.i
+.PHONY : src/Clause.cpp.i
+
+src/Clause.s: src/Clause.cpp.s
+.PHONY : src/Clause.s
+
+# target to generate assembly for a file
+src/Clause.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Clause.cpp.s
+.PHONY : src/Clause.cpp.s
+
+src/Variable.o: src/Variable.cpp.o
+.PHONY : src/Variable.o
+
+# target to build an object file
+src/Variable.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Variable.cpp.o
+.PHONY : src/Variable.cpp.o
+
+src/Variable.i: src/Variable.cpp.i
+.PHONY : src/Variable.i
+
+# target to preprocess a source file
+src/Variable.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Variable.cpp.i
+.PHONY : src/Variable.cpp.i
+
+src/Variable.s: src/Variable.cpp.s
+.PHONY : src/Variable.s
+
+# target to generate assembly for a file
+src/Variable.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Variable.cpp.s
+.PHONY : src/Variable.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -153,6 +225,54 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/reader.o: src/reader.cpp.o
+.PHONY : src/reader.o
+
+# target to build an object file
+src/reader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/reader.cpp.o
+.PHONY : src/reader.cpp.o
+
+src/reader.i: src/reader.cpp.i
+.PHONY : src/reader.i
+
+# target to preprocess a source file
+src/reader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/reader.cpp.i
+.PHONY : src/reader.cpp.i
+
+src/reader.s: src/reader.cpp.s
+.PHONY : src/reader.s
+
+# target to generate assembly for a file
+src/reader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/reader.cpp.s
+.PHONY : src/reader.cpp.s
+
+src/utils.o: src/utils.cpp.o
+.PHONY : src/utils.o
+
+# target to build an object file
+src/utils.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/utils.cpp.o
+.PHONY : src/utils.cpp.o
+
+src/utils.i: src/utils.cpp.i
+.PHONY : src/utils.i
+
+# target to preprocess a source file
+src/utils.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/utils.cpp.i
+.PHONY : src/utils.cpp.i
+
+src/utils.s: src/utils.cpp.s
+.PHONY : src/utils.s
+
+# target to generate assembly for a file
+src/utils.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/utils.cpp.s
+.PHONY : src/utils.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,9 +282,24 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... solve"
+	@echo "... src/Block.o"
+	@echo "... src/Block.i"
+	@echo "... src/Block.s"
+	@echo "... src/Clause.o"
+	@echo "... src/Clause.i"
+	@echo "... src/Clause.s"
+	@echo "... src/Variable.o"
+	@echo "... src/Variable.i"
+	@echo "... src/Variable.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/reader.o"
+	@echo "... src/reader.i"
+	@echo "... src/reader.s"
+	@echo "... src/utils.o"
+	@echo "... src/utils.i"
+	@echo "... src/utils.s"
 .PHONY : help
 
 
