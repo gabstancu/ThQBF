@@ -18,3 +18,18 @@ void read_QDIMACS (const std::string filepath)
 
     file.close();
 }
+
+void read_variables ()
+{
+
+}
+
+void read_variables_ ()
+{
+
+}
+
+void read_winning_cubes ()
+{
+    
+}

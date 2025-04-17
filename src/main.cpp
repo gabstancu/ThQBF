@@ -11,8 +11,10 @@ int main (int argc, char* argv[])
         std::cerr << "Usage: ./solve <file name>\n";
         return 1;
     }
+
     std::string filename = argv[1];
-    std::cout << "Reading QDIMACS " << filename << "...\n";
+    
+    std::cout << "Reading QDIMACS " << filename << "\n";
     read_QDIMACS(filename);
 
     return 0;
