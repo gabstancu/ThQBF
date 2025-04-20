@@ -1,5 +1,4 @@
 #include <iostream>
-#include "include/reader.hpp"
 #include "include/QDimacsParser.hpp"
 
 int main (int argc, char* argv[])

@@ -2,6 +2,7 @@
 #define BLOCK_HPP
 
 #include <vector>
+#include "Constants.hpp"
 
 class Block
 {

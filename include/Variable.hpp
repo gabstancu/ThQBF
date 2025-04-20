@@ -2,6 +2,7 @@
 #define VARIABLE_HPP
 
 #include <map>
+#include "Constants.hpp"
 
 class Variable
 {
