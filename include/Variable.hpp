@@ -11,7 +11,7 @@ class Variable
         char quantifier;
 
         /* search information */
-        int in;
+        int available;
         int assignment;
         int level;
 
@@ -19,39 +19,40 @@ class Variable
         int positionInBlock;
         int blockID;
 
-        int numNeg;
+        int numNegAppear;
         // { clause : position_in_clause }
-        std::unordered_map<int, int> negativeOccurences;
+        std::unordered_map<int, int> negativeOccurrences;
 
-        int numPos;
-        std::unordered_map<int, int> positiveOccurences;
-
-        void addOccurrence (int clauseID, int position, bool positive);
+        int numPosAppear;
+        std::unordered_map<int, int> positiveOccurrences;
 
     public:
 
         Variable (int varID, char quantifier);
 
-        /* accessors */
-        int get_varID () { return this->varID; }
-        int get_assignment () { return this-> assignment; }
-        int get_decision_level () { return this->level; }
-        int get_block_position () { return this->positionInBlock; }
-        int get_blockID () { return this->blockID; }
-        int get_numNeg () { return this->numNeg; }
-        int get_numPos () { return this->numPos; }
+        /* Read only access */
+        int get_varID () const { return varID; }
+        int get_assignment () const { return assignment; }
+        int get_decision_level () const { return level; }
+        int get_block_position () const { return positionInBlock; }
+        int get_blockID () const { return blockID; }
+        int get_numNegAppear () const { return numNegAppear; }
+        int get_numPosAppear () const { return numPosAppear; }
 
+        /* Mutators (during search) */
         std::unordered_map<int, int>& getPositiveOccurrences ()
         {
-            return this->positiveOccurences;
+            return positiveOccurrences;
         }
 
         std::unordered_map<int, int>& getNegativeOccurrences ()
         {
-            return this->negativeOccurences;
+            return negativeOccurrences;
         }
 
-        /* mutators */
+
+        /* add in .cpp later */
+        void addOccurrence (int clauseID, int position, bool positive);
 
 
 
