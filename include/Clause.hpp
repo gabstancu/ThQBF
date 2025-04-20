@@ -53,7 +53,7 @@ class Clause
         void set_a_num(int a) { a_num = a; }
 
         /* Read only access */
-        size_t get_size() const { return size; }
+        size_t size() const { return size; }
         bool is_available() const { return available; }
         int get_level() const { return level; }
         int get_unassigned() const { return unassigned; }
