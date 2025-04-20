@@ -1,18 +1,20 @@
 file(REMOVE_RECURSE
+  "/Users/gabrielastancu/Documents/thesisproject/solver/solve"
+  "/Users/gabrielastancu/Documents/thesisproject/solver/solve.pdb"
+  "CMakeFiles/solve.dir/main.cpp.o"
+  "CMakeFiles/solve.dir/main.cpp.o.d"
   "CMakeFiles/solve.dir/src/Block.cpp.o"
   "CMakeFiles/solve.dir/src/Block.cpp.o.d"
   "CMakeFiles/solve.dir/src/Clause.cpp.o"
   "CMakeFiles/solve.dir/src/Clause.cpp.o.d"
+  "CMakeFiles/solve.dir/src/QDimacsParser.cpp.o"
+  "CMakeFiles/solve.dir/src/QDimacsParser.cpp.o.d"
   "CMakeFiles/solve.dir/src/Variable.cpp.o"
   "CMakeFiles/solve.dir/src/Variable.cpp.o.d"
-  "CMakeFiles/solve.dir/src/main.cpp.o"
-  "CMakeFiles/solve.dir/src/main.cpp.o.d"
   "CMakeFiles/solve.dir/src/reader.cpp.o"
   "CMakeFiles/solve.dir/src/reader.cpp.o.d"
   "CMakeFiles/solve.dir/src/utils.cpp.o"
   "CMakeFiles/solve.dir/src/utils.cpp.o.d"
-  "solve"
-  "solve.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

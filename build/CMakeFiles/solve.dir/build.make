@@ -100,10 +100,24 @@ CMakeFiles/solve.dir/src/Clause.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/src/Clause.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/src/Clause.cpp -o CMakeFiles/solve.dir/src/Clause.cpp.s
 
+CMakeFiles/solve.dir/src/QDimacsParser.cpp.o: CMakeFiles/solve.dir/flags.make
+CMakeFiles/solve.dir/src/QDimacsParser.cpp.o: /Users/gabrielastancu/Documents/thesisproject/solver/src/QDimacsParser.cpp
+CMakeFiles/solve.dir/src/QDimacsParser.cpp.o: CMakeFiles/solve.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/solve.dir/src/QDimacsParser.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/solve.dir/src/QDimacsParser.cpp.o -MF CMakeFiles/solve.dir/src/QDimacsParser.cpp.o.d -o CMakeFiles/solve.dir/src/QDimacsParser.cpp.o -c /Users/gabrielastancu/Documents/thesisproject/solver/src/QDimacsParser.cpp
+
+CMakeFiles/solve.dir/src/QDimacsParser.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/solve.dir/src/QDimacsParser.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gabrielastancu/Documents/thesisproject/solver/src/QDimacsParser.cpp > CMakeFiles/solve.dir/src/QDimacsParser.cpp.i
+
+CMakeFiles/solve.dir/src/QDimacsParser.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/src/QDimacsParser.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/src/QDimacsParser.cpp -o CMakeFiles/solve.dir/src/QDimacsParser.cpp.s
+
 CMakeFiles/solve.dir/src/Variable.cpp.o: CMakeFiles/solve.dir/flags.make
 CMakeFiles/solve.dir/src/Variable.cpp.o: /Users/gabrielastancu/Documents/thesisproject/solver/src/Variable.cpp
 CMakeFiles/solve.dir/src/Variable.cpp.o: CMakeFiles/solve.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/solve.dir/src/Variable.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/solve.dir/src/Variable.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/solve.dir/src/Variable.cpp.o -MF CMakeFiles/solve.dir/src/Variable.cpp.o.d -o CMakeFiles/solve.dir/src/Variable.cpp.o -c /Users/gabrielastancu/Documents/thesisproject/solver/src/Variable.cpp
 
 CMakeFiles/solve.dir/src/Variable.cpp.i: cmake_force
@@ -113,20 +127,6 @@ CMakeFiles/solve.dir/src/Variable.cpp.i: cmake_force
 CMakeFiles/solve.dir/src/Variable.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/src/Variable.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/src/Variable.cpp -o CMakeFiles/solve.dir/src/Variable.cpp.s
-
-CMakeFiles/solve.dir/src/main.cpp.o: CMakeFiles/solve.dir/flags.make
-CMakeFiles/solve.dir/src/main.cpp.o: /Users/gabrielastancu/Documents/thesisproject/solver/src/main.cpp
-CMakeFiles/solve.dir/src/main.cpp.o: CMakeFiles/solve.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/solve.dir/src/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/solve.dir/src/main.cpp.o -MF CMakeFiles/solve.dir/src/main.cpp.o.d -o CMakeFiles/solve.dir/src/main.cpp.o -c /Users/gabrielastancu/Documents/thesisproject/solver/src/main.cpp
-
-CMakeFiles/solve.dir/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/solve.dir/src/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gabrielastancu/Documents/thesisproject/solver/src/main.cpp > CMakeFiles/solve.dir/src/main.cpp.i
-
-CMakeFiles/solve.dir/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/src/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/src/main.cpp -o CMakeFiles/solve.dir/src/main.cpp.s
 
 CMakeFiles/solve.dir/src/reader.cpp.o: CMakeFiles/solve.dir/flags.make
 CMakeFiles/solve.dir/src/reader.cpp.o: /Users/gabrielastancu/Documents/thesisproject/solver/src/reader.cpp
@@ -156,31 +156,47 @@ CMakeFiles/solve.dir/src/utils.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/src/utils.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/src/utils.cpp -o CMakeFiles/solve.dir/src/utils.cpp.s
 
+CMakeFiles/solve.dir/main.cpp.o: CMakeFiles/solve.dir/flags.make
+CMakeFiles/solve.dir/main.cpp.o: /Users/gabrielastancu/Documents/thesisproject/solver/main.cpp
+CMakeFiles/solve.dir/main.cpp.o: CMakeFiles/solve.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/solve.dir/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/solve.dir/main.cpp.o -MF CMakeFiles/solve.dir/main.cpp.o.d -o CMakeFiles/solve.dir/main.cpp.o -c /Users/gabrielastancu/Documents/thesisproject/solver/main.cpp
+
+CMakeFiles/solve.dir/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/solve.dir/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/gabrielastancu/Documents/thesisproject/solver/main.cpp > CMakeFiles/solve.dir/main.cpp.i
+
+CMakeFiles/solve.dir/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/solve.dir/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/gabrielastancu/Documents/thesisproject/solver/main.cpp -o CMakeFiles/solve.dir/main.cpp.s
+
 # Object files for target solve
 solve_OBJECTS = \
 "CMakeFiles/solve.dir/src/Block.cpp.o" \
 "CMakeFiles/solve.dir/src/Clause.cpp.o" \
+"CMakeFiles/solve.dir/src/QDimacsParser.cpp.o" \
 "CMakeFiles/solve.dir/src/Variable.cpp.o" \
-"CMakeFiles/solve.dir/src/main.cpp.o" \
 "CMakeFiles/solve.dir/src/reader.cpp.o" \
-"CMakeFiles/solve.dir/src/utils.cpp.o"
+"CMakeFiles/solve.dir/src/utils.cpp.o" \
+"CMakeFiles/solve.dir/main.cpp.o"
 
 # External object files for target solve
 solve_EXTERNAL_OBJECTS =
 
-solve: CMakeFiles/solve.dir/src/Block.cpp.o
-solve: CMakeFiles/solve.dir/src/Clause.cpp.o
-solve: CMakeFiles/solve.dir/src/Variable.cpp.o
-solve: CMakeFiles/solve.dir/src/main.cpp.o
-solve: CMakeFiles/solve.dir/src/reader.cpp.o
-solve: CMakeFiles/solve.dir/src/utils.cpp.o
-solve: CMakeFiles/solve.dir/build.make
-solve: CMakeFiles/solve.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable solve"
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/Block.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/Clause.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/QDimacsParser.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/Variable.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/reader.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/src/utils.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/main.cpp.o
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/build.make
+/Users/gabrielastancu/Documents/thesisproject/solver/solve: CMakeFiles/solve.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/gabrielastancu/Documents/thesisproject/solver/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable /Users/gabrielastancu/Documents/thesisproject/solver/solve"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/solve.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-CMakeFiles/solve.dir/build: solve
+CMakeFiles/solve.dir/build: /Users/gabrielastancu/Documents/thesisproject/solver/solve
 .PHONY : CMakeFiles/solve.dir/build
 
 CMakeFiles/solve.dir/clean:

@@ -8,10 +8,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/gabrielastancu/Documents/thesisproject/solver/main.cpp" "CMakeFiles/solve.dir/main.cpp.o" "gcc" "CMakeFiles/solve.dir/main.cpp.o.d"
   "/Users/gabrielastancu/Documents/thesisproject/solver/src/Block.cpp" "CMakeFiles/solve.dir/src/Block.cpp.o" "gcc" "CMakeFiles/solve.dir/src/Block.cpp.o.d"
   "/Users/gabrielastancu/Documents/thesisproject/solver/src/Clause.cpp" "CMakeFiles/solve.dir/src/Clause.cpp.o" "gcc" "CMakeFiles/solve.dir/src/Clause.cpp.o.d"
+  "/Users/gabrielastancu/Documents/thesisproject/solver/src/QDimacsParser.cpp" "CMakeFiles/solve.dir/src/QDimacsParser.cpp.o" "gcc" "CMakeFiles/solve.dir/src/QDimacsParser.cpp.o.d"
   "/Users/gabrielastancu/Documents/thesisproject/solver/src/Variable.cpp" "CMakeFiles/solve.dir/src/Variable.cpp.o" "gcc" "CMakeFiles/solve.dir/src/Variable.cpp.o.d"
-  "/Users/gabrielastancu/Documents/thesisproject/solver/src/main.cpp" "CMakeFiles/solve.dir/src/main.cpp.o" "gcc" "CMakeFiles/solve.dir/src/main.cpp.o.d"
   "/Users/gabrielastancu/Documents/thesisproject/solver/src/reader.cpp" "CMakeFiles/solve.dir/src/reader.cpp.o" "gcc" "CMakeFiles/solve.dir/src/reader.cpp.o.d"
   "/Users/gabrielastancu/Documents/thesisproject/solver/src/utils.cpp" "CMakeFiles/solve.dir/src/utils.cpp.o" "gcc" "CMakeFiles/solve.dir/src/utils.cpp.o.d"
   )

@@ -129,6 +129,30 @@ solve/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/build
 .PHONY : solve/fast
 
+main.o: main.cpp.o
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/main.cpp.s
+.PHONY : main.cpp.s
+
 src/Block.o: src/Block.cpp.o
 .PHONY : src/Block.o
 
@@ -177,6 +201,30 @@ src/Clause.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Clause.cpp.s
 .PHONY : src/Clause.cpp.s
 
+src/QDimacsParser.o: src/QDimacsParser.cpp.o
+.PHONY : src/QDimacsParser.o
+
+# target to build an object file
+src/QDimacsParser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/QDimacsParser.cpp.o
+.PHONY : src/QDimacsParser.cpp.o
+
+src/QDimacsParser.i: src/QDimacsParser.cpp.i
+.PHONY : src/QDimacsParser.i
+
+# target to preprocess a source file
+src/QDimacsParser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/QDimacsParser.cpp.i
+.PHONY : src/QDimacsParser.cpp.i
+
+src/QDimacsParser.s: src/QDimacsParser.cpp.s
+.PHONY : src/QDimacsParser.s
+
+# target to generate assembly for a file
+src/QDimacsParser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/QDimacsParser.cpp.s
+.PHONY : src/QDimacsParser.cpp.s
+
 src/Variable.o: src/Variable.cpp.o
 .PHONY : src/Variable.o
 
@@ -200,30 +248,6 @@ src/Variable.s: src/Variable.cpp.s
 src/Variable.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/Variable.cpp.s
 .PHONY : src/Variable.cpp.s
-
-src/main.o: src/main.cpp.o
-.PHONY : src/main.o
-
-# target to build an object file
-src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/main.cpp.o
-.PHONY : src/main.cpp.o
-
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
-
-# target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
-
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
-
-# target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/solve.dir/build.make CMakeFiles/solve.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
 
 src/reader.o: src/reader.cpp.o
 .PHONY : src/reader.o
@@ -282,18 +306,21 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... solve"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 	@echo "... src/Block.o"
 	@echo "... src/Block.i"
 	@echo "... src/Block.s"
 	@echo "... src/Clause.o"
 	@echo "... src/Clause.i"
 	@echo "... src/Clause.s"
+	@echo "... src/QDimacsParser.o"
+	@echo "... src/QDimacsParser.i"
+	@echo "... src/QDimacsParser.s"
 	@echo "... src/Variable.o"
 	@echo "... src/Variable.i"
 	@echo "... src/Variable.s"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
 	@echo "... src/reader.o"
 	@echo "... src/reader.i"
 	@echo "... src/reader.s"
