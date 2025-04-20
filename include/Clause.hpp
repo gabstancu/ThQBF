@@ -8,7 +8,7 @@ class Clause
 {
     private:
         size_t size; // number if literals in the clause
-        bool available = true; 
+        bool available; 
         int level; // level at which the clause was removed
 
         int unassigned; // number of literals that have not been assigned
