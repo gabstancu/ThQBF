@@ -18,7 +18,18 @@ class Block
         std::vector<int> level;
         
     public:
-        Block (char type, int blockID);
+        Block (char type, 
+               int blockID, 
+               std::vector<int> variables)
+            :  type(type), 
+               blockID(blockID),
+               size(variables.size()),
+               available(true),
+               availableVars(variables.size()),
+               variables(variables)
+        {
+            /* ... */
+        };
 };
 
 #endif // BLOCK_HPP
