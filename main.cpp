@@ -19,7 +19,6 @@ int main (int argc, char* argv[])
 
     /*   
         TODO: write QDIMACS parser
-        TODO: figure out where to store solver data (clauses, variables etc)
         TODO: learned clauses data base (possibly a struct) for QCDCL
         TODO: cubes data base for Cube Learning
     */
