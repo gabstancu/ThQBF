@@ -29,7 +29,7 @@ class Block
                variables(variables)
         {
             /* ... */
-        };
+        }
 };
 
 #endif // BLOCK_HPP
