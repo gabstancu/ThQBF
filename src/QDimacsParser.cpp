@@ -13,7 +13,7 @@ QDimacsParser::QDimacsParser(const std::string filename)
 
 
 void QDimacsParser::parse()
-{
+{   
     std::string line;
     int clauseID = 0;
     int blockID = 0;
@@ -42,17 +42,48 @@ void QDimacsParser::parse()
 
 
 void QDimacsParser::parse_header(const std::string line)
-{
-    std::cout << line;
+{   
+    std::istringstream iss(line);
+    std::string t;
+    iss >> t >> t >> numVars >> numClauses;
+
+    // std::cout << numVars << " " << numClauses << '\n'; 
+    // std::cout << line << '\n';
 }
 
 void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
 {   
-    int varID = 1;
-    std::cout << clauseID << "   " << line;
+    std::vector<int> literals;
+    int lit;
+    std::istringstream iss(line);
+    // std::cout << clauseID << "   " << line << '\n';
+
+    while (iss >> lit && lit != 0)
+    {
+        literals.push_back(lit);
+    }
+
+    std::vector<int> state(literals.size(), qbf::AVAILABLE);
+
+    clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
 }
 
 void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
-{
-    std::cout << blockID << "   " << line;
+{   
+    std::istringstream iss(line);
+    char quantifier;
+    iss >> quantifier;
+
+    std::vector<int> vars;
+    int var, positionInBlock = 0;
+    while (iss >> var && var != 0)
+    {
+        vars.push_back(var);
+        // std::cout << "Creating Variable(" << var << ", " << quantifier << ", " << blockID << ", " << positionInBlock << ")\n";
+        variables.insert({var, Variable(var, quantifier, blockID, positionInBlock++)});
+        prefix[blockID].insert(var);
+    }
+
+    blocks.insert({blockID, Block(quantifier, blockID, vars)});
+    // std::cout << blockID << "   " << line << '\n';
 }

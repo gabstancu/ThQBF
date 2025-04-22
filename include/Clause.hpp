@@ -27,20 +27,7 @@ class Clause
         Clause (const std::vector<int>& literals, 
                 const std::vector<int>& state, 
                 int level,
-                bool learned = false
-                ) : 
-                size(literals.size()), 
-                available(true), 
-                level(level), 
-                unassigned(literals.size()), 
-                assigned(0),
-                literals(literals),
-                state(state),
-                learned(learned)
-                {
-                    /* ... */
-
-                }
+                bool learned);
         
         /* Mutators (during search) */
         void set_size(size_t s) { size = s; }
@@ -67,6 +54,7 @@ class Clause
 
         /* other */
         void print(std::vector<int> vec) { printVector(vec); }
+        void print();
 
         /* extend for unit clause detection and resolution and add to .cpp */
 };

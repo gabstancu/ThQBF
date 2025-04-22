@@ -19,18 +19,7 @@ class Block
         std::vector<int> decision_level;
         
     public:
-        Block (char type, 
-               int blockID, 
-               std::vector<int> variables)
-            :  type(type), 
-               blockID(blockID),
-               size(variables.size()),
-               available(true),
-               available_variables(variables.size()),
-               variables(variables)
-        {
-            /* ... */
-        }
+        Block (char type, int blockID, std::vector<int> variables);
 
         /* Read only access */
         char get_type() const { return type; }
@@ -58,6 +47,7 @@ class Block
         bool is_existential() const { return type == qbf::EXISTENTIAL; }
         bool is_universal() const { return type == qbf::UNIVERSAL; }
         void print(std::vector<int> vec) { printVector(vec); }
+        void print();
 
         /* extend... */
         void remove_variable();

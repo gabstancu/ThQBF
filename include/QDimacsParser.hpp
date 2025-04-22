@@ -2,6 +2,7 @@
 #define QDIMACSPARSER_HPP
 
 #include <string>
+#include <sstream>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -18,9 +19,9 @@ class QDimacsParser
         int numVars;
         int numClauses;
 
-        std::unordered_map<int, Variable> Variables;
-        std::unordered_map<int, Clause> Clauses;
-        std::unordered_map<int, Block> Blocks;
+        std::unordered_map<int, Variable> variables;
+        std::unordered_map<int, Clause> clauses;
+        std::unordered_map<int, Block> blocks;
 
         std::map<int, std::set<int>> prefix;
 
@@ -33,9 +34,9 @@ class QDimacsParser
 
         void parse();
 
-        std::unordered_map<int, Variable>& get_variables() { return Variables; }
-        std::unordered_map<int, Clause>& get_clauses() { return Clauses; }
-        std::unordered_map<int, Block>& get_blocks() { return Blocks; }
+        std::unordered_map<int, Variable>& get_variables() { return variables; }
+        std::unordered_map<int, Clause>& get_clauses() { return clauses; }
+        std::unordered_map<int, Block>& get_blocks() { return blocks; }
         std::map<int, std::set<int>>& get_prefix() { return prefix; }
 };
 

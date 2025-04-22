@@ -17,10 +17,12 @@ int main (int argc, char* argv[])
     std::cout << "Reading QDIMACS " << filename << "\n";
     QDimacsParser parser(filename);
     parser.parse();
+    std::cout << "Done." << "\n";
+
+    // print_map_of_sets(parser.get_prefix());
     
 
-    /*   
-        TODO: write QDIMACS parser
+    /*  
         TODO: learned clauses data base (possibly a struct) for QCDCL
         TODO: cubes data base for Cube Learning
     */

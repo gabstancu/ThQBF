@@ -29,19 +29,7 @@ class Variable
 
     public:
 
-        Variable (int varID, char quantifier, int blockID, int positionInBlock)  
-            : varID(varID), 
-              quantifier(quantifier),
-              available(qbf::AVAILABLE), 
-              assignment(qbf::UNASSIGNED), 
-              level(qbf::PRESEARCH), 
-              positionInBlock(positionInBlock),
-              blockID(blockID),
-              numNegAppear(0),
-              numPosAppear(0)
-        {
-            /* ... */
-        }
+        Variable (int varID, char quantifier, int blockID, int positionInBlock);
 
         /* Read only access */
         int get_varID () const { return varID; }
@@ -79,6 +67,7 @@ class Variable
 
         void print(std::vector<int> vec) { printVector(vec); }
         void print(std::unordered_map<int, int> m) { print_hashmap(m); };
+        void print();
 
         /* add in .cpp later */
         void addOccurrence (int clauseID, int position, bool positive);
