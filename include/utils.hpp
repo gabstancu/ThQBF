@@ -27,3 +27,11 @@ void print2DVector(const std::vector<std::vector<T>>& matrix)
     }
     std::cout << "]\n";
 }
+
+template<typename K, typename V>
+void print_map(const std::unordered_map<K, V>& map) {
+    for (const auto& [key, value] : map) {
+        std::cout << "  [" << key << "] = " << value << "\n";
+    }
+    std::cout << std::endl;
+}

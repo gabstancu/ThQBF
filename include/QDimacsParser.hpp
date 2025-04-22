@@ -36,6 +36,11 @@ class QDimacsParser
         }
 
         void parse();
+
+        const std::unordered_map<int, Variable>& get_variables() const { return Variables; }
+        const std::unordered_map<int, Clause>& get_clauses() const { return Clauses; }
+        const std::unordered_map<int, Block>& get_blocks() const { return Blocks; }
+        const std::map<int, std::set<int>>& get_prefix() const { return prefix; }
 };
 
 

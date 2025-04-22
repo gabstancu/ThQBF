@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Constants.hpp"
+#include "utils.hpp"
 
 class Block
 {
@@ -56,6 +57,7 @@ class Block
         /* other */
         bool is_existential() const { return type == qbf::EXISTENTIAL; }
         bool is_universal() const { return type == qbf::UNIVERSAL; }
+        void print(std::vector<int> vec) { printVector(vec); }
 
         /* extend... */
         void remove_variable();

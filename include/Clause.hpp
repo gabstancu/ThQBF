@@ -58,11 +58,13 @@ class Clause
         int get_level() const { return level; }
         int get_unassigned() const { return unassigned; }
         int get_assigned() const { return assigned; }
-        const std::vector<int>& get_literals() const { return literals; }
-        const std::vector<int>& get_state() const { return state; }
+        // const std::vector<int>& get_literals() const { return literals; }
+        // const std::vector<int>& get_state() const { return state; }
         int get_e_num() const { return e_num; }
         int get_a_num() const { return a_num; }
         bool is_learned() const { return is_learned; }
+
+        void print(std::vector<int> vec) { printVector(vec); }
 
         /* extend for unit clause detection and resolution and add to .cpp */
 };

@@ -53,14 +53,14 @@ class Variable
         int get_numNegAppear () const { return numNegAppear; }
         int get_numPosAppear () const { return numPosAppear; }
 
-        const std::unordered_map<int, int>& get_negativeOccurrences () const 
-        { 
-            return negativeOccurrences;
-        }
-        const std::unordered_map<int, int>& get_positiveOccurrences () const 
-        { 
-            return positiveOccurrences;
-        }
+        // const std::unordered_map<int, int>& get_negativeOccurrences () const 
+        // { 
+        //     return negativeOccurrences;
+        // }
+        // const std::unordered_map<int, int>& get_positiveOccurrences () const 
+        // { 
+        //     return positiveOccurrences;
+        // }
 
         /* Mutators (during search) */
         void set_varID(int ID) { varID = ID; }
@@ -74,6 +74,10 @@ class Variable
         void set_numPosAppear(int p) { numPosAppear = p; }
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
+
+
+        void print(std::vector<int> vec) { printVector(vec); }
+        void print_appearances(std::unordered_map<int, int> m) { print_map(m); };
 
         /* add in .cpp later */
         void addOccurrence (int clauseID, int position, bool positive);
