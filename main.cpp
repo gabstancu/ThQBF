@@ -15,6 +15,8 @@ int main (int argc, char* argv[])
     std::string filename = argv[1];
 
     std::cout << "Reading QDIMACS " << filename << "\n";
+    QDimacsParser parser(filename);
+    parser.parse();
     
 
     /*   

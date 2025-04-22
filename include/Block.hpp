@@ -33,14 +33,14 @@ class Block
         }
 
         /* Read only access */
-        char type() const { return type; }
-        int blockID() const { return blockID; }
-        size_t size() const { return size; }
+        char get_type() const { return type; }
+        int get_blockID() const { return blockID; }
+        size_t get_size() const { return size; }
         bool is_available() const { return available; }
         int get_available_variables() const { return available_variables; }
-        const std::vector<int>& get_variables() const { return variables; }
-        const std::vector<int>& get_state() const { return state; }
-        const std::vector<int>& get_decision_level() const { return decision_level; }
+        // const std::vector<int>& get_variables() const { return variables; }
+        // const std::vector<int>& get_state() const { return state; }
+        // const std::vector<int>& get_decision_level() const { return decision_level; }
 
 
         /* mutators (during search) */

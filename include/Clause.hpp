@@ -3,11 +3,12 @@
 
 #include <vector>
 #include "Constants.hpp"
+#include "utils.hpp"
 
 class Clause
 {
     private:
-        size_t size; // number if literals in the clause
+        size_t size; // number of literals in the clause
         bool available; 
         int level; // level at which the clause was removed
 
@@ -25,11 +26,12 @@ class Clause
     public:
         Clause (const std::vector<int>& literals, 
                 const std::vector<int>& state, 
-                bool learned = false, 
-                int level) : 
+                int level,
+                bool learned = false
+                ) : 
                 size(literals.size()), 
                 available(true), 
-                level(qbf::PRESEARCH), 
+                level(level), 
                 unassigned(literals.size()), 
                 assigned(0),
                 literals(literals),
@@ -52,7 +54,7 @@ class Clause
         void set_a_num(int a) { a_num = a; }
 
         /* Read only access */
-        size_t size() const { return size; }
+        size_t get_size() const { return size; }
         bool is_available() const { return available; }
         int get_level() const { return level; }
         int get_unassigned() const { return unassigned; }
@@ -61,8 +63,9 @@ class Clause
         // const std::vector<int>& get_state() const { return state; }
         int get_e_num() const { return e_num; }
         int get_a_num() const { return a_num; }
-        bool is_learned() const { return is_learned; }
+        bool is_learned() const { return learned; }
 
+        /* other */
         void print(std::vector<int> vec) { printVector(vec); }
 
         /* extend for unit clause detection and resolution and add to .cpp */

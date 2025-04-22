@@ -3,6 +3,7 @@
 
 #include <map>
 #include "Constants.hpp"
+#include "utils.hpp"
 
 class Variable
 {
