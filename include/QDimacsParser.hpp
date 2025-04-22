@@ -23,24 +23,20 @@ class QDimacsParser
         std::unordered_map<int, Block> Blocks;
 
         std::map<int, std::set<int>> prefix;
-        int currentBlockID = 0;
 
-        void parse_header();
-        void parse_clause_line();
-        void parse_quantifier_line();
+        void parse_header(const std::string line);
+        void parse_clause_line(const std::string line, int clauseID);
+        void parse_quantifier_line(const std::string line, int blockID);
 
     public:
-        QDimacsParser(const std::string filename)
-        {
-
-        }
+        QDimacsParser(const std::string filename);
 
         void parse();
 
-        const std::unordered_map<int, Variable>& get_variables() const { return Variables; }
-        const std::unordered_map<int, Clause>& get_clauses() const { return Clauses; }
-        const std::unordered_map<int, Block>& get_blocks() const { return Blocks; }
-        const std::map<int, std::set<int>>& get_prefix() const { return prefix; }
+        std::unordered_map<int, Variable>& get_variables() { return Variables; }
+        std::unordered_map<int, Clause>& get_clauses() { return Clauses; }
+        std::unordered_map<int, Block>& get_blocks() { return Blocks; }
+        std::map<int, std::set<int>>& get_prefix() { return prefix; }
 };
 
 

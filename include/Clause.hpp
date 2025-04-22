@@ -38,7 +38,6 @@ class Clause
                 {
                     /* ... */
 
-
                 }
         
         /* Mutators (during search) */

@@ -29,9 +29,21 @@ void print2DVector(const std::vector<std::vector<T>>& matrix)
 }
 
 template<typename K, typename V>
-void print_map(const std::unordered_map<K, V>& map) {
+void print_hashmap(const std::unordered_map<K, V>& map) {
     for (const auto& [key, value] : map) {
         std::cout << "  [" << key << "] = " << value << "\n";
+    }
+    std::cout << std::endl;
+}
+
+template<typename K, typename V>
+void print_map_of_sets(const std::map<K, std::set<V>>& map) {
+    for (const auto& [key, value_set] : map) {
+        std::cout << "  [" << key << "] = { ";
+        for (const auto& val : value_set) {
+            std::cout << val << " ";
+        }
+        std::cout << "}\n";
     }
     std::cout << std::endl;
 }

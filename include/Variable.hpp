@@ -77,7 +77,7 @@ class Variable
 
 
         void print(std::vector<int> vec) { printVector(vec); }
-        void print_appearances(std::unordered_map<int, int> m) { print_map(m); };
+        void print(std::unordered_map<int, int> m) { print_hashmap(m); };
 
         /* add in .cpp later */
         void addOccurrence (int clauseID, int position, bool positive);
