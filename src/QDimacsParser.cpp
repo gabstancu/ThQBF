@@ -87,3 +87,18 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     blocks.insert({blockID, Block(quantifier, blockID, vars)});
     // std::cout << blockID << "   " << line << '\n';
 }
+
+
+SolverData QDimacsParser::to_solver_data() const
+{
+    SolverData data;
+
+    data.numVars = numVars;
+    data.numClauses = numClauses;
+    data.Variables = variables;
+    data.Clauses = clauses;
+    data.Blocks = blocks;
+    data.prefix = prefix;
+
+    return data;
+}

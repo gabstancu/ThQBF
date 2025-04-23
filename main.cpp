@@ -1,5 +1,6 @@
 #include <iostream>
 #include "include/QDimacsParser.hpp"
+#include "include/Data.hpp"
 
 int main (int argc, char* argv[])
 {
@@ -17,9 +18,11 @@ int main (int argc, char* argv[])
     std::cout << "Reading QDIMACS " << filename << "\n";
     QDimacsParser parser(filename);
     parser.parse();
+    SolverData data = parser.to_solver_data();
     std::cout << "Done." << "\n";
 
-    // print_map_of_sets(parser.get_prefix());
+    print_map_of_sets(data.prefix);
+
     
 
     /*  

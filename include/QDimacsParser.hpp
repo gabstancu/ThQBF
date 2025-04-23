@@ -10,6 +10,7 @@
 #include "Variable.hpp"
 #include "Block.hpp"
 #include "Clause.hpp"
+#include "Data.hpp"
 
 class QDimacsParser
 {
@@ -33,6 +34,7 @@ class QDimacsParser
         QDimacsParser(const std::string filename);
 
         void parse();
+        SolverData to_solver_data() const; // pass parsed data to solver data
 
         std::unordered_map<int, Variable>& get_variables() { return variables; }
         std::unordered_map<int, Clause>& get_clauses() { return clauses; }
