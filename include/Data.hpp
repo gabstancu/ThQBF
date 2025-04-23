@@ -28,8 +28,18 @@ struct SolverData
 
 /* TODO: 'add' struct for QCDCL */
 
+struct QCDCL
+{
+
+};
+
 
 /* TODO: 'add' struct for Cube Learning */
+struct CubeLearning
+{
+
+};
+
 
 
 #endif // DATA_HPP

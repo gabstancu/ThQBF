@@ -51,22 +51,6 @@ void QDimacsParser::parse_header(const std::string line)
     // std::cout << line << '\n';
 }
 
-void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
-{   
-    std::vector<int> literals;
-    int lit;
-    std::istringstream iss(line);
-    // std::cout << clauseID << "   " << line << '\n';
-
-    while (iss >> lit && lit != 0)
-    {
-        literals.push_back(lit);
-    }
-
-    std::vector<int> state(literals.size(), qbf::AVAILABLE);
-
-    clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
-}
 
 void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
 {   
@@ -86,6 +70,41 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
 
     blocks.insert({blockID, Block(quantifier, blockID, vars)});
     // std::cout << blockID << "   " << line << '\n';
+}
+
+
+void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
+{   
+    std::vector<int> literals;
+    int lit;
+    std::istringstream iss(line);
+    // std::cout << clauseID << "   " << line << '\n';
+
+    while (iss >> lit && lit != 0)
+    {
+        literals.push_back(lit);
+    }
+
+    std::vector<int> state(literals.size(), qbf::AVAILABLE);
+
+    clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
+
+    int index = 0;
+    for (int literal : literals)
+    {
+        std::cout << "literal: " << literal << " " << " variable: " << std::abs(literal) << " position: " << index << '\n';
+        if (literal > 0)
+        {
+            variables[literal].addOccurrence(clauseID, index, 1);
+        }
+        else
+        {
+            variables[literal].addOccurrence(clauseID, index, 0);
+        }
+
+
+        index++;
+    }
 }
 
 

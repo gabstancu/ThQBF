@@ -17,6 +17,7 @@ namespace qbf
 
     /* other */
     constexpr int UNIDENTIFIED = -100;
+    constexpr int UNDEFINED = -666;
 }
 
 

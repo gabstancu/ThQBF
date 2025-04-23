@@ -3,6 +3,8 @@
 
 #include <map>
 #include "Constants.hpp"
+#include "Clause.hpp"
+#include "Block.hpp"
 #include "utils.hpp"
 
 class Variable
@@ -52,30 +54,29 @@ class Variable
         // }
 
         /* Mutators (during search) */
-        void set_varID(int ID) { varID = ID; }
-        void set_quantifier(char q) { quantifier = q; }
-        void set_availability(bool status) { available = status; }
-        void assign(int value) { assignment = value; }
+        void set_varID (int ID) { varID = ID; }
+        void set_quantifier (char q) { quantifier = q; }
+        void set_availability (bool status) { available = status; }
+        void assign (int value) { assignment = value; }
         void set_level(int lvl) { level = lvl; }
         void set_block_position(int position) { positionInBlock = position; }
-        void set_blockID(int block) { blockID = block; }
-        void set_numNegAppear(int n) { numNegAppear = n; }
-        void set_numPosAppear(int p) { numPosAppear = p; }
+        void set_blockID (int block) { blockID = block; }
+        void set_numNegAppear (int n) { numNegAppear = n; }
+        void set_numPosAppear (int p) { numPosAppear = p; }
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
 
 
-        void print(std::vector<int> vec) { printVector(vec); }
-        void print(std::unordered_map<int, int> m) { print_hashmap(m); };
-        void print();
+        void print (std::vector<int> vec) { printVector(vec); }
+        void print (std::unordered_map<int, int> m) { print_hashmap(m); };
+        void print ();
 
         /* add in .cpp later */
-        void addOccurrence (int clauseID, int position, bool positive);
-        bool appears_in_clause ();
-        int get_position_in_clause ();
-        // void assign();
-        void unassign();
-        void simplify_under_assignment();
+        void addOccurrence (int clauseID, int position, int sign);
+        bool appears_in_clause (int clauseID);
+        int get_position_in_clause (int clauseID, int sign);
+        void assign (int value, int searchLevel);
+        void retract_assignment (int value, int searchLevel);
 
 };
 
