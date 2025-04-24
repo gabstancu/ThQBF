@@ -89,19 +89,20 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
 
     clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
 
-    int index = 0;
+    int index = 0, var;
     for (int literal : literals)
     {
-        std::cout << "literal: " << literal << " " << " variable: " << std::abs(literal) << " position: " << index << '\n';
+        // std::cout << "literal: " << literal << " " << " variable: " << std::abs(literal) << " position: " << index << '\n';
         if (literal > 0)
         {
-            variables[literal].addOccurrence(clauseID, index, 1);
+            // variables[literal].addOccurrence(clauseID, index, 1);
+            variables.at(literal).addOccurrence(clauseID, index, 1);
         }
         else
-        {
-            variables[literal].addOccurrence(clauseID, index, 0);
+        {   var = std::abs(literal);
+            // variables[var].addOccurrence(clauseID, index, 0);
+            variables.at(var).addOccurrence(clauseID, index, 0);
         }
-
 
         index++;
     }

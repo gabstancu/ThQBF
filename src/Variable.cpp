@@ -15,16 +15,16 @@ Variable::Variable (int varID, char quantifier, int blockID, int positionInBlock
 }
 
 
-void Variable::addOccurrence(int clauseID, int position, int sign)
+void Variable::addOccurrence(int clauseID, int position, bool positive)
 {
-  if (sign)
+  if (positive)
   {
     positiveOccurrences.insert({clauseID, position});
     numPosAppear++;
   }
   else
   {
-    negativeOccurrences.insert(clauseID, position);
+    negativeOccurrences.insert({clauseID, position});
     numNegAppear++;
   }
 }
@@ -32,23 +32,18 @@ void Variable::addOccurrence(int clauseID, int position, int sign)
 
 bool Variable::appears_in_clause (int clauseID)
 {
-
+  return positiveOccurrences.count(clauseID) || negativeOccurrences.count(clauseID);
 }
 
 
-int Variable::get_position_in_clause (int clauseID, int sign)
+int Variable::get_position_in_clause (int clauseID, bool positive)
 {
-
+  if (positive) return positiveOccurrences[clauseID];
+  return negativeOccurrences[clauseID];
 }
 
 
-void Variable::assign(int value, int searchLevel)
+void Variable::print()
 {
-
-}
-
-
-void Variable::retract_assignment(int value, int searchLevel)
-{
-
+  
 }

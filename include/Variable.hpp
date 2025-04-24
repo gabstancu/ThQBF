@@ -29,6 +29,7 @@ class Variable
         int numPosAppear;
         std::unordered_map<int, int> positiveOccurrences;
 
+
     public:
 
         Variable (int varID, char quantifier, int blockID, int positionInBlock);
@@ -69,14 +70,13 @@ class Variable
 
         void print (std::vector<int> vec) { printVector(vec); }
         void print (std::unordered_map<int, int> m) { print_hashmap(m); };
-        void print ();
-
-        /* add in .cpp later */
-        void addOccurrence (int clauseID, int position, int sign);
+        
+        void addOccurrence (int clauseID, int position, bool positive);
         bool appears_in_clause (int clauseID);
-        int get_position_in_clause (int clauseID, int sign);
-        void assign (int value, int searchLevel);
-        void retract_assignment (int value, int searchLevel);
+        int get_position_in_clause (int clauseID, bool positive);
+        void print ();
+        
+       
 
 };
 

@@ -22,7 +22,9 @@ struct SolverData
 
     /* state */
     int depth = 0; // seach level
+
     /* add necessary trails and stacks */
+    std::unordered_map<int, std::vector<int>> C_trail; /* ??? */
 };
 
 
