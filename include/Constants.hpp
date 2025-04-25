@@ -5,6 +5,7 @@ namespace qbf
 {
     /* literals/ variables */
     constexpr bool AVAILABLE = true;
+    constexpr bool UNAVAILABLE = false;
     constexpr int PRESEARCH = -1;
 
     /* assignments */
@@ -18,6 +19,10 @@ namespace qbf
     /* other */
     constexpr int UNIDENTIFIED = -100;
     constexpr int UNDEFINED = -666;
+
+    /* search */
+    constexpr bool SAT = true;
+    constexpr bool UNSAT = false;
 }
 
 

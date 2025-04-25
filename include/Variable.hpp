@@ -3,8 +3,8 @@
 
 #include <map>
 #include "Constants.hpp"
-#include "Clause.hpp"
-#include "Block.hpp"
+// #include "Clause.hpp"
+// #include "Block.hpp"
 #include "utils.hpp"
 
 class Variable
@@ -36,7 +36,8 @@ class Variable
 
         /* Read only access */
         int get_varID () const { return varID; }
-        char get_variable_type() const { return quantifier; }
+        bool is_existential() const { return quantifier == qbf::EXISTENTIAL; }
+        bool is_universal() const { return quantifier == qbf::UNIVERSAL; }
         bool is_available() const { return available; } 
         int get_assignment () const { return assignment; }
         int get_decision_level () const { return level; }
@@ -56,17 +57,14 @@ class Variable
 
         /* Mutators (during search) */
         void set_varID (int ID) { varID = ID; }
-        void set_quantifier (char q) { quantifier = q; }
         void set_availability (bool status) { available = status; }
         void assign (int value) { assignment = value; }
         void set_level(int lvl) { level = lvl; }
-        void set_block_position(int position) { positionInBlock = position; }
-        void set_blockID (int block) { blockID = block; }
         void set_numNegAppear (int n) { numNegAppear = n; }
         void set_numPosAppear (int p) { numPosAppear = p; }
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
-
+        
 
         void print (std::vector<int> vec) { printVector(vec); }
         void print (std::unordered_map<int, int> m) { print_hashmap(m); };

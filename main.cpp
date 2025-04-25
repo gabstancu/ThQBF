@@ -1,6 +1,7 @@
 #include <iostream>
 #include "include/QDimacsParser.hpp"
 #include "include/Data.hpp"
+#include "include/Solver.hpp"
 
 int main (int argc, char* argv[])
 {
@@ -21,7 +22,8 @@ int main (int argc, char* argv[])
     SolverData data = parser.to_solver_data();
     std::cout << "Done." << "\n";
 
-    print_map_of_sets(data.prefix);
+    Solver solver(data);
+    solver.solve();
 
     
 

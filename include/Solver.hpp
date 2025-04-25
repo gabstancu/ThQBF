@@ -8,22 +8,29 @@ class Solver
     private:
         SolverData& data;
 
-
         /* variable related */
         void assign (int varID, int value, int searchLevel);
-        void substitute_literal(int varID, int value, int searchLevel);
+        void remove_literal_from_clause(int varID, int value, int searchLevel);
         void retract_assignment (int varID, int value, int searchLevel);
+        void remove_variable (int varID, int searchLevel);
+        void restore_variable (int varID);
 
         /* clause related ??? */
+        void remove_clause(int clauseID, int searchLevel);
+        void restore_clause(int clauseID, int searchLevel);
 
         /* search related ("abstract" functions) */
         void analyze_conflict();
         void analyze_SAT();
+        void matrix_is_empty();
+        void unit_propagation();
+        void restore_level();
 
     public:
         Solver(SolverData& d);
 
         bool solve();
+        void print();
 
 };
 

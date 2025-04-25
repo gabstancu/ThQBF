@@ -53,8 +53,4 @@ void print_map_of_sets(const std::map<K, std::set<V>>& m) {
     std::cout << std::endl;
 }
 
-
-void print_clauses();
-
-
 #endif // UTILS_HPP

@@ -37,8 +37,10 @@ class Clause
         void set_assigned(int a) { assigned = a; }
         std::vector<int>& get_literals() { return literals; }
         std::vector<int>& get_state() { return state; }
-        void set_e_num(int e) { e_num = e; }
-        void set_a_num(int a) { a_num = a; }
+        void increase_e_num() { e_num++; }
+        void decrease_e_num() { e_num--; }
+        void increase_a_num() { a_num++; }
+        void decrease_a_num() { a_num--; }
 
         /* Read only access */
         size_t get_size() const { return size; }
@@ -53,10 +55,12 @@ class Clause
         bool is_learned() const { return learned; }
 
         /* other */
-        void print(std::vector<int> vec) { printVector(vec); }
+        // void print(std::vector<int> vec) { printVector(vec); }
         void print();
 
         /* extend for unit clause detection and resolution and add to .cpp */
+        bool is_empty() { return (e_num == 0 && a_num == 0); }
+        void resolve(Clause& c, int referenceVarID);
 };
 
 #endif // CLAUSE_HPP

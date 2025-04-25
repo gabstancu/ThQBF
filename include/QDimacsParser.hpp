@@ -19,6 +19,7 @@ class QDimacsParser
 
         int numVars;
         int numClauses;
+        int numBlocks;
 
         std::unordered_map<int, Variable> variables;
         std::unordered_map<int, Clause> clauses;
