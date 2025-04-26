@@ -1,6 +1,6 @@
 #include "Solver.hpp"
 
-Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED) { }
+Solver::Solver (SolverData& data): data(data), state(0), level(qbf::UNDEFINED) { }
 
 
 void Solver::assign(int varID, int value, int searchLevel)
@@ -10,16 +10,13 @@ void Solver::assign(int varID, int value, int searchLevel)
         std::cout << "variable " << varID << " is not available (level " << searchLevel << ")\n"; 
         return;
     }
-    
+
     data.Variables.at(varID).set_level(searchLevel);
     data.Variables.at(varID).assign(value);
+    data.Variables.at(varID).decrease_num_of_values();
     data.Variables.at(varID).set_availability(qbf::UNAVAILABLE);
-    data.numVars--;
-    data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail */
-
-    /* searchLevel specific */
-    std::set<int> clauses_removed;
-    std::unordered_map<int, int> appearances_removed; /* of assigned variable */
+    // data.numVars--;
+    // data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail | is being added in remove_clause */
     
     if (value) /* assign positive */
     {
@@ -28,14 +25,22 @@ void Solver::assign(int varID, int value, int searchLevel)
             and are marked as unavailable (or inactive)
         */
         if (data.Variables.at(varID).get_numPosAppear())
-        {
+        {   
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
             {   
+                if (!data.Clauses.at(clauseID).is_available()) continue;
+
+                // data.Clauses.at(clauseID).increase_assigned();
+                // data.Clauses.at(clauseID).decrease_unassigned();
                 remove_clause(clauseID, searchLevel);
-                /* ??? status checks ??? */
+                if (state == qbf::SAT)
+                {   
+                    /* ??? analyze_SAT ??? */
+                    /* ??? restore ??? */
+                    return;
+                }
             }
         }
-        
         /*
             remove varID from clauses where it appears negative
         */
@@ -43,11 +48,17 @@ void Solver::assign(int varID, int value, int searchLevel)
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
             {
+                if (!data.Clauses.at(clauseID).is_available()) continue;
+
                 remove_literal_from_clause(-varID, clauseID, positionInClause, searchLevel);
-                /* ??? status checks ??? */
+                if (state == qbf::UNSAT)
+                {   
+                    /* ??? analyze_conflict ??? */
+                    /* ??? restore ??? */
+                    return;
+                }
             }
-        }
-        
+        } 
     }
     else /* assign negative */
     {
@@ -57,9 +68,16 @@ void Solver::assign(int varID, int value, int searchLevel)
         if (data.Variables.at(varID).get_numPosAppear())
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
-            {
+            {   
+                if (!data.Clauses.at(clauseID).is_available()) continue;
+
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
-                /* ??? status checks ??? */
+                if (state == qbf::UNSAT)
+                {   
+                    /* ??? analyze_conflict ??? */
+                    /* ??? restore ??? */
+                    return;
+                }
             }
         }
         
@@ -68,11 +86,19 @@ void Solver::assign(int varID, int value, int searchLevel)
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
             {
+                if (!data.Clauses.at(clauseID).is_available()) continue;
+
+                // data.Clauses.at(clauseID).increase_assigned();
+                // data.Clauses.at(clauseID).decrease_unassigned();
                 remove_clause(clauseID, searchLevel);
-                /* ??? status checks ??? */
+                if (state == qbf::SAT)
+                {   
+                    /* ??? analyze_SAT ??? */
+                    /* ??? restore ??? */
+                    return;
+                }
             }
         }
-        
     }
 }
 
@@ -116,13 +142,15 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     else 
         data.Variables.at(std::abs(literal)).decrease_negNum();
     
-    data.Clauses.at(clauseID).decrease_unassigned(); 
-        
-    if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
-    {
-        remove_variable(std::abs(literal), searchLevel);
-        return;
-    }
+    // data.Clauses.at(clauseID).decrease_unassigned();
+    // data.Clauses.at(clauseID).increase_assigned();
+    
+    /* ??? Maybe call call check_affected_vars to check all? ??? */
+    // if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
+    // {
+    //     remove_variable(std::abs(literal), searchLevel);
+    //     return;
+    // }
 
 }
 
@@ -140,10 +168,17 @@ void Solver::remove_clause(int clauseID, int searchLevel)
 {
     if (!data.Clauses.at(clauseID).is_available()) return;
 
+    data.numClauses--;
+    if (!data.numClauses) /* check for empty matrix -> return SAT */
+    {
+        std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
+        state = qbf::SAT;
+        return;
+    }
+
     data.Clauses.at(clauseID).set_availability(qbf::UNAVAILABLE);
     data.Clauses.at(clauseID).set_level(searchLevel);
     data.Clauses_trail.at(searchLevel).insert(clauseID);
-    data.numClauses--;
 
     int literal;
     for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
@@ -167,16 +202,11 @@ void Solver::remove_clause(int clauseID, int searchLevel)
 
 void Solver::remove_variable(int varID, int searchLevel)
 {
-    /* ??? set numNeg and numPos to 0 ??? */
-    // data.Variables.at(varID).set_numNegAppear(0);
-    // data.Variables.at(varID).set_numPosAppear(0);
-
-
     /* set as unavailable to Block and do the rest */
     int blockID = data.Variables.at(varID).get_blockID();
     int positionInBlock = data.Variables.at(varID).get_block_position();
 
-    /* remove from prefix and do the checks */
+    /* remove from prefix */
     data.Blocks.at(blockID).decrease_size();
     data.Blocks.at(blockID).decrease_available_vars();
     data.Blocks.at(blockID).get_state()[positionInBlock] = qbf::UNAVAILABLE;
@@ -193,11 +223,8 @@ void Solver::remove_variable(int varID, int searchLevel)
 
 
     data.Variables.at(varID).set_level(searchLevel);
-    // data.Variables.at(varID).assign(value); /* doing this when assigning */
     data.Variables.at(varID).set_availability(qbf::UNAVAILABLE);
-    data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail */
     data.numVars--;
-
 }
 
 
@@ -217,9 +244,13 @@ void Solver::restore_variable(int varID, int searchLevel)
     data.Blocks.at(blockID).get_state()[positionInBlock] = qbf::AVAILABLE;
     data.Blocks.at(blockID).get_decision_level()[positionInBlock] = qbf::UNDEFINED;
 
+    if (data.Blocks.at(blockID).get_size() == 1)
+    {
+        data.numBlocks++;
+        data.Blocks.at(blockID).set_availability(qbf::AVAILABLE);
+    }
+
 }
-
-
 
 
 void Solver::restore_level(int searchLevel)
@@ -227,6 +258,11 @@ void Solver::restore_level(int searchLevel)
 
 }
 
+
+void Solver::check_affected_vars(int searchLevel)
+{
+    data.Variables_trail.clear();
+}
 
 
 bool Solver::solve()

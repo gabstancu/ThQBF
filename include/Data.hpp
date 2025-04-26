@@ -20,22 +20,17 @@ struct SolverData
     std::map<int, std::set<int>> prefix;
 
     /* ---------------- state --------------- */
-    int depth = 0; // seach level
+    // seach level
     // define winning clause (last clause)
     // define winning block (last block)
 
 
     /* ------------- add necessary trails and stacks ------------- */
-
-    /* 
-        clauses that were removed or mutated.
-        Whenever a clause is removed the variables'
-        appearances change
-    */
     std::unordered_map<int, std::set<int>> Clauses_trail;
-    
-    /*  */
     std::unordered_map<int, std::set<int>> Variables_trail;
+
+    // TODO: add assignments data structures
+
 };
 
 

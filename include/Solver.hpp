@@ -8,6 +8,7 @@ class Solver
     private:
         SolverData& data;
         int state;
+        int level;
         std::stack<std::pair<int, int>> VStack;
         std::stack<std::pair<int, int>> SStack;
         std::stack<std::pair<int, int>> Search_Stack;
@@ -19,6 +20,7 @@ class Solver
         void restore_level (int searchLevel);
         void remove_variable (int varID, int searchLevel);
         void restore_variable (int varID, int searchLevel);
+        void check_affected_vars(int searchLevel);
 
         /* clause related ??? */
         void remove_clause(int clauseID, int searchLevel);
