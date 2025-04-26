@@ -113,7 +113,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
         // set solver state to UNSAT
     }
 
-    /* add check for all 'a' in clause and return UNSAT */
+    /* TODO: add check for all 'a' in clause and return UNSAT */
 
     if (data.Variables.at(std::abs(literal)).is_existential())
         data.Clauses.at(clauseID).decrease_e_num();
@@ -205,11 +205,29 @@ void Solver::remove_variable(int varID, int searchLevel)
 
 void Solver::restore_variable(int varID, int searchLevel)
 {
+    data.Variables.at(varID).assign(qbf::UNASSIGNED);
+    data.Variables.at(varID).set_level(qbf::UNDEFINED);
+    data.Variables.at(varID).set_availability(qbf::AVAILABLE);
+    data.numVars++;
+
+    int blockID = data.Variables.at(varID).get_blockID();
+    int positionInBlock = data.Variables.at(varID).get_block_position();
+    
+    data.prefix.at(blockID).insert(varID);
+    data.Blocks.at(blockID).increase_size();
+    data.Blocks.at(blockID).increase_available_vars();
+    data.Blocks.at(blockID).get_state()[positionInBlock] = qbf::AVAILABLE;
+    data.Blocks.at(blockID).get_decision_level()[positionInBlock] = qbf::UNDEFINED;
 
 }
 
 
 
+
+void Solver::restore_level(int searchLevel)
+{
+
+}
 
 
 

@@ -8,5 +8,6 @@ Block::Block (char type, int blockID, std::vector<int> variables)
                available_variables(variables.size()),
                variables(variables)
 {
-
+   decision_level.resize(variables.size(), qbf::UNDEFINED);
+   state.resize(variables.size(), qbf::AVAILABLE);
 }
