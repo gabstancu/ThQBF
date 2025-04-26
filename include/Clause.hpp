@@ -60,6 +60,10 @@ class Clause
         void decrease_a_num() { a_num--; }
         void increase_size() { size++; }
         void decrease_size() { size--; }
+        void increase_assigned() { assigned++; }
+        void decrease_assigned() { assigned--; }
+        void increase_unassigned() { unassigned++; }
+        void decrease_unassigned() { unassigned++; }
 
         /* extend for unit clause detection and resolution and add to .cpp */
         bool is_empty() { return (e_num == 0 && a_num == 0); }

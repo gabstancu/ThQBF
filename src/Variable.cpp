@@ -6,6 +6,7 @@ Variable::Variable (int varID, char quantifier, int blockID, int positionInBlock
               available(qbf::AVAILABLE), 
               assignment(qbf::UNASSIGNED), 
               level(qbf::UNDEFINED), 
+              num_of_values(2),
               positionInBlock(positionInBlock),
               blockID(blockID),
               numNegAppear(0),

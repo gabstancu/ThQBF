@@ -17,6 +17,7 @@ class Variable
         bool available;
         int assignment;
         int level;
+        int num_of_values;
 
         /* block information */
         int positionInBlock;
@@ -69,6 +70,8 @@ class Variable
         void decrease_posNum() { numPosAppear--; }
         void increase_negNum() { numNegAppear++; }
         void decrease_negNum() { numNegAppear--; }
+        void increase_num_of_values() { num_of_values++; }
+        void decrease_num_of_values() { num_of_values--; }
 
         void print (std::vector<int> vec) { printVector(vec); }
         void print (std::unordered_map<int, int> m) { print_hashmap(m); };
