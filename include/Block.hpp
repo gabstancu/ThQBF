@@ -44,13 +44,18 @@ class Block
         std::vector<int>& get_decision_level() { return decision_level; }
 
         /* other */
+        void increase_size() { size++; }
+        void decrease_size() { size--; }
+        void increase_available_vars() { available_variables++; }
+        void decrease_available_vars() { available_variables--; }
+
         bool is_existential() const { return type == qbf::EXISTENTIAL; }
         bool is_universal() const { return type == qbf::UNIVERSAL; }
+        
         void print(std::vector<int> vec) { printVector(vec); }
         void print();
 
         /* extend... */
-        void remove_variable();
 };
 
 #endif // BLOCK_HPP

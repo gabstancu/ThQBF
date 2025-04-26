@@ -100,6 +100,12 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     else
         data.Clauses.at(clauseID).decrease_a_num();
 
+    if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
+    {
+        remove_variable(std::abs(literal), searchLevel);
+        return;
+    }
+
 }
 
 
@@ -120,9 +126,9 @@ void Solver::remove_clause(int clauseID, int searchLevel)
 
 void Solver::remove_variable(int varID, int searchLevel)
 {
-    /* set numNeg and numPos to 0 */
-    data.Variables.at(varID).set_numNegAppear(0);
-    data.Variables.at(varID).set_numPosAppear(0);
+    /* ??? set numNeg and numPos to 0 ??? */
+    // data.Variables.at(varID).set_numNegAppear(0);
+    // data.Variables.at(varID).set_numPosAppear(0);
 
 
     /* set as unavailable to Block and do the rest */
@@ -130,15 +136,38 @@ void Solver::remove_variable(int varID, int searchLevel)
     int positionInBlock = data.Variables.at(varID).get_block_position();
 
     /* remove from prefix and do the checks */
+    data.Blocks.at(blockID).decrease_size();
+    data.Blocks.at(blockID).decrease_available_vars();
+    data.Blocks.at(blockID).get_state()[positionInBlock] = qbf::UNAVAILABLE;
+    data.Blocks.at(blockID).get_decision_level()[positionInBlock] = searchLevel;
+
+    if (data.Blocks.at(blockID).get_available_variables() == 0)
+    {
+        data.prefix.at(blockID).erase(varID);
+        data.Blocks.at(blockID).set_availability(qbf::UNAVAILABLE);
+        data.numBlocks--;
+        
+        std::cout << "no variables left in block; removing block " << blockID << " from prefix\n";
+    }
 
 
     data.Variables.at(varID).set_level(searchLevel);
-    // data.Variables.at(varID).assign(value);
+    // data.Variables.at(varID).assign(value); /* doing this when assigning */
     data.Variables.at(varID).set_availability(qbf::UNAVAILABLE);
     data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail */
     data.numVars--;
 
 }
+
+
+void Solver::restore_variable(int varID, int searchLevel)
+{
+
+}
+
+
+
+
 
 
 bool Solver::solve()
