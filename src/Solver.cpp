@@ -154,7 +154,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
 
 }
 
-// TODO:
+// TODO: write body
 void Solver::retract_assignment(int varID, int value, int searchLevel)
 {
     /* 
@@ -252,14 +252,14 @@ void Solver::restore_variable(int varID, int searchLevel)
 
 }
 
-// TODO:
+// TODO: write body
 void Solver::restore_level(int searchLevel)
 {
 
 }
 
 
-// TODO:
+// TODO: write body
 void Solver::check_affected_vars(int searchLevel)
 {
     data.Variables_trail.clear();
