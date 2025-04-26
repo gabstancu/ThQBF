@@ -30,11 +30,12 @@ struct SolverData
     /* 
         clauses that were removed or mutated.
         Whenever a clause is removed the variables'
-        appearances 
+        appearances change
     */
     std::unordered_map<int, std::vector<int>> Clauses_trail;
     
-    std::unordered_map<int, std::unordered_map<int, int>> Variables_trail;
+    /*  */
+    std::unordered_map<int, std::set<int>> Variables_trail;
 };
 
 

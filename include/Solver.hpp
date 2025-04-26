@@ -7,10 +7,11 @@ class Solver
 {
     private:
         SolverData& data;
+        int state;
 
         /* variable related */
         void assign (int varID, int value, int searchLevel);
-        void remove_literal_from_clause(int varID, int value, int searchLevel);
+        void remove_literal_from_clause(int literal, int clauseID, int positionInClause, int searchLevel);
         void retract_assignment (int varID, int value, int searchLevel);
         void remove_variable (int varID, int searchLevel);
         void restore_variable (int varID);

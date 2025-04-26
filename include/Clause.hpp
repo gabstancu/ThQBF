@@ -37,10 +37,6 @@ class Clause
         void set_assigned(int a) { assigned = a; }
         std::vector<int>& get_literals() { return literals; }
         std::vector<int>& get_state() { return state; }
-        void increase_e_num() { e_num++; }
-        void decrease_e_num() { e_num--; }
-        void increase_a_num() { a_num++; }
-        void decrease_a_num() { a_num--; }
 
         /* Read only access */
         size_t get_size() const { return size; }
@@ -48,8 +44,8 @@ class Clause
         int get_level() const { return level; }
         int get_unassigned() const { return unassigned; }
         int get_assigned() const { return assigned; }
-        // const std::vector<int>& get_literals() const { return literals; }
-        // const std::vector<int>& get_state() const { return state; }
+        const std::vector<int>& get_literals() const { return literals; }
+        const std::vector<int>& get_state() const { return state; }
         int get_e_num() const { return e_num; }
         int get_a_num() const { return a_num; }
         bool is_learned() const { return learned; }
@@ -57,6 +53,13 @@ class Clause
         /* other */
         // void print(std::vector<int> vec) { printVector(vec); }
         void print();
+        void set_literal_state(int positionInClause, int newState) { state[positionInClause] = newState; }
+        void increase_e_num() { e_num++; }
+        void decrease_e_num() { e_num--; }
+        void increase_a_num() { a_num++; }
+        void decrease_a_num() { a_num--; }
+        void increase_size() { size++; }
+        void decrease_size() { size--; }
 
         /* extend for unit clause detection and resolution and add to .cpp */
         bool is_empty() { return (e_num == 0 && a_num == 0); }
