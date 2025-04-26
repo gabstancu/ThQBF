@@ -65,6 +65,10 @@ class Variable
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
         
+        void increase_posNum() { numPosAppear++; }
+        void decrease_posNum() { numPosAppear--; }
+        void increase_negNum() { numNegAppear++; }
+        void decrease_negNum() { numNegAppear--; }
 
         void print (std::vector<int> vec) { printVector(vec); }
         void print (std::unordered_map<int, int> m) { print_hashmap(m); };

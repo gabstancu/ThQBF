@@ -28,52 +28,67 @@ void Solver::assign(int varID, int value, int searchLevel)
             clauses where varID appears positive are satisfied 
             and are marked as unavailable (or inactive)
         */
-        for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
-        {   
-            remove_clause(clauseID, searchLevel);
-            data.numClauses--;
-            data.Clauses.at(clauseID).set_availability(false);
-            clauses_removed.insert(clauseID);
+        if (data.Variables.at(varID).get_numPosAppear())
+        {
+            for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
+            {   
+                remove_clause(clauseID, searchLevel);
+                data.numClauses--;
+                data.Clauses.at(clauseID).set_availability(false);
+                clauses_removed.insert(clauseID);
+            }
         }
-
+        
         /*
             remove varID from clauses where it appears negative
         */
-        for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
+        if (data.Variables.at(varID).get_numNegAppear())
         {
-            /* call remove_literal_from_clause() instead */
-            data.Clauses.at(clauseID).get_state()[positionInClause] = searchLevel;
+            for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
+            {
+                /* call remove_literal_from_clause() instead */
+                data.Clauses.at(clauseID).get_state()[positionInClause] = searchLevel;
 
-            if (data.Variables.at(varID).is_existential())
-                data.Clauses.at(clauseID).decrease_e_num();
-            else
-                data.Clauses.at(clauseID).decrease_a_num();
-            
+                if (data.Variables.at(varID).is_existential())
+                    data.Clauses.at(clauseID).decrease_e_num();
+                else
+                    data.Clauses.at(clauseID).decrease_a_num();
+                
+            }
         }
+        
     }
     else /* assign negative */
     {
         /*
             remove varID from clauses where it appears negative
         */
-        for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
+        if (data.Variables.at(varID).get_numPosAppear())
         {
-            /* call remove_literal_from_clause() instead */
-            data.Clauses.at(clauseID).get_state()[positionInClause] = searchLevel;
+            for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
+            {
+                /* call remove_literal_from_clause() instead */
+                data.Clauses.at(clauseID).get_state()[positionInClause] = searchLevel;
 
-            if (data.Variables.at(varID).is_existential())
-                data.Clauses.at(clauseID).decrease_e_num();
-            else
-                data.Clauses.at(clauseID).decrease_a_num();
+                if (data.Variables.at(varID).is_existential())
+                    data.Clauses.at(clauseID).decrease_e_num();
+                else
+                    data.Clauses.at(clauseID).decrease_a_num();
+            }
         }
+        
 
-        for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
+        if (data.Variables.at(varID).get_numNegAppear())
         {
-            remove_clause(clauseID, searchLevel);
-            data.numClauses--;
-            data.Clauses.at(clauseID).set_availability(false);
-            clauses_removed.insert(clauseID);
+            for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
+            {
+                remove_clause(clauseID, searchLevel);
+                data.numClauses--;
+                data.Clauses.at(clauseID).set_availability(false);
+                clauses_removed.insert(clauseID);
+            }
         }
+        
     }
 }
 
@@ -125,7 +140,30 @@ void Solver::retract_assignment(int varID, int value, int searchLevel)
 
 void Solver::remove_clause(int clauseID, int searchLevel)
 {
-    
+    if (!data.Clauses.at(clauseID).is_available()) return;
+
+    data.Clauses.at(clauseID).set_availability(qbf::UNAVAILABLE);
+    data.Clauses.at(clauseID).set_level(searchLevel);
+    data.Clauses_trail.at(searchLevel).insert(clauseID);
+    data.numClauses--;
+
+    int literal;
+    for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
+    {
+        if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE)
+        {
+            continue;
+        }
+
+        literal = data.Clauses.at(clauseID).get_literals()[i];
+
+        if (literal > 0) data.Variables.at(literal).decrease_posNum();
+        else data.Variables.at(std::abs(literal)).decrease_negNum();
+
+        data.Variables_trail.at(searchLevel).insert(std::abs(literal));
+
+        data.Clauses.at(clauseID).get_state()[i] = searchLevel;
+    }
 }
 
 
