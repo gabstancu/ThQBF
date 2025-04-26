@@ -5,6 +5,11 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED) { }
 
 void Solver::assign(int varID, int value, int searchLevel)
 {   
+    if (!data.Variables.at(varID).is_available())
+    {   
+        std::cout << "variable " << varID << " is not available (level " << searchLevel << ")\n"; 
+        return;
+    }
     /* REMOVE AT THE END */
     /* ---------- remove_variable(varID, searchLevel); ---------- */
     data.Variables.at(varID).set_level(searchLevel);
@@ -14,7 +19,7 @@ void Solver::assign(int varID, int value, int searchLevel)
     data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail */
 
     /* searchLevel specific */
-    std::vector<int> clauses_removed;
+    std::set<int> clauses_removed;
     std::unordered_map<int, int> appearances_removed; /* of assigned variable */
     
     if (value) /* assign positive */
@@ -28,7 +33,7 @@ void Solver::assign(int varID, int value, int searchLevel)
             remove_clause(clauseID, searchLevel);
             data.numClauses--;
             data.Clauses.at(clauseID).set_availability(false);
-            clauses_removed.push_back(clauseID);
+            clauses_removed.insert(clauseID);
         }
 
         /*
@@ -67,7 +72,7 @@ void Solver::assign(int varID, int value, int searchLevel)
             remove_clause(clauseID, searchLevel);
             data.numClauses--;
             data.Clauses.at(clauseID).set_availability(false);
-            clauses_removed.push_back(clauseID);
+            clauses_removed.insert(clauseID);
         }
     }
 }

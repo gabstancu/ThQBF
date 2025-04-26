@@ -32,7 +32,7 @@ struct SolverData
         Whenever a clause is removed the variables'
         appearances change
     */
-    std::unordered_map<int, std::vector<int>> Clauses_trail;
+    std::unordered_map<int, std::set<int>> Clauses_trail;
     
     /*  */
     std::unordered_map<int, std::set<int>> Variables_trail;
