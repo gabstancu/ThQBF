@@ -112,6 +112,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
         return;
     }
 
+    data.Clauses_trail.at(searchLevel).insert(clauseID);
     data.Clauses.at(clauseID).decrease_size();
     data.Clauses.at(clauseID).get_state()[positionInClause] = searchLevel;
 
@@ -252,10 +253,56 @@ void Solver::restore_variable(int varID, int searchLevel)
 
 }
 
-// TODO: write body
+
 void Solver::restore_level(int searchLevel)
 {
+    std::cout << "restoring level " << searchLevel << '\n';
+    int literal;
 
+    /* restore all clauses that were affected at searchLevel */
+    for (const auto& clauseID : data.Clauses_trail.at(searchLevel))
+    {
+        std::cout << "restoring clause " << clauseID << '\n';
+
+        data.Clauses.at(clauseID).set_level(qbf::UNDEFINED);
+
+        if (!data.Clauses.at(clauseID).is_available())
+            data.numClauses++;
+
+        /* restoring literals */
+        for (size_t i = 0 ; i < data.Clauses.at(clauseID).get_size(); i++)
+        {
+            if (data.Clauses.at(clauseID).get_state()[i] != searchLevel)
+                continue;
+            
+            literal = data.Clauses.at(clauseID).get_literals()[i];
+            data.Variables_trail.at(searchLevel).insert(std::abs(literal));
+
+            data.Clauses.at(clauseID).get_state()[i] = qbf::AVAILABLE;
+
+            if (literal > 0) 
+                data.Variables.at(std::abs(literal)).increase_posNum();
+            else 
+                data.Variables.at(std::abs(literal)).increase_negNum();
+
+
+            if (data.Variables.at(std::abs(literal)).is_existential())
+                data.Clauses.at(clauseID).increase_e_num();
+            else 
+                data.Clauses.at(clauseID).increase_a_num();
+            
+
+            data.Clauses.at(clauseID).increase_unassigned();
+        }
+    }
+
+    data.Clauses_trail.erase(searchLevel);
+
+    /* restore vars that were affected (??? by the assignment ???) */
+    for (const auto& varID : data.Variables_trail.at(searchLevel))
+    {
+        restore_variable(varID, searchLevel);
+    }
 }
 
 
