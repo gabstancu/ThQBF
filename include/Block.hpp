@@ -11,7 +11,7 @@ class Block
         char type;
         int blockID;
         size_t size;
-        bool available;
+        int available;
         int available_variables;
 
         std::vector<int> variables;
@@ -25,7 +25,7 @@ class Block
         char get_type() const { return type; }
         int get_blockID() const { return blockID; }
         size_t get_size() const { return size; }
-        bool is_available() const { return available; }
+        int is_available() const { return available; }
         int get_available_variables() const { return available_variables; }
         // const std::vector<int>& get_variables() const { return variables; }
         // const std::vector<int>& get_state() const { return state; }
@@ -36,7 +36,7 @@ class Block
         void set_type(char t) { type = t; }
         void set_blockID(int ID) { blockID = ID; }
         void set_size(size_t s) { size = s; }
-        void set_availability(bool status) { available = status; }
+        void set_availability(int status) { available = status; }
         void set_available_variables(int available_vars) { available_variables = available_vars; }
 
         std::vector<int>& get_variables() { return variables; }

@@ -5,7 +5,7 @@ Clause::Clause (const std::vector<int>& literals,
                 int level,
                 bool learned) 
         : size(literals.size()), 
-          available(true), 
+          available(qbf::AVAILABLE), 
           level(level), 
           unassigned(literals.size()), 
           assigned(0),

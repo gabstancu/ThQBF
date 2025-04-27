@@ -9,7 +9,7 @@ class Clause
 {
     private:
         size_t size; // number of literals in the clause
-        bool available; 
+        int available; 
         int level; // level at which the clause was removed
 
         int unassigned; // number of literals that have not been assigned
@@ -31,7 +31,7 @@ class Clause
         
         /* Mutators (during search) */
         void set_size(size_t s) { size = s; }
-        void set_availability(bool status) { available = status; }
+        void set_availability(int status) { available = status; }
         void set_level(int lvl) { level = lvl; }
         void set_unassigned(int u) { unassigned = u; }
         void set_assigned(int a) { assigned = a; }
@@ -40,7 +40,7 @@ class Clause
 
         /* Read only access */
         size_t get_size() const { return size; }
-        bool is_available() const { return available; }
+        int is_available() const { return available; }
         int get_level() const { return level; }
         int get_unassigned() const { return unassigned; }
         int get_assigned() const { return assigned; }

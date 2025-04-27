@@ -26,8 +26,8 @@ struct SolverData
 
 
     /* ------------- add necessary trails and stacks ------------- */
-    std::unordered_map<int, std::set<int>> Clauses_trail;
-    std::unordered_map<int, std::set<int>> Variables_trail;
+    std::unordered_map<int, std::set<int>> Clauses_trail = {};
+    std::unordered_map<int, std::set<int>> Variables_trail = {};
 
     // TODO: add assignments data structures
 

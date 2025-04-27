@@ -14,7 +14,7 @@ class Variable
         char quantifier;
 
         /* search information */
-        bool available;
+        int available;
         int assignment;
         int level;
         int num_of_values;
@@ -39,7 +39,7 @@ class Variable
         int get_varID () const { return varID; }
         bool is_existential() const { return quantifier == qbf::EXISTENTIAL; }
         bool is_universal() const { return quantifier == qbf::UNIVERSAL; }
-        bool is_available() const { return available; } 
+        int is_available() const { return available; } 
         int get_assignment () const { return assignment; }
         int get_decision_level () const { return level; }
         int get_block_position () const { return positionInBlock; }
@@ -58,7 +58,7 @@ class Variable
 
         /* Mutators (during search) */
         void set_varID (int ID) { varID = ID; }
-        void set_availability (bool status) { available = status; }
+        void set_availability (int status) { available = status; }
         void assign (int value) { assignment = value; }
         void set_level(int lvl) { level = lvl; }
         void set_numNegAppear (int n) { numNegAppear = n; }

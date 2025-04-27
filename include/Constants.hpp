@@ -4,8 +4,8 @@
 namespace qbf
 {
     /* literals/ variables */
-    constexpr bool AVAILABLE = true;
-    constexpr bool UNAVAILABLE = false;
+    constexpr int AVAILABLE = -2;
+    constexpr int UNAVAILABLE = -3;
     constexpr int PRESEARCH = -1;
 
     /* assignments */
