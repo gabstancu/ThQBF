@@ -155,7 +155,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
 
 }
 
-// TODO: write body
+// I DON'T NEED THIS
 void Solver::retract_assignment(int varID, int value, int searchLevel)
 {
     /* 
@@ -306,10 +306,16 @@ void Solver::restore_level(int searchLevel)
 }
 
 
-// TODO: write body
 void Solver::check_affected_vars(int searchLevel)
 {
-    data.Variables_trail.clear();
+    for (const auto& varID : data.Variables_trail.at(searchLevel))
+    {
+        if (data.Variables.at(varID).get_numNegAppear() == 0 && data.Variables.at(varID).get_numPosAppear() == 0)
+        {
+            remove_variable(varID, searchLevel);
+        }
+    }
+    data.Variables_trail.erase(searchLevel);
 }
 
 
