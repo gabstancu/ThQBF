@@ -12,7 +12,9 @@
 
 struct SolverData
 {
-    int numVars, numClauses, numBlocks;
+    int numVars, numClauses, numBlocks, numOfExistentialVars, numOfUniversalVars;
+
+    std::vector<int> P, S; /* sets of universal and existential variables respectively */
 
     std::unordered_map<int, Variable> Variables;
     std::unordered_map<int, Clause> Clauses;

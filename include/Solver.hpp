@@ -39,6 +39,11 @@ class Solver
         bool solve();
         void print();
 
+        void print_Clauses();
+        void print_Variables();
+        void print_Blocks();
+        void print_Prefix();
+
 };
 
 

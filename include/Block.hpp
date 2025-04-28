@@ -27,9 +27,9 @@ class Block
         size_t get_size() const { return size; }
         int is_available() const { return available; }
         int get_available_variables() const { return available_variables; }
-        // const std::vector<int>& get_variables() const { return variables; }
-        // const std::vector<int>& get_state() const { return state; }
-        // const std::vector<int>& get_decision_level() const { return decision_level; }
+        const std::vector<int>& get_variables() const { return variables; }
+        const std::vector<int>& get_state() const { return state; }
+        const std::vector<int>& get_decision_level() const { return decision_level; }
 
 
         /* mutators (during search) */

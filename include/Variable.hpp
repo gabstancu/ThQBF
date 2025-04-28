@@ -47,14 +47,14 @@ class Variable
         int get_numNegAppear () const { return numNegAppear; }
         int get_numPosAppear () const { return numPosAppear; }
 
-        // const std::unordered_map<int, int>& get_negativeOccurrences () const 
-        // { 
-        //     return negativeOccurrences;
-        // }
-        // const std::unordered_map<int, int>& get_positiveOccurrences () const 
-        // { 
-        //     return positiveOccurrences;
-        // }
+        const std::unordered_map<int, int>& get_negativeOccurrences () const 
+        { 
+            return negativeOccurrences;
+        }
+        const std::unordered_map<int, int>& get_positiveOccurrences () const 
+        { 
+            return positiveOccurrences;
+        }
 
         /* Mutators (during search) */
         void set_varID (int ID) { varID = ID; }
