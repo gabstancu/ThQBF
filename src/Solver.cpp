@@ -334,14 +334,15 @@ void Solver::print_Clauses()
         if (clause.is_available() == qbf::UNAVAILABLE)
             continue;
         
-        std::cout << "size: " << clause.get_size() << " ";
+        std::cout << "size: " << clause.get_size() << " | e_num: " << clause.get_e_num() << " a_num: " << clause.get_a_num() << " | ";
         for (size_t i = 0; i < clause.get_size(); i++)
         {   
             if (clause.get_state()[i] != qbf::AVAILABLE)
                 continue;
             std::cout << clause.get_literals()[i] << " ";
         }
-        std::cout << '\n';
+        std::cout << "unassigned " << clause.get_unassigned() << '\n';
+        // std::cout << '\n';
     }
 }
 
@@ -394,20 +395,20 @@ void Solver::print_Prefix()
 bool Solver::solve()
 {   
     std::cout << "in solve()" << '\n';
-    print_Clauses();
+    // print_Clauses();
     int varID = 1; 
     int value = 1;
     level = 1;
     assign(varID, value, level);
     print_Clauses();
-    print_Variables();
+    // print_Variables();
 
-    std::cout << data.Variables.at(varID).get_assignment() << '\n';
-    std::cout << data.Variables.at(varID).get_numNegAppear() << '\n';
-    std::cout << data.Variables.at(varID).get_numPosAppear() << '\n';
-    std::cout << "numClauses: " << data.numClauses << '\n';
-    std::cout << "state: " << state << '\n';
-    std::cout << "numVars: " << data.numVars << '\n';
+    // std::cout << data.Variables.at(varID).get_assignment() << '\n';
+    // std::cout << data.Variables.at(varID).get_numNegAppear() << '\n';
+    // std::cout << data.Variables.at(varID).get_numPosAppear() << '\n';
+    // std::cout << "numClauses: " << data.numClauses << '\n';
+    // std::cout << "state: " << state << '\n';
+    // std::cout << "numVars: " << data.numVars << '\n';
 
     // // print_hashmap(data.Variables.at(varID).get_negativeOccurrences());
     // // print_hashmap(data.Variables.at(varID).get_positiveOccurrences());

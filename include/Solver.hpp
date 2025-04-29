@@ -31,7 +31,6 @@ class Solver
         void analyze_SAT();
         void matrix_is_empty();
         void unit_propagation();
-        void restore_level();
 
     public:
         Solver(SolverData& d);

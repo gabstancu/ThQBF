@@ -105,6 +105,15 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
             variables.at(var).addOccurrence(clauseID, index, 0);
         }
 
+        if (variables.at(std::abs(literal)).is_existential())
+        {
+            clauses.at(clauseID).increase_e_num();
+        }
+        else 
+        {
+            clauses.at(clauseID).increase_a_num();
+        }
+
         index++;
     }
 }
