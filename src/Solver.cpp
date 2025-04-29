@@ -31,8 +31,8 @@ void Solver::assign(int varID, int value, int searchLevel)
             {   
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
-                // data.Clauses.at(clauseID).increase_assigned();
-                // data.Clauses.at(clauseID).decrease_unassigned();
+                data.Clauses.at(clauseID).increase_assigned();
+                data.Clauses.at(clauseID).decrease_unassigned();
                 remove_clause(clauseID, searchLevel);
                 // if (state == qbf::SAT)
                 // {   
@@ -89,8 +89,8 @@ void Solver::assign(int varID, int value, int searchLevel)
             {
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
-                // data.Clauses.at(clauseID).increase_assigned();
-                // data.Clauses.at(clauseID).decrease_unassigned();
+                data.Clauses.at(clauseID).increase_assigned();
+                data.Clauses.at(clauseID).decrease_unassigned();
                 remove_clause(clauseID, searchLevel);
                 // if (state == qbf::SAT)
                 // {   
@@ -132,14 +132,14 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     {   
         std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
         state = qbf::UNSAT;
-        return;
+        // return;
     }
 
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
         state = qbf::UNSAT;
-        return;
+        // return;
         // set solver state to UNSAT
     }
 
@@ -148,8 +148,9 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     else 
         data.Variables.at(std::abs(literal)).decrease_negNum();
     
-    // data.Clauses.at(clauseID).decrease_unassigned();
-    // data.Clauses.at(clauseID).increase_assigned();
+    /* add flag for resolution... */
+    data.Clauses.at(clauseID).decrease_unassigned();
+    data.Clauses.at(clauseID).increase_assigned();
     
     /* ??? Maybe call call check_affected_vars to check all? ??? */
     // if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
@@ -171,7 +172,7 @@ void Solver::remove_clause(int clauseID, int searchLevel)
     {
         std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
         state = qbf::SAT;
-        return;
+        // return;
     }
 
     data.Clauses.at(clauseID).set_availability(qbf::UNAVAILABLE);
@@ -334,7 +335,7 @@ void Solver::print_Clauses()
         if (clause.is_available() == qbf::UNAVAILABLE)
             continue;
         
-        std::cout << "size: " << clause.get_size() << " | e_num: " << clause.get_e_num() << " a_num: " << clause.get_a_num() << " | ";
+        std::cout << "clauseID: " << clauseID << " | size: " << clause.get_size() << " | e_num: " << clause.get_e_num() << " a_num: " << clause.get_a_num() << " | ";
         for (size_t i = 0; i < clause.get_size(); i++)
         {   
             if (clause.get_state()[i] != qbf::AVAILABLE)
@@ -397,8 +398,9 @@ bool Solver::solve()
     std::cout << "in solve()" << '\n';
     // print_Clauses();
     int varID = 1; 
-    int value = 1;
+    int value = 0;
     level = 1;
+    std::cout << "numClauses: " << data.numClauses << '\n';
     assign(varID, value, level);
     print_Clauses();
     // print_Variables();
@@ -406,7 +408,7 @@ bool Solver::solve()
     // std::cout << data.Variables.at(varID).get_assignment() << '\n';
     // std::cout << data.Variables.at(varID).get_numNegAppear() << '\n';
     // std::cout << data.Variables.at(varID).get_numPosAppear() << '\n';
-    // std::cout << "numClauses: " << data.numClauses << '\n';
+    std::cout << "numClauses: " << data.numClauses << '\n';
     // std::cout << "state: " << state << '\n';
     // std::cout << "numVars: " << data.numVars << '\n';
 

@@ -63,7 +63,7 @@ class Clause
         void increase_assigned() { assigned++; }
         void decrease_assigned() { assigned--; }
         void increase_unassigned() { unassigned++; }
-        void decrease_unassigned() { unassigned++; }
+        void decrease_unassigned() { unassigned--; }
 
         /* extend for unit clause detection and resolution and add to .cpp */
         bool is_empty() { return (e_num == 0 && a_num == 0); }
