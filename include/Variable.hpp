@@ -16,6 +16,7 @@ class Variable
         /* search information */
         int available;
         int assignment;
+        // int ante;
         int level;
         int num_of_values;
 

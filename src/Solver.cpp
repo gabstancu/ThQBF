@@ -131,7 +131,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {   
         std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        state = qbf::UNSAT;
+        // state = qbf::UNSAT;
         // return;
     }
 
@@ -139,7 +139,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
         state = qbf::UNSAT;
-        // return;
+        return;
         // set solver state to UNSAT
     }
 
@@ -172,7 +172,7 @@ void Solver::remove_clause(int clauseID, int searchLevel)
     {
         std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
         state = qbf::SAT;
-        // return;
+        return;
     }
 
     data.Clauses.at(clauseID).set_availability(qbf::UNAVAILABLE);
@@ -328,6 +328,30 @@ void Solver::check_affected_vars(int searchLevel)
 }
 
 
+
+void Solver::analyze_conflict()
+{
+    if (level == 0)
+    {   
+        std::cout << "analyze_conflict() led to searchLevel " << level << '\n';
+        state = qbf::UNSAT;
+        return;
+    }
+    // Clause c1 = find_conflicting_clause();
+    // while (!stop_criterion_met(c1))
+    // {
+    //     int literal = choose_literal(c1);
+    //     int var = std::abs(literal);
+    //     Clause ante = antecedent(var);
+    //     c1 = resolve(c1, ante, var);
+    // }
+    // add_clause_to_database(c1);
+    // back_dl = clause_asserting_level(c1);
+    // return back_dl;
+}
+
+
+
 void Solver::print_Clauses()
 {
     for (const auto& [clauseID, clause] : data.Clauses)
@@ -395,20 +419,20 @@ void Solver::print_Prefix()
 
 bool Solver::solve()
 {   
-    std::cout << "in solve()" << '\n';
+    // std::cout << "in solve()" << '\n';
+    // // print_Clauses();
+    // int varID = 1; 
+    // int value = 1;
+    // level = 1;
+    // std::cout << "numClauses: " << data.numClauses << '\n';
+    // assign(varID, value, level);
     // print_Clauses();
-    int varID = 1; 
-    int value = 0;
-    level = 1;
-    std::cout << "numClauses: " << data.numClauses << '\n';
-    assign(varID, value, level);
-    print_Clauses();
     // print_Variables();
 
     // std::cout << data.Variables.at(varID).get_assignment() << '\n';
     // std::cout << data.Variables.at(varID).get_numNegAppear() << '\n';
     // std::cout << data.Variables.at(varID).get_numPosAppear() << '\n';
-    std::cout << "numClauses: " << data.numClauses << '\n';
+    // std::cout << "numClauses: " << data.numClauses << '\n';
     // std::cout << "state: " << state << '\n';
     // std::cout << "numVars: " << data.numVars << '\n';
 
@@ -419,6 +443,9 @@ bool Solver::solve()
     // std::cout << "numClauses: " << data.numClauses << '\n';
     // std::cout << "state: " << state << '\n';
     // std::cout << "numVars: " << data.numVars << '\n';
+
+    /* "testing" analyze_conflict */
+    analyze_conflict();
 
     return state;
 }

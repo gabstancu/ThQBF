@@ -36,7 +36,7 @@ struct SolverData
 };
 
 
-/* TODO: 'add' struct for QCDCL */
+/* TODO: 'add' struct for QCDCL (to store data) */
 
 struct QCDCL
 {
@@ -44,7 +44,7 @@ struct QCDCL
 };
 
 
-/* TODO: 'add' struct for Cube Learning */
+/* TODO: 'add' struct for Cube Learning (to store data) */
 struct CubeLearning
 {
 

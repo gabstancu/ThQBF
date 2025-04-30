@@ -25,12 +25,5 @@ int main (int argc, char* argv[])
     Solver solver(data);
     solver.solve();
 
-    
-
-    /*  
-        TODO: learned clauses data base (possibly a struct) for QCDCL
-        TODO: cubes data base for Cube Learning
-    */
-
     return 0;
 }
