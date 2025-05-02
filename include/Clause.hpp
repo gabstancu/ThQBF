@@ -67,7 +67,8 @@ class Clause
 
         /* extend for unit clause detection and resolution and add to .cpp */
         bool is_empty() { return (e_num == 0 && a_num == 0); }
-        void resolve(Clause& c, int referenceVarID);
+        bool is_unit();
+        void resolve(Clause& c, int referenceVar);
 };
 
 #endif // CLAUSE_HPP

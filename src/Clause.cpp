@@ -17,3 +17,14 @@ Clause::Clause (const std::vector<int>& literals,
 {
 
 }
+
+
+bool Clause::is_unit()
+{
+  return false;
+}
+
+void Clause::resolve(Clause& c, int referenceVar)
+{
+
+}

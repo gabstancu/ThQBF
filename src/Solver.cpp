@@ -342,7 +342,7 @@ void Solver::analyze_conflict()
     // {
     //     int literal = choose_literal(c1);
     //     int var = std::abs(literal);
-    //     Clause ante = antecedent(var);
+    //     Clause ante = antecedent(var); // the clause that implied a value for var
     //     c1 = resolve(c1, ante, var);
     // }
     // add_clause_to_database(c1);
