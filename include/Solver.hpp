@@ -12,6 +12,7 @@ class Solver
         std::stack<std::pair<int, int>> VStack;
         std::stack<std::pair<int, int>> SStack;
         std::stack<std::pair<int, int>> Search_Stack;
+        std::stack<std::pair<int, int>> implied_variables; // (var, level)
 
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int literal, int clauseID, int positionInClause, int searchLevel);

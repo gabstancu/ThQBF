@@ -5,6 +5,7 @@ Variable::Variable (int varID, char quantifier, int blockID, int positionInBlock
               quantifier(quantifier),
               available(qbf::AVAILABLE), 
               assignment(qbf::UNASSIGNED), 
+              antecedent(qbf::UNDEFINED),
               level(qbf::UNDEFINED), 
               num_of_values(2),
               positionInBlock(positionInBlock),
@@ -12,7 +13,8 @@ Variable::Variable (int varID, char quantifier, int blockID, int positionInBlock
               numNegAppear(0),
               numPosAppear(0)
 {
-
+    negativeOccurrences = {};
+    positiveOccurrences = {};
 }
 
 

@@ -1,6 +1,13 @@
 #include "Solver.hpp"
 
-Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf::UNDEFINED) { }
+Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf::UNDEFINED) 
+{
+    VStack = {};
+    SStack = {};
+    Search_Stack = {};
+    implied_variables = {};
+    std::cout << "Initialized stacks...\n";
+}
 
 
 void Solver::assign(int varID, int value, int searchLevel)
@@ -131,8 +138,8 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {   
         std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        // state = qbf::UNSAT;
-        // return;
+        state = qbf::UNSAT;
+        return;
     }
 
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
@@ -140,7 +147,6 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
         state = qbf::UNSAT;
         return;
-        // set solver state to UNSAT
     }
 
     if (literal > 0) 
@@ -148,7 +154,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     else 
         data.Variables.at(std::abs(literal)).decrease_negNum();
     
-    /* add flag for resolution... */
+    /* add flag for resolution ... */
     data.Clauses.at(clauseID).decrease_unassigned();
     data.Clauses.at(clauseID).increase_assigned();
     
@@ -345,7 +351,22 @@ void Solver::analyze_conflict()
     //     Clause ante = antecedent(var); // the clause that implied a value for var
     //     c1 = resolve(c1, ante, var);
     // }
-    // add_clause_to_database(c1);
+
+    // std::size_t h = c1.compute_hash();
+    // if (ClauseHashes.find(h) == ClauseHashes.end())
+    // {
+        // std::cout << "New learned clause: \n";
+        // c1.print();
+        // data.ClauseHashes.insert(h);
+        // data.Clauses[++data.last_clause_idx] = c1;
+        // add_clause_to_database(c1); /* ??? if ??? */
+    // }
+    // else
+    // {
+    //     std::cout << "Skipping learned clause (duplicate):\n";
+    //     c1.print();
+    // }
+
     // back_dl = clause_asserting_level(c1);
     // return back_dl;
 }

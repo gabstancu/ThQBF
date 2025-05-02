@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "Variable.hpp"
 #include "Clause.hpp"
@@ -13,11 +14,12 @@
 struct SolverData
 {
     int numVars, numClauses, numBlocks, numOfExistentialVars, numOfUniversalVars;
-
+    int last_clause_idx = numClauses;
     std::vector<int> P, S; /* sets of universal and existential variables respectively */
 
     std::unordered_map<int, Variable> Variables;
     std::unordered_map<int, Clause> Clauses;
+    std::unordered_set<std::size_t> ClauseHashes; // checking for duplicate clauses
     std::unordered_map<int, Block> Blocks;
     std::map<int, std::set<int>> prefix;
 

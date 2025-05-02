@@ -65,6 +65,15 @@ class Clause
         void increase_unassigned() { unassigned++; }
         void decrease_unassigned() { unassigned--; }
 
+
+        std::size_t compute_hash() const {
+            std::size_t h = 0;
+            for (int lit : literals) {
+                h ^= std::hash<int>{}(lit) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
+        }
+
         /* extend for unit clause detection and resolution and add to .cpp */
         bool is_empty() { return (e_num == 0 && a_num == 0); }
         bool is_unit();

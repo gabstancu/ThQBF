@@ -16,7 +16,7 @@ class Variable
         /* search information */
         int available;
         int assignment;
-        // int ante;
+        int antecedent;
         int level;
         int num_of_values;
 
@@ -47,6 +47,7 @@ class Variable
         int get_blockID () const { return blockID; }
         int get_numNegAppear () const { return numNegAppear; }
         int get_numPosAppear () const { return numPosAppear; }
+        int get_antecedent_clause () { return antecedent; }
 
         const std::unordered_map<int, int>& get_negativeOccurrences () const 
         { 
@@ -66,6 +67,7 @@ class Variable
         void set_numPosAppear (int p) { numPosAppear = p; }
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
+        void set_antecedent_clause (int antecedent_clause) { antecedent = antecedent_clause; }
         
         void increase_posNum() { numPosAppear++; }
         void decrease_posNum() { numPosAppear--; }
