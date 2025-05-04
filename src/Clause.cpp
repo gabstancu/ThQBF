@@ -19,6 +19,11 @@ Clause::Clause (const std::vector<int>& literals,
 }
 
 
+void Clause::print()
+{
+  
+}
+
 bool Clause::is_unit()
 {
   return false;
@@ -26,5 +31,5 @@ bool Clause::is_unit()
 
 void Clause::resolve(Clause& c, int referenceVar)
 {
-
+  
 }

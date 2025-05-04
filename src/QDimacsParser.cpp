@@ -66,6 +66,9 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
         // std::cout << "Creating Variable(" << var << ", " << quantifier << ", " << blockID << ", " << positionInBlock << ")\n";
         variables.insert({var, Variable(var, quantifier, blockID, positionInBlock++)});
         prefix[blockID].insert(var);
+
+        if (quantifier == 'e') S.push_back(var);
+        else P.push_back(var);
     }
 
     blocks.insert({blockID, Block(quantifier, blockID, vars)});
@@ -127,6 +130,8 @@ SolverData QDimacsParser::to_solver_data() const
     data.numClauses = numClauses;
     data.last_clause_idx = numClauses;
     data.numBlocks = numBlocks;
+    data.S = S;
+    data.P = P;
     data.Variables = variables;
     data.Clauses = clauses;
     data.Blocks = blocks;

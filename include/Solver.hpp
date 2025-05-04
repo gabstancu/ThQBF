@@ -9,6 +9,7 @@ class Solver
         SolverData& data;
         int state;
         int level;
+        int conflicting_clause;
         std::stack<std::pair<int, int>> VStack;
         std::stack<std::pair<int, int>> SStack;
         std::stack<std::pair<int, int>> Search_Stack;
@@ -24,6 +25,7 @@ class Solver
 
         void remove_clause(int clauseID, int searchLevel);
         void restore_clause(int clauseID, int searchLevel);
+        bool clause_is_unit(int clauseID, int reference_varID);
 
         void analyze_conflict();
         void analyze_SAT();

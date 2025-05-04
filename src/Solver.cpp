@@ -6,6 +6,7 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf:
     SStack = {};
     Search_Stack = {};
     implied_variables = {};
+    conflicting_clause = qbf::UNDEFINED;
     std::cout << "Initialized stacks...\n";
 }
 
@@ -334,6 +335,29 @@ void Solver::check_affected_vars(int searchLevel)
 }
 
 
+bool Solver::clause_is_unit(int clauseID, int reference_varID)
+{   
+    for (int literal : data.Clauses.at(clauseID).get_literals())
+    {   
+        int var = std::abs(literal);
+
+        if (var == reference_varID) continue;
+
+        // every x \in E(C) has to be evaluated to 0
+        if (data.Variables.at(var).is_existential())
+        {
+            
+        }
+        
+        else
+        {
+
+        }
+        
+    }
+    return false;
+}
+
 
 void Solver::analyze_conflict()
 {
@@ -435,6 +459,12 @@ void Solver::print_Prefix()
         }
         std::cout << '\n';
     }
+}
+
+
+void Solver::print()
+{
+
 }
 
 
