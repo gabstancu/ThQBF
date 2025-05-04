@@ -15,8 +15,8 @@ QDimacsParser::QDimacsParser(const std::string filename)
 void QDimacsParser::parse()
 {   
     std::string line;
-    int clauseID = 0;
-    int blockID = 0;
+    int clauseID = 1;
+    int blockID = 1;
 
     while (std::getline(file, line))
     {

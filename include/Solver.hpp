@@ -25,12 +25,12 @@ class Solver
 
         void remove_clause(int clauseID, int searchLevel);
         void restore_clause(int clauseID, int searchLevel);
-        bool clause_is_unit(int clauseID, int reference_varID);
+        int clause_is_unit(int clauseID, int reference_varID);
 
         void analyze_conflict();
         void analyze_SAT();
         void matrix_is_empty();
-        void unit_propagation();
+        void imply();
         // void universal_reduction();
         // void pure_literal();
 

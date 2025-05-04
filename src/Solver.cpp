@@ -158,6 +158,23 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     /* add flag for resolution ... */
     data.Clauses.at(clauseID).decrease_unassigned();
     data.Clauses.at(clauseID).increase_assigned();
+
+    /* if e_num == 1 find position of the only existential in the clause */
+    if (data.Clauses.at(clauseID).get_e_num() == 1)
+    {
+        for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
+        {
+            if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE)
+                continue;
+            
+            int var = std::abs(data.Clauses.at(clauseID).get_literals()[i]);
+
+            if (data.Variables.at(var).is_existential())
+            {
+                data.Clauses.at(clauseID).set_unit_position(i);
+            }
+        }
+    }
     
     /* ??? Maybe call call check_affected_vars to check all? ??? */
     // if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
@@ -335,27 +352,120 @@ void Solver::check_affected_vars(int searchLevel)
 }
 
 
-bool Solver::clause_is_unit(int clauseID, int reference_varID)
+void Solver::imply()
+{
+    // unit propagation
+    for (auto [clauseID, clause] : data.Clauses)
+    {
+        if (clause.is_available() == qbf::UNAVAILABLE) continue;
+        if (clause.get_e_num() != 1) continue;
+
+        int e_position_in_clause = clause.get_unit_position();
+        int reference_varID = std::abs(clause.get_literals()[e_position_in_clause]);
+
+        int is_unit = clause_is_unit(clauseID, reference_varID);
+
+        if (is_unit)
+        {
+            std::cout << "implied var " << reference_varID << " at level " << level << '\n';
+            int unit_literal = clause.get_literals()[e_position_in_clause];
+            data.Variables.at(reference_varID).set_antecedent_clause(clauseID);
+
+            if (unit_literal > 0)
+            {
+                assign(reference_varID, 1, level);
+                // set implication stack
+                
+            }
+            else
+            {
+                assign(reference_varID, 0, level);
+                // set implication stack
+            }
+        }
+    }
+}
+
+
+int Solver::clause_is_unit(int clauseID, int reference_varID)
 {   
-    for (int literal : data.Clauses.at(clauseID).get_literals())
+    int reference_level = data.Variables.at(reference_varID).get_blockID();
+    int unit_flag = 1;
+
+    for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
     {   
+        /* we only check free literals */
+        if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE) 
+            continue;
+
+        int literal = data.Clauses.at(clauseID).get_literals()[i];
         int var = std::abs(literal);
 
         if (var == reference_varID) continue;
 
-        // every x \in E(C) has to be evaluated to 0
-        if (data.Variables.at(var).is_existential())
-        {
-            
-        }
-        
-        else
-        {
+        int universal_level = data.Variables.at(var).get_blockID();
 
+        if (universal_level < reference_level)
+        {
+            unit_flag = 0;
+            break;
         }
-        
     }
-    return false;
+
+    if (!unit_flag) return 0;
+
+    return unit_flag;
+
+    // for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
+    // {   
+
+    //     if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE) 
+    //         continue;
+        
+    //     int literal = data.Clauses.at(clauseID).get_literals()[i];
+    //     int var = std::abs(literal);
+
+    //     if (var == reference_varID) continue;
+
+    //     // every x \in E(C) has to be evaluated to 0
+    //     if (data.Variables.at(var).is_existential())
+    //     {
+    //         if (literal > 0)
+    //         {   
+    //             if (data.Variables.at(var).get_assignment() == 1)
+    //             {
+    //                 unit_flag = 0;
+    //                 break;
+    //             }
+    //         }
+    //         else
+    //         {
+    //             if (data.Variables.at(var).get_assignment() == 0)
+    //             {
+    //                 unit_flag = 0;
+    //                 break;
+    //             }
+    //         }    
+    //     }
+    //     else
+    //     {   
+    //         // check assignment of free universal literals
+    //         int universal_level = data.Variables.at(var).get_blockID();
+    //         if (universal_level < reference_level)
+    //         {
+    //             unit_flag = 0;
+    //             break;
+    //         }
+    //     }
+        
+    // }
+
+    // if (!unit_flag)
+    // {
+    //     return 0;
+    // }
+
+    // return 1;
 }
 
 

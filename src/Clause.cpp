@@ -11,6 +11,7 @@ Clause::Clause (const std::vector<int>& literals,
           assigned(0),
           literals(literals),
           state(state),
+          unit_position(qbf::UNDEFINED),
           e_num(0), 
           a_num(0),
           learned(learned)
