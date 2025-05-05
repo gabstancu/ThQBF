@@ -3,6 +3,10 @@
 #include "include/Data.hpp"
 #include "include/Solver.hpp"
 
+// TODO: seperate Tseitin clauses from matrix.
+//       During search propagate assignments 
+//       to the Tseitin "matrix" as well 
+
 int main (int argc, char* argv[])
 {
 
