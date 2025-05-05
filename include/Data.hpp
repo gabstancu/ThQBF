@@ -15,7 +15,7 @@ struct SolverData
 {
     int numVars, numClauses, numBlocks, numOfExistentialVars, numOfUniversalVars;
     int last_clause_idx;
-    std::vector<int> P, S; /* sets of universal and existential variables respectively */
+    std::set<int> P, S; /* sets of universal and existential variables respectively */
 
     std::unordered_map<int, Variable> Variables;
     std::unordered_map<int, Clause> Clauses;
@@ -23,8 +23,11 @@ struct SolverData
     std::unordered_map<int, Block> Blocks;
     std::map<int, std::set<int>> prefix;
 
-    /* ---------------- state --------------- */
-    // seach level
+    std::unordered_map<int, Variable> Tseitin_variables;
+    std::unordered_map<int, Clause> Tseitin_clauses;
+    std::unordered_map<int, Block> Tseitin_block;
+
+    /* ---------------- state ---------------- */
     // define winning clause (last clause)
     // define winning block (last block)
 

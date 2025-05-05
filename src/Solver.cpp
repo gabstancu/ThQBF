@@ -380,13 +380,13 @@ void Solver::imply()
         //     if (unit_literal > 0)
         //     {
         //         assign(reference_varID, 1, level);
-        //         // set implication stack
+        //         // add to implication stack
                 
         //     }
         //     else
         //     {
         //         assign(reference_varID, 0, level);
-        //         // set implication stack
+        //         // add to implication stack
         //     }
         // }
     }
@@ -459,7 +459,6 @@ void Solver::analyze_conflict()
     // back_dl = clause_asserting_level(c1);
     // return back_dl;
 }
-
 
 
 void Solver::print_Clauses()
@@ -563,15 +562,19 @@ bool Solver::solve()
     /* "testing" analyze_conflict */
     // analyze_conflict();
 
-    level = 1;
-    int varID = 10;
-    int value = 1;
+    // level = 1;
+    // int varID = 10;
+    // int value = 1;
     
-    std::cout << "numClauses: " << data.numClauses << '\n';
-    assign(varID, value, level);
+    // std::cout << "numClauses: " << data.numClauses << '\n';
+    // assign(varID, value, level);
     // print_Clauses();
-    // print_Variables();
-    imply();
+    print_Variables();
+    print_Blocks();
+    std::cout << data.numBlocks << '\n';
+    // imply();
+    // std::cout << data.numVars << " " << data.numClauses << '\n';
+    // std::cout << data.Variables.size() << " " << data.Clauses.size() << '\n';
 
     return state;
 }

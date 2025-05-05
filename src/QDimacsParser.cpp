@@ -19,12 +19,16 @@ void QDimacsParser::parse()
     int blockID = 1;
 
     while (std::getline(file, line))
-    {
-        if (line[0] == 'c' || line.empty()) /* comment line or empty */
+    {   
+        if (line[0] == 'c' && line[2] == '!' && line[3] == '!')
         {
+            tseitin_clause_flag = true;
             continue;
         }
-
+        if (line[0] == 'c' || line.empty()) /* comment line or empty */
+        {   
+            continue;
+        }
         if (line[0] == 'p') /* header line */
         {
             parse_header(line);
@@ -33,11 +37,11 @@ void QDimacsParser::parse()
         {
             parse_quantifier_line(line, blockID++);
         }
-        else{ /* clause line */
+        else /* clause line */
             parse_clause_line(line, clauseID++);
-        }
-        
     }
+
+    separate_rules_from_tseitin();
 }
 
 
@@ -67,8 +71,8 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
         variables.insert({var, Variable(var, quantifier, blockID, positionInBlock++)});
         prefix[blockID].insert(var);
 
-        if (quantifier == 'e') S.push_back(var);
-        else P.push_back(var);
+        if (quantifier == 'e') S.insert(var);
+        else P.insert(var);
     }
 
     blocks.insert({blockID, Block(quantifier, blockID, vars)});
@@ -93,6 +97,8 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
 
     clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
 
+    if (tseitin_clause_flag) first_tseitin_clauseID = clauseID;
+   
     int index = 0, var;
     for (int literal : literals)
     {
@@ -122,6 +128,51 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
 }
 
 
+void QDimacsParser::separate_rules_from_tseitin()
+{   
+    std::cout << "in...\n";
+    first_tseitin_varID = blocks.at(numBlocks).get_variables()[0];
+
+    std::vector<int> vars_to_remove;
+    for (auto [varID, variable] : variables)
+    {
+        if (varID >= first_tseitin_varID)
+        {
+            numVars--;
+            tseitin_variables.insert({varID, variable});
+            vars_to_remove.push_back(varID);
+            S.erase(varID);
+        }
+    }
+    for (int varID : vars_to_remove)
+    {
+        variables.erase(varID);
+    }
+
+
+    std::vector<int> clauses_to_remove;
+    for (auto [clauseID, clause] : clauses)
+    {
+        if (clauseID >= first_tseitin_clauseID)
+        {
+            numClauses--;
+            tseitin_clauses.insert({clauseID, clause});
+            clauses_to_remove.push_back(clauseID);
+        }
+    }
+    for (int clauseID : clauses_to_remove)
+    {
+        clauses.erase(clauseID);
+    }
+
+    tseitin_blockID = numBlocks;
+    tseitin_block.insert({tseitin_blockID, blocks.at(tseitin_blockID)});
+    blocks.erase(tseitin_blockID);
+    prefix.erase(tseitin_blockID);
+    numBlocks--;
+}
+
+
 SolverData QDimacsParser::to_solver_data() const
 {
     SolverData data;
@@ -133,8 +184,11 @@ SolverData QDimacsParser::to_solver_data() const
     data.S = S;
     data.P = P;
     data.Variables = variables;
+    data.Tseitin_variables = tseitin_variables;
     data.Clauses = clauses;
+    data.Tseitin_clauses = tseitin_clauses;
     data.Blocks = blocks;
+    data.Tseitin_block = tseitin_block;
     data.prefix = prefix;
 
     return data;
