@@ -155,20 +155,17 @@ void QDimacsParser::separate_rules_from_tseitin()
 
 
     // std::vector<int> clauses_to_remove;
-    // for (auto [clauseID, clause] : clauses)
-    // {
-    //     if (clauseID >= first_tseitin_clauseID)
-    //     {
-    //         numClauses--;
-    //         // tseitin_clauses.insert({clauseID, clause});
-    //         // clauses_to_remove.push_back(clauseID);
-    //         clause.set_tseitin(true);
-    //     }
-    // }
-    // for (int clauseID : clauses_to_remove)
-    // {
-    //     clauses.erase(clauseID);
-    // }
+    for (auto [clauseID, clause] : clauses)
+    {
+        if (clauseID >= first_tseitin_clauseID)
+        {
+            // numClauses--;
+            // tseitin_clauses.insert({clauseID, clause});
+            // clauses_to_remove.push_back(clauseID);
+            clause.set_tseitin(true);
+        }
+    }
+
 
     tseitin_blockID = numBlocks;
     // tseitin_block.insert({tseitin_blockID, blocks.at(tseitin_blockID)});

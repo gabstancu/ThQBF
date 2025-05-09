@@ -609,8 +609,8 @@ bool Solver::solve()
     // print_Blocks();
     // std::cout << data.numBlocks << '\n';
     // imply();
-    // std::cout << data.numVars << " " << data.numClauses << '\n';
-    // std::cout << data.Variables.size() << " " << data.Clauses.size() << '\n';
+    std::cout << data.numVars << " " << data.numClauses << '\n';
+    std::cout << data.Variables.size() << " " << data.Clauses.size() << '\n';
     // print_hashmap(data.Tseitin_variables.at(82).get_positiveOccurrences());
     return state;
 }
