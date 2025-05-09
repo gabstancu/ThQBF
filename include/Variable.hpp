@@ -27,10 +27,11 @@ class Variable
         int numNegAppear;
         // { clause : position_in_clause }
         std::unordered_map<int, int> negativeOccurrences;
+        std::unordered_map<int, int> negativeTseitinOccurrences;
 
         int numPosAppear;
         std::unordered_map<int, int> positiveOccurrences;
-
+        std::unordered_map<int, int> positiveTseitinOccurrences;
 
     public:
 

@@ -7,8 +7,8 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf:
     Search_Stack = {};
     implied_variables = {};
     candidate_unit_clauses = {};
-    conflicting_clause = qbf::UNDEFINED;
-    std::cout << "Initialized stacks...\n";
+    conflict_clause = qbf::UNDEFINED;
+    // std::cout << "Initialized stacks...\n";
 }
 
 
@@ -38,6 +38,8 @@ void Solver::assign(int varID, int value, int searchLevel)
         {   
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
             {   
+                printf("clauseID %d position in clause %d pos\n", clauseID, positionInClause);
+                printVector(data.Clauses.at(clauseID).get_literals());
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 data.Clauses.at(clauseID).increase_assigned();
@@ -57,7 +59,8 @@ void Solver::assign(int varID, int value, int searchLevel)
         if (data.Variables.at(varID).get_numNegAppear())
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
-            {
+            {   
+                printf("clauseID %d position in clause %d neg\n", clauseID, positionInClause);
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 remove_literal_from_clause(-varID, clauseID, positionInClause, searchLevel);
@@ -79,6 +82,7 @@ void Solver::assign(int varID, int value, int searchLevel)
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_positiveOccurrences())
             {   
+                printf("clauseID %d position in clause %d pos\n", clauseID, positionInClause);
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
@@ -96,6 +100,7 @@ void Solver::assign(int varID, int value, int searchLevel)
         {
             for (const auto& [clauseID, positionInClause] : data.Variables.at(varID).get_negativeOccurrences())
             {
+                printf("clauseID %d position in clause %d neg\n", clauseID, positionInClause);
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 data.Clauses.at(clauseID).increase_assigned();
@@ -112,6 +117,32 @@ void Solver::assign(int varID, int value, int searchLevel)
     }
 
     check_affected_vars(searchLevel);
+}
+
+
+void Solver::propagate_in_tseitin(int varID, int value, int searchLevel)
+{
+    std::cout << "propagating " << varID << " = " << value << " at " << searchLevel << " in tseitin clauses\n";
+
+    for (;;)
+    {
+
+    }
+}
+
+
+bool Solver::any_tseitin_true()
+{   
+    for (const auto& [varID, variable] : data.Tseitin_variables)
+    {
+        if (variable.get_assignment() == 1)
+        {
+            std::cout << "found winning strategy\nsaving winning moves\n";
+            std::cout << "winning strategy (corresponding tseitin variable): " << varID << '\n';
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -148,7 +179,7 @@ void Solver::remove_literal_from_clause(int literal, int clauseID, int positionI
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        conflicting_clause = clauseID;
+        conflict_clause = clauseID;
         state = qbf::UNSAT;
         return;
     }
@@ -555,26 +586,31 @@ bool Solver::solve()
     // // print_hashmap(data.Variables.at(varID).get_positiveOccurrences());
 
     // restore_level(level);
-    // std::cout << "numClauses: " << data.numClauses << '\n';
-    // std::cout << "state: " << state << '\n';
-    // std::cout << "numVars: " << data.numVars << '\n';
+    std::cout << "numClauses: " << data.numClauses << '\n';
+    std::cout << "state: " << state << '\n';
+    std::cout << "numVars: " << data.numVars << '\n';
+
+    // print_Clauses();
+
+    // print_Blocks();
 
     /* "testing" analyze_conflict */
     // analyze_conflict();
 
-    // level = 1;
-    // int varID = 10;
-    // int value = 1;
+    level = 1;
+    int varID = 1;
+    int value = 1;
     
     // std::cout << "numClauses: " << data.numClauses << '\n';
-    // assign(varID, value, level);
+    // print_hashmap(data.Variables.at(varID).get_positiveOccurrences());
+    assign(varID, value, level);
     // print_Clauses();
-    print_Variables();
-    print_Blocks();
-    std::cout << data.numBlocks << '\n';
+    // print_Variables();
+    // print_Blocks();
+    // std::cout << data.numBlocks << '\n';
     // imply();
     // std::cout << data.numVars << " " << data.numClauses << '\n';
     // std::cout << data.Variables.size() << " " << data.Clauses.size() << '\n';
-
+    // print_hashmap(data.Tseitin_variables.at(82).get_positiveOccurrences());
     return state;
 }
