@@ -105,7 +105,7 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
     }
    
     int index = 0, var;
-    for (int literal : literals)
+    for (int literal : clauses.at(clauseID).get_literals())
     {
         // std::cout << "literal: " << literal << " " << " variable: " << std::abs(literal) << " position: " << index << '\n';
         if (literal > 0)
@@ -155,7 +155,7 @@ void QDimacsParser::separate_rules_from_tseitin()
 
 
     // std::vector<int> clauses_to_remove;
-    for (auto [clauseID, clause] : clauses)
+    for (auto& [clauseID, clause] : clauses)
     {
         if (clauseID >= first_tseitin_clauseID)
         {
@@ -163,6 +163,7 @@ void QDimacsParser::separate_rules_from_tseitin()
             // tseitin_clauses.insert({clauseID, clause});
             // clauses_to_remove.push_back(clauseID);
             clause.set_tseitin(true);
+            // std::cout << clauseID << '\n';
         }
     }
 
@@ -192,6 +193,12 @@ SolverData QDimacsParser::to_solver_data() const
     data.Blocks = blocks;
     // data.Tseitin_block = tseitin_block;
     data.prefix = prefix;
+
+    for (const auto& [clauseID, clause] : data.Clauses) 
+    {
+        std::size_t h = clause.compute_hash();
+        data.ClauseHashes.insert(h);
+    }
 
     return data;
 }
