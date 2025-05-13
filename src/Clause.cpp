@@ -26,12 +26,15 @@ void Clause::print()
     // print literals
     printVector(literals);
     // print state
+    std::cout << "  ";
     printVector(state);
+    std::cout << "  ";
     std::cout << "level: " << level << "   ";
     std::cout << "availability: " << available << "   ";
     std::cout << "candidate unit literal position: " << unique_existential_position << "   ";
     std::cout << "learned: " << learned << "   ";
     std::cout << "tseitin: " << tseitin << "   ";
+    std::cout << '\n';
 }
 
 bool Clause::is_unit()

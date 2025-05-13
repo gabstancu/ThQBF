@@ -17,7 +17,7 @@ class Solver
         std::stack<std::pair<int, int>> SStack;
         std::stack<std::pair<int, int>> Search_Stack;
         std::stack<std::pair<int, int>> implied_variables; // (var, level)
-        std::stack<std::pair<int, int>> candidate_unit_clauses;
+        std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
 
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel);
@@ -34,7 +34,7 @@ class Solver
         void analyze_conflict();
         void analyze_SAT();
         void matrix_is_empty();
-        void imply();
+        void imply(int searchLevel);
         // void universal_reduction();
         // void pure_literal();
 

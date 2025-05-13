@@ -14,7 +14,7 @@ void printVector(const std::vector<T>& vec)
     {
         std::cout << item << " ";
     }
-    std::cout << "]\n";
+    std::cout << "]";
 }
 
 template <typename T>
@@ -51,6 +51,22 @@ void print_map_of_sets(const std::map<K, std::set<V>>& m) {
         std::cout << "}\n";
     }
     std::cout << std::endl;
+}
+
+template<typename T1, typename T2>
+void printStackOfPairsSafe(const std::stack<std::pair<T1, T2>>& original) {
+    std::stack<std::pair<T1, T2>> copy = original;
+    std::vector<std::pair<T1, T2>> elements;
+
+    while (!copy.empty()) {
+        elements.push_back(copy.top());
+        copy.pop();
+    }
+
+    // std::cout << "Stack contents (bottom to top):\n";
+    for (auto it = elements.rbegin(); it != elements.rend(); ++it) {
+        std::cout << "(" << it->first << ", " << it->second << ")\n";
+    }
 }
 
 
