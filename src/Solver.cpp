@@ -120,17 +120,6 @@ void Solver::assign(int varID, int value, int searchLevel)
 }
 
 
-void Solver::propagate_in_tseitin(int varID, int value, int searchLevel)
-{
-    std::cout << "propagating " << varID << " = " << value << " at " << searchLevel << " in tseitin clauses\n";
-
-    for (;;)
-    {
-
-    }
-}
-
-
 bool Solver::any_tseitin_true()
 {   
     for (const auto& [varID, variable] : data.Tseitin_variables)
@@ -221,6 +210,11 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
         }
     }
 
+    /* detect unit universal clauses if GAME_FLAG is 1 */
+    if (data.Clauses.at(clauseID).get_a_num() == 1 && data.Clauses.at(clauseID).get_unassigned() == 1)
+    {
+
+    }
     
     /* ??? Maybe call call check_affected_vars to check all? ??? */
     // if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
@@ -435,6 +429,12 @@ void Solver::imply(int searchLevel)
     }
 
     std::cout << "DONE implying...\n";
+}
+
+// TODO: write body
+void Solver::imply_universal_move(int searchLevel)
+{
+
 }
 
 
