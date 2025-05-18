@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "Constants.hpp"
 #include "Variable.hpp"
 #include "Block.hpp"
 #include "Clause.hpp"

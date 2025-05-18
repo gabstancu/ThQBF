@@ -49,8 +49,8 @@ class Solver
         // void universal_reduction();
         // void pure_literal();
 
-        void propagate_in_tseitin(int varID, int value, int searchLevel);
-        bool any_tseitin_true();
+        int any_a_tseitin_true();
+        int any_e_tseitin_true();
         
     public:
         Solver(SolverData& d);

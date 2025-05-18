@@ -121,7 +121,7 @@ void Solver::assign(int varID, int value, int searchLevel)
 }
 
 
-bool Solver::any_tseitin_true()
+int Solver::any_e_tseitin_true()
 {   
     for (const auto& [varID, variable] : data.Tseitin_variables)
     {
@@ -129,10 +129,20 @@ bool Solver::any_tseitin_true()
         {
             std::cout << "found winning strategy\nsaving winning moves\n";
             std::cout << "winning strategy (corresponding tseitin variable): " << varID << '\n';
-            return true;
+            return varID;
         }
     }
-    return false;
+    return -1;
+}
+
+
+int Solver::any_a_tseitin_true()
+{   
+    for (const auto& [varID, variable] : data.Tseitin_variables)
+    {
+        return varID;
+    }
+    return -1;
 }
 
 

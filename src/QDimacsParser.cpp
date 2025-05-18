@@ -167,6 +167,10 @@ void QDimacsParser::separate_rules_from_tseitin()
             clause.set_tseitin(true);
             // std::cout << clauseID << '\n';
         }
+        else
+        {
+            clause.set_rule(true);
+        }
     }
 
 
