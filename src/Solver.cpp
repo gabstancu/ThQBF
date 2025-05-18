@@ -8,6 +8,7 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf:
     implied_variables = {};
     unit_clauses = {};
     conflict_clause = qbf::UNDEFINED;
+    GAME_FLAG = qbf::UNDEFINED;
     // std::cout << "Initialized stacks...\n";
 }
 
@@ -213,7 +214,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     /* detect unit universal clauses if GAME_FLAG is 1 */
     if (data.Clauses.at(clauseID).get_a_num() == 1 && data.Clauses.at(clauseID).get_unassigned() == 1)
     {
-
+        
     }
     
     /* ??? Maybe call call check_affected_vars to check all? ??? */
@@ -582,7 +583,12 @@ void Solver::print_Prefix()
 
 void Solver::print()
 {
-
+    if (GAME_FLAG)
+        std::cout << "Mode: GAME INSTANCE\n";
+    if (!GAME_FLAG)
+        std::cout << "Mode: RANDOM INSTANCE\n";
+    
+    std::cout << "State: " << state << '\n';
 }
 
 

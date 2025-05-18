@@ -9,6 +9,8 @@ QDimacsParser::QDimacsParser(const std::string filename)
         std::cerr << "Error: Could not open file " << filename  << '\n';
         exit(1);
     }
+
+    GAME = qbf::UNDEFINED;
 }
 
 

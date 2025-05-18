@@ -21,6 +21,8 @@ class QDimacsParser
         int numClauses = 0;
         int numBlocks = 0;
 
+        int GAME;
+
         int first_tseitin_varID = 0;
         int first_tseitin_clauseID = 0;
         int tseitin_blockID = 0;
