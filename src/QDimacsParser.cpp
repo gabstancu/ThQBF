@@ -175,7 +175,11 @@ void QDimacsParser::separate_rules_from_tseitin()
 
 
     tseitin_blockID = numBlocks;
-    // tseitin_block.insert({tseitin_blockID, blocks.at(tseitin_blockID)});
+    blocks.erase(tseitin_blockID);
+    prefix.erase(tseitin_blockID);
+    numBlocks--;
+
+    tseitin_blockID = numBlocks;
     blocks.erase(tseitin_blockID);
     prefix.erase(tseitin_blockID);
     numBlocks--;

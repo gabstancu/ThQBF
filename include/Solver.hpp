@@ -13,7 +13,6 @@ class Solver
         int conflict_clause;
         bool strategy_found = false;
 
-        // TODO: configure game mode
         int GAME_FLAG;
 
         std::stack<std::pair<int, int>> VStack;
@@ -51,6 +50,7 @@ class Solver
 
         int any_a_tseitin_true();
         int any_e_tseitin_true();
+
         
     public:
         Solver(SolverData& d);
@@ -62,6 +62,12 @@ class Solver
         void print_Variables();
         void print_Blocks();
         void print_Prefix();
+
+        /* 
+            mode -> 0: for a random generated QBF instance
+            mode -> 1: for tic-tac-toe instance
+        */
+        void set_mode(int mode) { GAME_FLAG = mode; };
 
 };
 

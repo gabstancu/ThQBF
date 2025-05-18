@@ -23,7 +23,9 @@ int main (int argc, char* argv[])
     std::cout << "Done." << "\n";
 
     Solver solver(data);
-    solver.solve();
+    solver.set_mode(1);
+    solver.print();
+    // solver.solve();
 
     return 0;
 }

@@ -185,6 +185,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     //     return;
     // }
 
+    /* remove... */
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
