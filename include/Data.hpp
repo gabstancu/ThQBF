@@ -24,8 +24,10 @@ struct SolverData
     std::map<int, std::set<int>> prefix;
 
     std::unordered_map<int, Variable> Tseitin_variables;
-    std::unordered_map<int, Clause> Tseitin_clauses;
-    std::unordered_map<int, Block> Tseitin_block;
+    // std::unordered_map<int, Clause> Tseitin_clauses;
+    // std::unordered_map<int, Block> Tseitin_block;
+    std::unordered_map<int, Variable> Tseitin_E_viariables;
+    std::unordered_map<int, Variable> Tseitin_A_viariables;
 
     /* ---------------- state ---------------- */
     // define winning clause (last clause)
@@ -41,15 +43,11 @@ struct SolverData
 };
 
 
-/* TODO: 'add' struct for QCDCL (to store data) */
-
 struct QCDCL
 {
 
 };
 
-
-/* TODO: 'add' struct for Cube Learning (to store data) */
 struct CubeLearning
 {
 

@@ -9,6 +9,8 @@ QDimacsParser::QDimacsParser(const std::string filename)
         std::cerr << "Error: Could not open file " << filename  << '\n';
         exit(1);
     }
+
+    GAME = qbf::UNDEFINED;
 }
 
 
@@ -164,6 +166,10 @@ void QDimacsParser::separate_rules_from_tseitin()
             // clauses_to_remove.push_back(clauseID);
             clause.set_tseitin(true);
             // std::cout << clauseID << '\n';
+        }
+        else
+        {
+            clause.set_rule(true);
         }
     }
 

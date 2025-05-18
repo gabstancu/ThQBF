@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include "Constants.hpp"
 #include "Variable.hpp"
 #include "Block.hpp"
 #include "Clause.hpp"
@@ -20,6 +21,8 @@ class QDimacsParser
         int numVars = 0;
         int numClauses = 0;
         int numBlocks = 0;
+
+        int GAME;
 
         int first_tseitin_varID = 0;
         int first_tseitin_clauseID = 0;
