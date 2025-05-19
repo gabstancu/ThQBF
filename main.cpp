@@ -23,7 +23,7 @@ int main (int argc, char* argv[])
         std::cout << "Reading QDIMACS " << QDIMACS << "\n";
         QDimacsParser parser(QDIMACS, qbf::GAME_OFF);
         parser.parse();
-        SolverData data = parser.to_solver_data();
+        data = parser.to_solver_data();
         mode = qbf::GAME_OFF;
         std::cout << "Done." << "\n";
     }
@@ -34,7 +34,7 @@ int main (int argc, char* argv[])
         std::string A_TSEITIN_VARS = argv[3];
         QDimacsParser parser(QDIMACS, E_TSEITIN_VARS, A_TSEITIN_VARS, qbf::GAME_ON);
         parser.parse();
-        SolverData data = parser.to_solver_data();
+        data = parser.to_solver_data();
         mode = qbf::GAME_ON;
         std::cout << "Done." << "\n";
     }
@@ -42,8 +42,8 @@ int main (int argc, char* argv[])
 
     Solver solver(data);
     solver.set_mode(mode);
-    solver.print();
-    // solver.solve();
+    solver.solve();
+    solver.print_Prefix();
 
     return 0;
 }
