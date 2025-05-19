@@ -123,25 +123,25 @@ void Solver::assign(int varID, int value, int searchLevel)
 
 int Solver::any_e_tseitin_true()
 {   
-    for (const auto& [varID, variable] : data.Tseitin_variables)
-    {
-        if (variable.get_assignment() == 1)
-        {
-            std::cout << "found winning strategy\nsaving winning moves\n";
-            std::cout << "winning strategy (corresponding tseitin variable): " << varID << '\n';
-            return varID;
-        }
-    }
+    // for (const auto& [varID, variable] : data.Tseitin_variables)
+    // {
+    //     if (variable.get_assignment() == 1)
+    //     {
+    //         std::cout << "found winning strategy\nsaving winning moves\n";
+    //         std::cout << "winning strategy (corresponding tseitin variable): " << varID << '\n';
+    //         return varID;
+    //     }
+    // }
     return -1;
 }
 
 
 int Solver::any_a_tseitin_true()
 {   
-    for (const auto& [varID, variable] : data.Tseitin_variables)
-    {
-        return varID;
-    }
+    // for (const auto& [varID, variable] : data.Tseitin_variables)
+    // {
+    //     return varID;
+    // }
     return -1;
 }
 
@@ -185,6 +185,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     //     return;
     // }
 
+    /* remove... */
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';

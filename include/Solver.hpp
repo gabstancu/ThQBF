@@ -13,7 +13,6 @@ class Solver
         int conflict_clause;
         bool strategy_found = false;
 
-        // TODO: configure game mode
         int GAME_FLAG;
 
         std::stack<std::pair<int, int>> VStack;
@@ -25,8 +24,8 @@ class Solver
         std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
 
         /* universal variables (do not use for learning) */
-        std::stack<std::pair<int, int>> implied_universals;
-        std::stack<std::pair<int, int>> universal_unit_clauses;
+        std::stack<std::pair<int, int>> implied_universals; // (var, level)
+        std::stack<std::pair<int, int>> universal_unit_clauses; // (unit_clause, level)
 
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel);
@@ -51,6 +50,7 @@ class Solver
 
         int any_a_tseitin_true();
         int any_e_tseitin_true();
+
         
     public:
         Solver(SolverData& d);
@@ -62,6 +62,12 @@ class Solver
         void print_Variables();
         void print_Blocks();
         void print_Prefix();
+
+        /* 
+            mode -> 0: for a random generated QBF instance
+            mode -> 1: for tic-tac-toe instance
+        */
+        void set_mode(int mode) { GAME_FLAG = mode; };
 
 };
 

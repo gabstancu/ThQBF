@@ -19,6 +19,8 @@ namespace qbf
     /* other */
     constexpr int UNIDENTIFIED = -100;
     constexpr int UNDEFINED = -666;
+    constexpr int GAME_ON = 1;
+    constexpr int GAME_OFF = 0;
 
     /* search */
     constexpr bool SAT = true;
