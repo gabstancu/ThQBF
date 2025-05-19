@@ -225,7 +225,21 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     /* detect unit universal clauses if GAME_FLAG is 1 */
     if (data.Clauses.at(clauseID).get_a_num() == 1 && GAME_FLAG == qbf::GAME_ON)
     {
+        for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
+        {
+            if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE)
+                continue;
+            
+            int var = std::abs(data.Clauses.at(clauseID).get_literals()[i]);
 
+            if (data.Variables.at(var).is_universal() && data.Clauses.at(clauseID).is_rule())
+            {   
+                std::cout << "alaniiiii... " << clauseID << '\n';
+                universal_unit_clauses.push({clauseID, searchLevel});
+                data.Clauses.at(clauseID).set_universal_position(i);
+                break;
+            }   
+        }
     }
     
     /* ??? Maybe call call check_affected_vars to check all? ??? */
@@ -460,10 +474,31 @@ void Solver::imply(int searchLevel)
     std::cout << "DONE implying...\n";
 }
 
-// TODO: write body
+
 void Solver::imply_universal_move(int searchLevel)
 {
+    while (!universal_unit_clauses.empty())
+    {
+        int unit_clauseID = universal_unit_clauses.top().first;
+        int unit_literal_position = data.Clauses.at(unit_clauseID).get_universal_position();
+        int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
+        // printf("unit clauseID: %d | unit position: %d | literal: %d\n", unit_clauseID, unit_literal_position, unit_literal);
+        
+        if (unit_literal > 0)
+        {
+            assign(unit_literal, 1, searchLevel);
+            implied_universals.push({unit_literal, searchLevel});
+        }
+        else
+        {
+            assign(std::abs(unit_literal), 0, searchLevel);
+            implied_universals.push({std::abs(unit_literal), searchLevel});
+        }
 
+        universal_unit_clauses.pop();
+    }
+
+    std::cout << "DONE implying universal moves...\n";
 }
 
 
@@ -661,7 +696,27 @@ bool Solver::solve()
     //     cp.pop();
     // }
 
+    // std::stack<std::pair<int, int>> cp;
+    // std::cout << "unit clauses:\n";
+    // while(!universal_unit_clauses.empty())
+    // {   
+    //     cp.push(universal_unit_clauses.top());
+    //     universal_unit_clauses.pop();
+    // }
+
+    // while(!cp.empty())
+    // {   
+    //     int unit_clauseID = cp.top().first;
+    //     std::cout << "unit clause " << unit_clauseID << " level " << cp.top().second << '\n';
+    //     int unit_literal_position = data.Clauses.at(cp.top().first).get_unit_position();
+    //     int unit_literal = data.Clauses.at(cp.top().first).get_literals()[unit_literal_position];
+    //     std::cout << "unit literal " << unit_literal << '\n';
+        
+    //     cp.pop();
+    // }
+
     imply(level);
+    imply_universal_move(level);
 
     print_Clauses();
 

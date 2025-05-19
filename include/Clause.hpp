@@ -18,6 +18,7 @@ class Clause
         std::vector<int> literals;
         std::vector<int> state;
         int unique_existential_position;
+        int unique_universal_position;
 
         int e_num; // number of existential literals active
         int a_num; // number of universal literals active
@@ -41,6 +42,7 @@ class Clause
         std::vector<int>& get_literals() { return literals; }
         std::vector<int>& get_state() { return state; }
         void set_unit_position(int position) { unique_existential_position = position; }
+        void set_universal_position(int position) { unique_universal_position = position; }
         void set_tseitin(bool ts) { tseitin = ts; }
         void set_rule(bool r) { rule = r; }
 
@@ -53,6 +55,7 @@ class Clause
         const std::vector<int>& get_literals() const { return literals; }
         const std::vector<int>& get_state() const { return state; }
         int get_unit_position() const { return unique_existential_position; }
+        int get_universal_position() const { return unique_universal_position; }
         int get_e_num() const { return e_num; }
         int get_a_num() const { return a_num; }
         bool is_learned() const { return learned; }
