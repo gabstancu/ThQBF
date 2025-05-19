@@ -24,8 +24,8 @@ class Solver
         std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
 
         /* universal variables (do not use for learning) */
-        std::stack<std::pair<int, int>> implied_universals;
-        std::stack<std::pair<int, int>> universal_unit_clauses;
+        std::stack<std::pair<int, int>> implied_universals; // (var, level)
+        std::stack<std::pair<int, int>> universal_unit_clauses; // (unit_clause, level)
 
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel);

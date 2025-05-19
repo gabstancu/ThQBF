@@ -1,6 +1,6 @@
 #include "QDimacsParser.hpp"
 
-QDimacsParser::QDimacsParser(const std::string filename)
+QDimacsParser::QDimacsParser(const std::string filename, int mode) : mode(mode)
 {
     file.open(filename);
 
@@ -9,8 +9,33 @@ QDimacsParser::QDimacsParser(const std::string filename)
         std::cerr << "Error: Could not open file " << filename  << '\n';
         exit(1);
     }
+}
 
-    GAME = qbf::UNDEFINED;
+QDimacsParser::QDimacsParser(const std::string filename, 
+                             const std::string A_Tseitin_variables, 
+                             const std::string E_Tseitin_variables, 
+                             int mode) : mode(mode)
+{
+    file.open(filename);
+    if(!file)
+    {
+        std::cerr << "Error: Could not open file " << filename  << '\n';
+        exit(1);
+    }
+
+    A_Tseitin_file.open(A_Tseitin_variables);
+    if(!A_Tseitin_file)
+    {
+        std::cerr << "Error: Could not open file " << A_Tseitin_variables  << '\n';
+        exit(1);
+    }
+
+    E_Tseitin_file.open(E_Tseitin_variables);
+    if(!A_Tseitin_file)
+    {
+        std::cerr << "Error: Could not open file " << E_Tseitin_variables  << '\n';
+        exit(1);
+    }
 }
 
 
@@ -44,7 +69,16 @@ void QDimacsParser::parse()
             parse_clause_line(line, clauseID++);
     }
 
-    separate_rules_from_tseitin();
+    if (mode == qbf::GAME_ON)
+    {
+        separate_rules_from_tseitin();
+
+        /* read universal tseitin variables */
+        read_tseitin_variables(A_Tseitin_file, 'a');
+
+        /* read existential tseitin variables */
+        read_tseitin_variables(E_Tseitin_file, 'e');
+    }
 }
 
 
@@ -70,12 +104,20 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     while (iss >> var && var != 0)
     {
         vars.push_back(var);
-        // std::cout << "Creating Variable(" << var << ", " << quantifier << ", " << blockID << ", " << positionInBlock << ")\n";
+        std::cout << "Creating Variable(" << var << ", " << quantifier << ", " << blockID << ", " << positionInBlock << ")\n";
         variables.insert({var, Variable(var, quantifier, blockID, positionInBlock++)});
         prefix[blockID].insert(var);
 
-        if (quantifier == 'e') S.insert(var);
-        else P.insert(var);
+        if (quantifier == 'e') 
+        {
+            S.insert(var);
+            numOfExistentialVars++;
+        }
+        else
+        {
+            P.insert(var);
+            numOfUniversalVars++;
+        }
     }
 
     blocks.insert({blockID, Block(quantifier, blockID, vars)});
@@ -157,6 +199,7 @@ void QDimacsParser::separate_rules_from_tseitin()
 
 
     // std::vector<int> clauses_to_remove;
+
     for (auto& [clauseID, clause] : clauses)
     {
         if (clauseID >= first_tseitin_clauseID)
@@ -164,6 +207,7 @@ void QDimacsParser::separate_rules_from_tseitin()
             // numClauses--;
             // tseitin_clauses.insert({clauseID, clause});
             // clauses_to_remove.push_back(clauseID);
+            numTseitinClauses++;
             clause.set_tseitin(true);
             // std::cout << clauseID << '\n';
         }
@@ -174,10 +218,47 @@ void QDimacsParser::separate_rules_from_tseitin()
     }
 
 
-    tseitin_blockID = numBlocks;
-    blocks.erase(tseitin_blockID);
-    prefix.erase(tseitin_blockID);
-    numBlocks--;
+    // tseitin_blockID = numBlocks;
+    // blocks.erase(tseitin_blockID);
+    // prefix.erase(tseitin_blockID);
+    // numBlocks--;
+
+    // tseitin_blockID = numBlocks;
+    // blocks.erase(tseitin_blockID);
+    // prefix.erase(tseitin_blockID);
+    // numBlocks--;
+}
+
+
+void QDimacsParser::read_tseitin_variables(std::ifstream& filestream, char var_type)
+{   
+    std::string line;
+    while (std::getline(filestream, line))
+    {
+        std::istringstream iss(line);
+        int var, pos1, pos2, pos3;
+        char colon;
+
+        if (!(iss >> var >> colon >> pos1 >> pos2 >> pos3) || colon != ':')
+        {
+            std::cerr << "Error parsing line: " << line << '\n';
+            exit(1); 
+        }
+
+        if (var_type == 'e')
+        {
+            e_tseitin.insert({var, std::make_tuple(pos1, pos2, pos3)});
+            S.erase(var);
+            numOfExistentialVars--;
+        }
+        else
+        {
+            a_tseitin.insert({var, std::make_tuple(pos1, pos2, pos3)});
+            P.erase(var);
+            numOfUniversalVars--;
+        }
+        numTseitinVariables++;
+    }
 
     tseitin_blockID = numBlocks;
     blocks.erase(tseitin_blockID);
@@ -192,23 +273,30 @@ SolverData QDimacsParser::to_solver_data() const
 
     data.numVars = numVars;
     data.numClauses = numClauses;
-    data.last_clause_idx = numClauses;
     data.numBlocks = numBlocks;
+    data.numOfExistentialVars = numOfExistentialVars;
+    data.numOfUniversalVars = numOfUniversalVars;
+    data.numTseitinClauses = numTseitinClauses;
+    data.numTseitinVariables = numTseitinVariables;
+    data.last_clause_idx = numClauses;
     data.S = S;
     data.P = P;
     data.Variables = variables;
-    data.Tseitin_variables = tseitin_variables;
+    // data.Tseitin_variables = tseitin_variables;
     data.Clauses = clauses;
     // data.Tseitin_clauses = tseitin_clauses;
     data.Blocks = blocks;
     // data.Tseitin_block = tseitin_block;
     data.prefix = prefix;
+    data.a_tseitin = a_tseitin;
+    data.e_tseitin = e_tseitin;
 
     for (const auto& [clauseID, clause] : data.Clauses) 
     {
         std::size_t h = clause.compute_hash();
         data.ClauseHashes.insert(h);
     }
+
 
     return data;
 }

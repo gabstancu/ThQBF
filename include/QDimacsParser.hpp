@@ -17,12 +17,18 @@ class QDimacsParser
 {
     private:
         std::ifstream file;
+        std::ifstream A_Tseitin_file;
+        std::ifstream E_Tseitin_file;
 
         int numVars = 0;
         int numClauses = 0;
         int numBlocks = 0;
+        int numTseitinClauses = 0;
+        int numTseitinVariables = 0;
+        int numOfExistentialVars = 0;
+        int numOfUniversalVars = 0;
 
-        int GAME;
+        int mode;
 
         int first_tseitin_varID = 0;
         int first_tseitin_clauseID = 0;
@@ -32,21 +38,25 @@ class QDimacsParser
         std::set<int> P, S;
 
         std::unordered_map<int, Variable> variables;
-        std::unordered_map<int, Variable> tseitin_variables;
         std::unordered_map<int, Clause> clauses;
-        std::unordered_map<int, Clause> tseitin_clauses;
         std::unordered_map<int, Block> blocks;
-        std::unordered_map<int, Block> tseitin_block;
-
         std::map<int, std::set<int>> prefix;
+
+        std::unordered_map<int, std::tuple<int, int, int>> e_tseitin;
+        std::unordered_map<int, std::tuple<int, int, int>> a_tseitin;
 
         void parse_header(const std::string line);
         void parse_clause_line(const std::string line, int clauseID);
         void parse_quantifier_line(const std::string line, int blockID);
         void separate_rules_from_tseitin();
+        void read_tseitin_variables(std::ifstream& filestream, char var_type);
 
     public:
-        QDimacsParser(const std::string filename);
+        QDimacsParser(const std::string filename, int mode);
+        QDimacsParser(const std::string filename, 
+                      const std::string A_Tseitin_variables, 
+                      const std::string W_Tseitin_variables, 
+                      int mode);
 
         void parse();
         SolverData to_solver_data() const; // pass parsed data to solver data
@@ -55,6 +65,8 @@ class QDimacsParser
         std::unordered_map<int, Clause>& get_clauses() { return clauses; }
         std::unordered_map<int, Block>& get_blocks() { return blocks; }
         std::map<int, std::set<int>>& get_prefix() { return prefix; }
+        std::unordered_map<int, std::tuple<int, int, int>>& get_e_tseitin() { return e_tseitin; }
+        std::unordered_map<int, std::tuple<int, int, int>>& get_a_tseitin() { return a_tseitin; }
 };
 
 
