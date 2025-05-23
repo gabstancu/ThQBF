@@ -232,9 +232,9 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
             
             int var = std::abs(data.Clauses.at(clauseID).get_literals()[i]);
 
-            if (data.Variables.at(var).is_universal() && data.Clauses.at(clauseID).is_rule())
+            if (data.Variables.at(var).is_universal() && (data.Clauses.at(clauseID).is_rule() || data.Clauses.at(clauseID).is_tseitin()))
             {   
-                std::cout << "alaniiiii... " << clauseID << '\n';
+                // std::cout << "alaniiiii... " << clauseID << '\n';
                 universal_unit_clauses.push({clauseID, searchLevel});
                 data.Clauses.at(clauseID).set_universal_position(i);
                 break;
@@ -452,10 +452,17 @@ void Solver::imply(int searchLevel)
         int unit_clauseID = unit_clauses.top().first;
         int unit_literal_position = data.Clauses.at(unit_clauseID).get_unit_position();
         int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
+        int var = std::abs(unit_literal);
         // std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << '\n';
 
         if (unit_literal > 0)
-        {
+        {   
+            if (GAME_FLAG == qbf::GAME_ON && data.Variables.at(var).is_tseitin())
+            {
+                std::cout << "implying " << var << " to be true.\n";
+                std::cout << "e has found a winning strategy... SAT\n";
+                state = qbf::SAT;
+            }
             assign(unit_literal, 1, searchLevel);
             implied_variables.push({unit_literal, searchLevel});
         }
@@ -482,10 +489,17 @@ void Solver::imply_universal_move(int searchLevel)
         int unit_clauseID = universal_unit_clauses.top().first;
         int unit_literal_position = data.Clauses.at(unit_clauseID).get_universal_position();
         int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
+        int var = std::abs(unit_literal);
         // printf("unit clauseID: %d | unit position: %d | literal: %d\n", unit_clauseID, unit_literal_position, unit_literal);
         
         if (unit_literal > 0)
-        {
+        {   
+            if (data.Variables.at(var).is_tseitin())
+            {
+                std::cout << "implying " << var << " to be true.\n";
+                std::cout << "a has found a winning strategy... UNSAT\n";
+                state = qbf::UNSAT;
+            }
             assign(unit_literal, 1, searchLevel);
             implied_universals.push({unit_literal, searchLevel});
         }
@@ -671,54 +685,56 @@ bool Solver::solve()
     // std::cout << "numTseitinVars: " << data.numTseitinVariables << '\n';
     // std::cout << "numTseitinClauses: " << data.numTseitinClauses << '\n';
 
+    /* e plays {0, 0} */
     level = 1;
     int varID = 1;
     int value = 1;
-    
     assign(varID, value, level);
-    
-    // std::stack<std::pair<int, int>> cp;
-    // std::cout << "unit clauses:\n";
-    // while(!unit_clauses.empty())
-    // {   
-    //     cp.push(unit_clauses.top());
-    //     unit_clauses.pop();
-    // }
-
-    // while(!cp.empty())
-    // {   
-    //     int unit_clauseID = cp.top().first;
-    //     std::cout << "unit clause " << unit_clauseID << " level " << cp.top().second << '\n';
-    //     int unit_literal_position = data.Clauses.at(cp.top().first).get_unit_position();
-    //     int unit_literal = data.Clauses.at(cp.top().first).get_literals()[unit_literal_position];
-    //     std::cout << "unit literal " << unit_literal << '\n';
-        
-    //     cp.pop();
-    // }
-
-    // std::stack<std::pair<int, int>> cp;
-    // std::cout << "unit clauses:\n";
-    // while(!universal_unit_clauses.empty())
-    // {   
-    //     cp.push(universal_unit_clauses.top());
-    //     universal_unit_clauses.pop();
-    // }
-
-    // while(!cp.empty())
-    // {   
-    //     int unit_clauseID = cp.top().first;
-    //     std::cout << "unit clause " << unit_clauseID << " level " << cp.top().second << '\n';
-    //     int unit_literal_position = data.Clauses.at(cp.top().first).get_unit_position();
-    //     int unit_literal = data.Clauses.at(cp.top().first).get_literals()[unit_literal_position];
-    //     std::cout << "unit literal " << unit_literal << '\n';
-        
-    //     cp.pop();
-    // }
-
     imply(level);
     imply_universal_move(level);
 
-    print_Clauses();
+    // print_Clauses();
+    /* a plays {1, 3} */
+    level++;
+    varID = 14;
+    value = 1;
+    assign(varID, value, level);
+    imply(level);
+    imply_universal_move(level);
+
+    /* e plays {2, 1} */
+    level++;
+    varID = 20;
+    value = 1;
+    assign(varID, value, level);
+    imply(level);
+    imply_universal_move(level);
+
+    /* a plays {3, 4} */
+    level++;
+    varID = 32;
+    value = 1;
+    assign(varID, value, level);
+    imply(level);
+    imply_universal_move(level);
+
+    /* e plays {4, 2} */
+    level++;
+    varID = 39;
+    value = 1;
+    assign(varID, value, level);
+    imply(level);
+    imply_universal_move(level);
+
+    // level++;
+    // varID = 11;
+    // value = 1;
+    
+    // assign(varID, value, level);
+    // imply(level);
+    // imply_universal_move(level);
+
+    // print_Clauses();
 
     // printStackOfPairsSafe(implied_variables);
 
