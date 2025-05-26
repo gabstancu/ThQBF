@@ -23,7 +23,7 @@ class Solver
         std::stack<std::pair<int, int>> implied_variables; // (var, level)
         std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
 
-        /* universal variables (do not use for learning) */
+        /* universal variables (do not use for learning): game mode is on */
         std::stack<std::pair<int, int>> implied_universals; // (var, level)
         std::stack<std::pair<int, int>> universal_unit_clauses; // (unit_clause, level)
 
@@ -39,17 +39,21 @@ class Solver
         void restore_clause(int clauseID, int searchLevel);
         int clause_is_unit(int clauseID, int reference_varID);
 
-        void analyze_conflict();
+        /* clause learning: game mode off */
+        void analyze_conflict(); // entry point
+        std::set<int> resolution_gen_clause(); // build learned clause
+        void choose_literal(); // pick most recently implied literal
+        void resolve(); // resolve with respect to the pivot variable
+        int stop_criterion_met(); // 
+        void clause_asserting_level(); // returns the backtracking level (the clause becomes unit at that level)
+
         void analyze_SAT();
         void matrix_is_empty();
         void imply(int searchLevel);
 
-        void imply_universal_move(int searchLevel);
+        void imply_universal_move(int searchLevel); /* only if game mode is on */
         // void universal_reduction();
         // void pure_literal();
-
-        int any_a_tseitin_true();
-        int any_e_tseitin_true();
 
         
     public:
@@ -65,7 +69,7 @@ class Solver
 
         /* 
             mode -> 0: for a random generated QBF instance
-            mode -> 1: for tic-tac-toe instance
+            mode -> 1: for a tic-tac-toe instance
         */
         void set_mode(int mode) { GAME_FLAG = mode; };
 

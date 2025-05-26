@@ -121,31 +121,6 @@ void Solver::assign(int varID, int value, int searchLevel)
 }
 
 
-int Solver::any_e_tseitin_true()
-{   
-    // for (const auto& [varID, variable] : data.Tseitin_variables)
-    // {
-    //     if (variable.get_assignment() == 1)
-    //     {
-    //         std::cout << "found winning strategy\nsaving winning moves\n";
-    //         std::cout << "winning strategy (corresponding tseitin variable): " << varID << '\n';
-    //         return varID;
-    //     }
-    // }
-    return -1;
-}
-
-
-int Solver::any_a_tseitin_true()
-{   
-    // for (const auto& [varID, variable] : data.Tseitin_variables)
-    // {
-    //     return varID;
-    // }
-    return -1;
-}
-
-
 void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel)
 {      
 
@@ -453,7 +428,7 @@ void Solver::imply(int searchLevel)
         int unit_literal_position = data.Clauses.at(unit_clauseID).get_unit_position();
         int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
         int var = std::abs(unit_literal);
-        // std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << '\n';
+        std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << '\n';
 
         if (unit_literal > 0)
         {   
@@ -569,7 +544,8 @@ void Solver::analyze_conflict()
         state = qbf::UNSAT;
         return;
     }
-    // Clause c1 = find_conflicting_clause();
+    int currentDecisionLevel = level;
+    Clause c1 = data.Clauses.at(conflict_clause);
     // while (!stop_criterion_met(c1))
     // {
     //     int literal = choose_literal(c1);
@@ -679,52 +655,53 @@ void Solver::print()
 
 bool Solver::solve()
 {   
-    // std::cout << "numClauses: " << data.numClauses << '\n';
-    // std::cout << "state: " << state << '\n';
-    // std::cout << "numVars: " << data.numVars << '\n';
+    std::cout << "numClauses: " << data.numClauses << '\n';
+    std::cout << "state: " << state << '\n';
+    std::cout << "numVars: " << data.numVars << '\n';
+    print_Clauses();
     // std::cout << "numTseitinVars: " << data.numTseitinVariables << '\n';
     // std::cout << "numTseitinClauses: " << data.numTseitinClauses << '\n';
 
     /* e plays {0, 0} */
-    level = 1;
-    int varID = 1;
-    int value = 1;
-    assign(varID, value, level);
-    imply(level);
-    imply_universal_move(level);
+    // level = 1;
+    // int varID = 1;
+    // int value = 1;
+    // assign(varID, value, level);
+    // imply(level);
+    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
 
-    // print_Clauses();
-    /* a plays {1, 3} */
-    level++;
-    varID = 14;
-    value = 1;
-    assign(varID, value, level);
-    imply(level);
-    imply_universal_move(level);
+    // // print_Clauses();
+    // /* a plays {1, 3} */
+    // level++;
+    // varID = 14;ß
+    // value = 1;
+    // assign(varID, value, level);
+    // imply(level);
+    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
 
-    /* e plays {2, 1} */
-    level++;
-    varID = 20;
-    value = 1;
-    assign(varID, value, level);
-    imply(level);
-    imply_universal_move(level);
+    // /* e plays {2, 1} */
+    // level++;
+    // varID = 20;
+    // value = 1;
+    // assign(varID, value, level);
+    // imply(level);
+    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
 
-    /* a plays {3, 4} */
-    level++;
-    varID = 32;
-    value = 1;
-    assign(varID, value, level);
-    imply(level);
-    imply_universal_move(level);
+    // /* a plays {3, 4} */
+    // level++;
+    // varID = 32;
+    // value = 1;
+    // assign(varID, value, level);
+    // imply(level);
+    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
 
-    /* e plays {4, 2} */
-    level++;
-    varID = 39;
-    value = 1;
-    assign(varID, value, level);
-    imply(level);
-    imply_universal_move(level);
+    // /* e plays {4, 2} */
+    // level++;
+    // varID = 39;
+    // value = 1;
+    // assign(varID, value, level);
+    // imply(level);
+    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
 
     // level++;
     // varID = 11;
