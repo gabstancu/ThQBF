@@ -542,6 +542,39 @@ int Solver::clause_is_unit(int clauseID, int reference_varID)
 }
 
 
+std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<int> c2, int pivot_variable)
+{
+    std::unordered_map<int, int> new_clause = {}; // literal, sign (1: positive, 0: negative)
+
+    for (int literal : c1)
+    {   
+        if (std::abs(literal) == pivot_variable) continue;
+        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 0});
+    }
+
+    for (int literal : c2)
+    {
+        if (std::abs(literal) == pivot_variable) continue;
+        if (new_clause.find(literal) != new_clause.end()) continue; /* already in clause */
+        
+        /* check for opposite existential */
+        if (data.Variables.at(std::abs(literal)).is_existential())
+        {
+            if (new_clause.find(-literal) != new_clause.end()) /* opposite of literal is in, eliminate */
+            {
+                new_clause.erase(literal);
+                continue;
+            }
+        }
+
+        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 0}); /* add literal to clause */
+    }
+
+
+    return new_clause;
+}
+
+
 void Solver::analyze_conflict()
 {
     if (level == 0)
@@ -793,35 +826,11 @@ bool Solver::solve()
     /* get antecedent */
     int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
     std::vector<int> antecedent = data.Clauses.at(antecedent_clause).get_literals();
+    printVector(antecedent, true);
 
     /* perform resolution */
-    std::unordered_map<int, int> new_clause = {}; // literal, sign (1: positive, 0: negative)
-    for (int literal : cl)
-    {   
-        if (std::abs(literal) == pivot_var) continue;
-        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 1});
-    }
-
-    for (int literal : antecedent)
-    {
-        if (std::abs(literal) == pivot_var) continue;
-        if (new_clause.find(literal) != new_clause.end()) continue; /* literal already in clause */
-        
-        /* check for opposite existential */
-        if (data.Variables.at(std::abs(literal)).is_existential())
-        {
-            if (new_clause.find(-literal) != new_clause.end()) /* opposite of literal is in clause, eliminate */
-            {
-                
-            }
-
-            continue;
-        }
-
-        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 1});
-        
-    }
-
+    std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
+    
 
 
 

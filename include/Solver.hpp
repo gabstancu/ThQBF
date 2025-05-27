@@ -43,9 +43,8 @@ class Solver
 
         /* clause learning: game mode off */
         void analyze_conflict(); // entry point
-        std::set<int> resolution_gen_clause(); // build learned clause
         void choose_literal(); // pick most recently implied literal
-        void resolve(); // resolve with respect to the pivot variable
+         std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
         int stop_criterion_met(); // 
         void clause_asserting_level(); // returns the backtracking level (the clause becomes unit at that level)
 
