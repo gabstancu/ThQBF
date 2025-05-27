@@ -30,13 +30,12 @@ struct SolverData
     // std::unordered_map<int, Variable> Tseitin_variables;
     // std::unordered_map<int, Clause> Tseitin_clauses;
     // std::unordered_map<int, Block> Tseitin_block;
-    std::unordered_map<int, std::tuple<int, int, int>> e_tseitin;
-    std::unordered_map<int, std::tuple<int, int, int>> a_tseitin;
+    std::unordered_map<int, std::tuple<int, int, int>> e_tseitin; // {varID : (pos1, pos2, pos3)}
+    std::unordered_map<int, std::tuple<int, int, int>> a_tseitin; // {varID : (pos1, pos2, pos3)}
 
+    /* search related */
     std::unordered_map<int, std::set<int>> Clauses_trail = {};
     std::unordered_map<int, std::set<int>> Variables_trail = {};
-
-
     std::map<int, int> A; /* final branch assignments */
     std::map<int, int> A_; /* in loop assignments */
     std::vector<std::map<int, int>> T;

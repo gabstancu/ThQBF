@@ -20,6 +20,7 @@ class Variable
         int antecedent;
         int level;
         int num_of_values;
+        bool implied = false;
 
         /* block information */
         int positionInBlock;
@@ -42,6 +43,7 @@ class Variable
         int get_varID () const { return varID; }
         bool is_existential() const { return quantifier == qbf::EXISTENTIAL; }
         bool is_universal() const { return quantifier == qbf::UNIVERSAL; }
+        bool is_implied() const { return implied; }
         int is_available() const { return available; } 
         int get_assignment () const { return assignment; }
         int get_decision_level () const { return level; }
@@ -72,6 +74,7 @@ class Variable
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
         void set_antecedent_clause (int antecedent_clause) { antecedent = antecedent_clause; }
+        void set_implied (bool is_implied) { implied = is_implied; }
         
         void increase_posNum() { numPosAppear++; }
         void decrease_posNum() { numPosAppear--; }

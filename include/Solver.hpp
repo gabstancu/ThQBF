@@ -15,9 +15,10 @@ class Solver
 
         int GAME_FLAG;
 
-        std::stack<std::pair<int, int>> VStack;
-        std::stack<std::pair<int, int>> SStack;
-        std::stack<std::pair<int, int>> Search_Stack;
+        std::stack<std::pair<int, int>> PStack; // { decision_a_var: decision_level }
+        std::stack<std::pair<int, int>> SStack; // { decision_e_var: decision_level }
+        std::stack<std::pair<int, int>> Search_Stack; // {decision_var: decision_level}
+        std::unordered_map<int, int> decision_variable_at; // { level: decision_variable}
 
         /* existential variables (use for learning) */
         std::stack<std::pair<int, int>> implied_variables; // (var, level)

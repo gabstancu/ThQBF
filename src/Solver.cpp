@@ -2,7 +2,7 @@
 
 Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf::UNDEFINED) 
 {
-    VStack = {};
+    PStack = {};
     SStack = {};
     Search_Stack = {};
     implied_variables = {};
@@ -24,6 +24,8 @@ void Solver::assign(int varID, int value, int searchLevel)
         return;
     }
     std::cout << "assigning variable " << varID << " to " << value << " at level " << searchLevel << '\n';
+    if (!data.Variables.at(varID).is_implied())
+        decision_variable_at[searchLevel] = varID;
 
     data.Variables.at(varID).set_level(searchLevel);
     data.Variables.at(varID).assign(value);
@@ -434,6 +436,9 @@ void Solver::imply(int searchLevel)
             continue;
         }
         std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << " in clause " << unit_clauseID <<'\n';
+        
+        data.Variables.at(std::abs(unit_literal)).set_implied(true);
+        data.Variables.at(std::abs(unit_literal)).set_antecedent_clause(unit_clauseID);
 
         if (unit_literal > 0)
         {   
@@ -451,9 +456,6 @@ void Solver::imply(int searchLevel)
             assign(std::abs(unit_literal), 0, searchLevel);
             implied_variables.push({std::abs(unit_literal), searchLevel});
         }
-
-        /* set antecedent */
-        data.Variables.at(std::abs(unit_literal)).set_antecedent_clause(unit_clauseID);
         
         unit_clauses.pop();
     }
@@ -551,7 +553,7 @@ bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
         the current decision level). Suppose this variable is V.
     */
 
-    int V = -1, highest_decision_level = -1;
+    int V = -1, highest_decision_level = 0;
     std::pair<int, int> p;
     std::unordered_map<int, std::pair<int, int>> levels = {}; /* { descision_level: (appearances, V) } */
     
