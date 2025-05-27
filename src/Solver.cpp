@@ -580,9 +580,42 @@ bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
     if (levels[highest_decision_level].first > 1)
         return false;
     
+    /*  
+                        2nd condition
+        V is in a decision level with an existential variable as the decision variable.
+    */
     
+    int decision_var = decision_variable_at[highest_decision_level];
+    if (!data.Variables.at(decision_var).is_existential())
+        return false;
 
 
+
+    /*
+                         3rd condition
+        All universal literals with quantification level smaller than V’s are 
+        assigned 0 before decision level of V’s.
+    */    
+    int V_quant_level = data.Variables.at(V).get_blockID();
+    for (int literal : c1)
+    {
+        if (data.Variables.at(std::abs(literal)).is_existential())
+            continue;
+        
+        int var = std::abs(literal);
+        int var_quant_level = data.Variables.at(var).get_blockID();
+
+        if (var_quant_level > V_quant_level) continue;
+
+        /* 
+            only checking universal variables with quantification 
+            level smaller than V's
+        */
+        if (!data.Variables.at(var).is_available())
+            continue;
+        else
+            return false;
+    }
 
     return true;
 }
