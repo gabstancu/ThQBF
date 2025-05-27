@@ -36,19 +36,23 @@ struct SolverData
     std::unordered_map<int, std::set<int>> Clauses_trail = {};
     std::unordered_map<int, std::set<int>> Variables_trail = {};
 
-    // TODO: add assignments data structures
+
+    std::map<int, int> A; /* final branch assignments */
+    std::map<int, int> A_; /* in loop assignments */
+    std::vector<std::map<int, int>> T;
+
 
 };
 
 
 struct QCDCL
 {
-
+    std::unordered_map<int, int> learned_clauses; // {clauseID, level}
 };
 
 struct CubeLearning
 {
-
+    
 };
 
 

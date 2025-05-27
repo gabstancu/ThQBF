@@ -47,6 +47,7 @@ class Solver
         int stop_criterion_met(); // 
         void clause_asserting_level(); // returns the backtracking level (the clause becomes unit at that level)
 
+        /* cube learning */
         void analyze_SAT();
         void matrix_is_empty();
         void imply(int searchLevel);
