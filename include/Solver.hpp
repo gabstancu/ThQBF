@@ -10,7 +10,7 @@ class Solver
         
         int state;
         int level;
-        int conflict_clause;
+        int conflicting_clause;
         bool strategy_found = false;
 
         int GAME_FLAG;
@@ -22,6 +22,8 @@ class Solver
         /* existential variables (use for learning) */
         std::stack<std::pair<int, int>> implied_variables; // (var, level)
         std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
+
+        std::set<int> conflicting_clauses; // (conlicting_clause, level)
 
         /* universal variables (do not use for learning): game mode is on */
         std::stack<std::pair<int, int>> implied_universals; // (var, level)

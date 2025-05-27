@@ -80,7 +80,6 @@ class Variable
         void increase_num_of_values() { num_of_values++; }
         void decrease_num_of_values() { num_of_values--; }
 
-        void print (std::vector<int> vec) { printVector(vec); }
         void print (std::unordered_map<int, int> m) { print_hashmap(m); };
         
         void addOccurrence (int clauseID, int position, bool positive);

@@ -7,10 +7,11 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf:
     Search_Stack = {};
     implied_variables = {};
     unit_clauses = {};
-    conflict_clause = qbf::UNDEFINED;
+    conflicting_clause = qbf::UNDEFINED;
+    conflicting_clauses = {};
     GAME_FLAG = qbf::UNDEFINED;
     level = qbf::PRESEARCH;
-    // std::cout << "Initialized stacks...\n";
+    std::cout << "Initialized stacks...\n";
 }
 
 
@@ -162,7 +163,8 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {   
         std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        conflict_clause = clauseID;
+        conflicting_clause = clauseID;
+        conflicting_clauses.insert(conflicting_clause);
         state = qbf::UNSAT;
         // return;
     }
@@ -170,7 +172,8 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        conflict_clause = clauseID;
+        conflicting_clause = clauseID;
+        conflicting_clauses.insert(conflicting_clause);
         state = qbf::UNSAT;
         // return;
     }
@@ -548,7 +551,7 @@ void Solver::analyze_conflict()
         return;
     }
     int currentDecisionLevel = level;
-    Clause c1 = data.Clauses.at(conflict_clause);
+    Clause c1 = data.Clauses.at(conflicting_clause);
     // while (!stop_criterion_met(c1))
     // {
     //     int literal = choose_literal(c1);
@@ -726,30 +729,38 @@ bool Solver::solve()
     // if (state == qbf::UNSAT)
     //     restore_level(level);
 
-    std::cout << conflict_clause << '\n';
+    std::cout << conflicting_clause << '\n';
 
     level = 1;
     assign(1, 0, level);
     imply(level);
     std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflict_clause << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+    print_Clauses();
+
+    level++;
+    assign(3, 0, level);
+    imply(level);
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
     print_Clauses();
 
     level++;
     assign(4, 0, level);
     imply(level);
     std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflict_clause << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
     print_Clauses();
 
     level++;
     assign(6, 0, level);
     imply(level);
     std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflict_clause << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
     print_Clauses();
 
-    for (int literal : data.Clauses.at(conflict_clause).get_literals())
+    
+    for (int literal : data.Clauses.at(conflicting_clause).get_literals())
     {
         std::cout << literal << ": ";
         int variable = std::abs(literal);
@@ -763,8 +774,58 @@ bool Solver::solve()
 
     // top of implication stack
     std::cout << implied_variables.top().first << " " << implied_variables.top().second << '\n';
-   
     
+    
+    /* find conflict clause */
+    int clause_falsidied = conflicting_clause; 
+    std::vector<int> cl = data.Clauses.at(clause_falsidied).get_literals();
+
+    /* find most recently implied literal */
+    printVector(data.Clauses.at(clause_falsidied).get_literals(), true);
+    int pivot_literal = implied_variables.top().first;
+    int pivot_var = (pivot_literal > 0) ? pivot_literal : std::abs(pivot_literal);
+    int pivot_literal_position;
+    if (pivot_literal > 0)
+        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsidied, true);
+    else
+        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsidied, false); 
+    
+    /* get antecedent */
+    int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
+    std::vector<int> antecedent = data.Clauses.at(antecedent_clause).get_literals();
+
+    /* perform resolution */
+    std::unordered_map<int, int> new_clause = {}; // literal, sign (1: positive, 0: negative)
+    for (int literal : cl)
+    {   
+        if (std::abs(literal) == pivot_var) continue;
+        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 1});
+    }
+
+    for (int literal : antecedent)
+    {
+        if (std::abs(literal) == pivot_var) continue;
+        if (new_clause.find(literal) != new_clause.end()) continue; /* literal already in clause */
+        
+        /* check for opposite existential */
+        if (data.Variables.at(std::abs(literal)).is_existential())
+        {
+            if (new_clause.find(-literal) != new_clause.end()) /* opposite of literal is in clause, eliminate */
+            {
+                
+            }
+
+            continue;
+        }
+
+        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 1});
+        
+    }
+
+
+
+
+    printSet(conflicting_clauses);
 
     return state;
 }

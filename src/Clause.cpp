@@ -24,10 +24,10 @@ Clause::Clause (const std::vector<int>& literals,
 void Clause::print()
 {
     // print literals
-    printVector(literals);
+    printVector(literals, false);
     // print state
     std::cout << "  ";
-    printVector(state);
+    printVector(state, false);
     std::cout << "  ";
     std::cout << "level: " << level << "   ";
     std::cout << "availability: " << available << "   ";

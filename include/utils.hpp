@@ -7,7 +7,7 @@
 #include <set>
 
 template <typename T>
-void printVector(const std::vector<T>& vec) 
+void printVector(const std::vector<T>& vec, bool new_line) 
 {
     std::cout << "[ ";
     for (const auto& item : vec) 
@@ -15,6 +15,8 @@ void printVector(const std::vector<T>& vec)
         std::cout << item << " ";
     }
     std::cout << "]";
+    if (new_line)
+        std::cout << '\n';
 }
 
 template <typename T>
@@ -31,6 +33,18 @@ void print2DVector(const std::vector<std::vector<T>>& matrix)
         std::cout << "]\n";
     }
     std::cout << "]\n";
+}
+
+template <typename T>
+void printSet(const std::set<T>& s, const std::string& label = "") {
+    if (!label.empty()) {
+        std::cout << label << ": ";
+    }
+    std::cout << "{ ";
+    for (const auto& elem : s) {
+        std::cout << elem << " ";
+    }
+    std::cout << "}\n";
 }
 
 template<typename K, typename V>
