@@ -9,6 +9,7 @@ Solver::Solver (SolverData& data): data(data), state(qbf::UNDEFINED), level(qbf:
     unit_clauses = {};
     conflict_clause = qbf::UNDEFINED;
     GAME_FLAG = qbf::UNDEFINED;
+    level = qbf::PRESEARCH;
     // std::cout << "Initialized stacks...\n";
 }
 
@@ -21,6 +22,7 @@ void Solver::assign(int varID, int value, int searchLevel)
         // std::cout << "variable " << varID << " is not available (level " << searchLevel << ")\n"; 
         return;
     }
+    std::cout << "assigning variable " << varID << " to " << value << " at level " << searchLevel << '\n';
 
     data.Variables.at(varID).set_level(searchLevel);
     data.Variables.at(varID).assign(value);
@@ -50,7 +52,7 @@ void Solver::assign(int varID, int value, int searchLevel)
                 {   
                     /* ??? analyze_SAT ??? */
                     /* ??? restore ??? */
-                    return;
+                    // return;
                 }
             }
         }
@@ -69,7 +71,7 @@ void Solver::assign(int varID, int value, int searchLevel)
                 {   
                     /* ??? analyze_conflict ??? */
                     /* ??? restore ??? */
-                    return;
+                    // return;
                 }
             }
         } 
@@ -91,7 +93,7 @@ void Solver::assign(int varID, int value, int searchLevel)
                 {   
                     /* ??? analyze_conflict ??? */
                     /* ??? restore ??? */
-                    return;
+                    // return;
                 }
             }
         }
@@ -151,27 +153,27 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     else
         data.Clauses.at(clauseID).decrease_a_num();
     
-    
-    // if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
-    // {   
-    //     std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
-    //     conflicting_clause = clauseID;
-    //     state = qbf::UNSAT;
-    //     return;
-    // }
 
-    /* remove... */
+    /* add flag for resolution ... */
+    data.Clauses.at(clauseID).decrease_unassigned();
+    data.Clauses.at(clauseID).increase_assigned();
+
+    /* UNSAT checks */
+    if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
+    {   
+        std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
+        conflict_clause = clauseID;
+        state = qbf::UNSAT;
+        // return;
+    }
+
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
         std::cout << "empty clause " << clauseID << " " << "at level " << searchLevel << '\n';
         conflict_clause = clauseID;
         state = qbf::UNSAT;
-        return;
+        // return;
     }
-    
-    /* add flag for resolution ... */
-    data.Clauses.at(clauseID).decrease_unassigned();
-    data.Clauses.at(clauseID).increase_assigned();
 
     /* if e_num == 1 find position of the only existential in the clause */
     if (data.Clauses.at(clauseID).get_e_num() == 1)
@@ -217,12 +219,6 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
         }
     }
     
-    /* ??? Maybe call call check_affected_vars to check all? ??? */
-    // if (data.Variables.at(std::abs(literal)).get_numNegAppear() == 0 && data.Variables.at(std::abs(literal)).get_numPosAppear() == 0)
-    // {
-    //     remove_variable(std::abs(literal), searchLevel);
-    //     return;
-    // }
 }
 
 
@@ -428,7 +424,13 @@ void Solver::imply(int searchLevel)
         int unit_literal_position = data.Clauses.at(unit_clauseID).get_unit_position();
         int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
         int var = std::abs(unit_literal);
-        std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << '\n';
+        if (data.Variables.at(var).get_antecedent_clause() != qbf::UNDEFINED)
+        {
+            // std::cout << "literal implied at " << data.Variables.at(var).get_decision_level() << '\n';
+            unit_clauses.pop();
+            continue;
+        }
+        std::cout << "implying unit literal " << unit_literal << " at level " << searchLevel << " in clause " << unit_clauseID <<'\n';
 
         if (unit_literal > 0)
         {   
@@ -442,7 +444,7 @@ void Solver::imply(int searchLevel)
             implied_variables.push({unit_literal, searchLevel});
         }
         else
-        {
+        {   
             assign(std::abs(unit_literal), 0, searchLevel);
             implied_variables.push({std::abs(unit_literal), searchLevel});
         }
@@ -454,6 +456,7 @@ void Solver::imply(int searchLevel)
     }
 
     std::cout << "DONE implying...\n";
+    printStackOfPairsSafe(implied_variables);
 }
 
 
@@ -540,7 +543,7 @@ void Solver::analyze_conflict()
 {
     if (level == 0)
     {   
-        std::cout << "analyze_conflict() led to searchLevel " << level << '\n';
+        std::cout << "analyze_conflict() led to root (" << level << ")" << '\n';
         state = qbf::UNSAT;
         return;
     }
@@ -723,6 +726,45 @@ bool Solver::solve()
     // if (state == qbf::UNSAT)
     //     restore_level(level);
 
+    std::cout << conflict_clause << '\n';
+
+    level = 1;
+    assign(1, 0, level);
+    imply(level);
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflict_clause << '\n';
+    print_Clauses();
+
+    level++;
+    assign(4, 0, level);
+    imply(level);
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflict_clause << '\n';
+    print_Clauses();
+
+    level++;
+    assign(6, 0, level);
+    imply(level);
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflict_clause << '\n';
+    print_Clauses();
+
+    for (int literal : data.Clauses.at(conflict_clause).get_literals())
+    {
+        std::cout << literal << ": ";
+        int variable = std::abs(literal);
+        if (data.Variables.at(variable).get_antecedent_clause() != qbf::UNDEFINED)
+        {
+            std::cout << "implied due to " << data.Variables.at(variable).get_antecedent_clause() << " at level " << data.Variables.at(variable).get_decision_level() << '\n';
+        }
+        else
+            std::cout << '\n';
+    }
+
+    // top of implication stack
+    std::cout << implied_variables.top().first << " " << implied_variables.top().second << '\n';
+   
+    
 
     return state;
 }
