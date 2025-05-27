@@ -44,8 +44,8 @@ class Solver
         /* clause learning: game mode off */
         void analyze_conflict(); // entry point
         void choose_literal(); // pick most recently implied literal
-         std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
-        int stop_criterion_met(); // 
+        std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
+        bool stop_criterion_met(std::vector<int> c1, int currentSearchLevel); // 
         void clause_asserting_level(); // returns the backtracking level (the clause becomes unit at that level)
 
         /* cube learning */

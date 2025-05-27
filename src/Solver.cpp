@@ -542,6 +542,50 @@ int Solver::clause_is_unit(int clauseID, int reference_varID)
 }
 
 
+bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
+{   
+    /*  
+                        1st condition
+        Among all its existential variables, one and only one of
+        them has the highest decision level (which may not be
+        the current decision level). Suppose this variable is V.
+    */
+
+    int V = -1, highest_decision_level = -1;
+    std::pair<int, int> p;
+    std::unordered_map<int, std::pair<int, int>> levels = {}; /* { descision_level: (appearances, V) } */
+    
+    for (int literal : c1)
+    {   
+        if (data.Variables.at(std::abs(literal)).is_universal())
+            continue;
+
+        V = std::abs(literal);
+        int decision_level = data.Variables.at(std::abs(literal)).get_decision_level();
+        
+        if (decision_level > highest_decision_level) /* keep MAX and check at the end */
+            highest_decision_level = decision_level;
+
+        if (levels.find(decision_level) == levels.end()) /* level not found */
+        { 
+            p = std::make_pair(1, V);
+            levels.insert({decision_level, p});
+        }
+        else
+            levels[decision_level].first++;
+    }
+
+    if (levels[highest_decision_level].first > 1)
+        return false;
+    
+    
+
+
+
+    return true;
+}
+
+
 std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<int> c2, int pivot_variable)
 {
     std::unordered_map<int, int> new_clause = {}; // literal, sign (1: positive, 0: negative)
