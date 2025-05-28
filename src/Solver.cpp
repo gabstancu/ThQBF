@@ -544,7 +544,7 @@ int Solver::clause_is_unit(int clauseID, int reference_varID)
 }
 
 
-bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
+bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSearchLevel)
 {   
     /*  
                         1st condition
@@ -557,7 +557,7 @@ bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
     std::pair<int, int> p;
     std::unordered_map<int, std::pair<int, int>> levels = {}; /* { descision_level: (appearances, V) } */
     
-    for (int literal : c1)
+    for (const auto& [literal, sign] : c1)
     {   
         if (data.Variables.at(std::abs(literal)).is_universal())
             continue;
@@ -597,7 +597,7 @@ bool Solver::stop_criterion_met(std::vector<int> c1, int currentSearchLevel)
         assigned 0 before decision level of V’s.
     */    
     int V_quant_level = data.Variables.at(V).get_blockID();
-    for (int literal : c1)
+    for (const auto& [literal, sign] : c1)
     {
         if (data.Variables.at(std::abs(literal)).is_existential())
             continue;
@@ -653,7 +653,7 @@ std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<in
     return new_clause;
 }
 
-
+/* TODO: write body */
 void Solver::analyze_conflict()
 {
     if (level == 0)
@@ -909,6 +909,8 @@ bool Solver::solve()
 
     /* perform resolution */
     std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
+
+    bool criteria_met = stop_criterion_met(new_clause, level);
     
 
 
