@@ -616,7 +616,7 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
         else
             return false;
     }
-
+    std::cout << "---\n";
     return true;
 }
 
@@ -889,18 +889,18 @@ bool Solver::solve()
     
     
     /* find conflict clause */
-    int clause_falsidied = conflicting_clause; 
-    std::vector<int> cl = data.Clauses.at(clause_falsidied).get_literals();
+    int clause_falsified = conflicting_clause; 
+    std::vector<int> cl = data.Clauses.at(clause_falsified).get_literals();
 
     /* find most recently implied literal */
-    printVector(data.Clauses.at(clause_falsidied).get_literals(), true);
+    printVector(data.Clauses.at(clause_falsified).get_literals(), true);
     int pivot_literal = implied_variables.top().first;
     int pivot_var = (pivot_literal > 0) ? pivot_literal : std::abs(pivot_literal);
     int pivot_literal_position;
     if (pivot_literal > 0)
-        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsidied, true);
+        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, true);
     else
-        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsidied, false); 
+        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, false); 
     
     /* get antecedent */
     int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
@@ -911,11 +911,9 @@ bool Solver::solve()
     std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
 
     bool criteria_met = stop_criterion_met(new_clause, level);
-    
+    print_hashmap(new_clause);
 
-
-
-    printSet(conflicting_clauses);
+    std::cout << criteria_met << '\n';
 
     return state;
 }
