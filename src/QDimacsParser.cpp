@@ -11,33 +11,6 @@ QDimacsParser::QDimacsParser(const std::string filename, int mode) : mode(mode)
     }
 }
 
-QDimacsParser::QDimacsParser(const std::string filename, 
-                             const std::string A_Tseitin_variables, 
-                             const std::string E_Tseitin_variables, 
-                             int mode) : mode(mode)
-{
-    file.open(filename);
-    if(!file)
-    {
-        std::cerr << "Error: Could not open file " << filename  << '\n';
-        exit(1);
-    }
-
-    A_Tseitin_file.open(A_Tseitin_variables);
-    if(!A_Tseitin_file)
-    {
-        std::cerr << "Error: Could not open file " << A_Tseitin_variables  << '\n';
-        exit(1);
-    }
-
-    E_Tseitin_file.open(E_Tseitin_variables);
-    if(!A_Tseitin_file)
-    {
-        std::cerr << "Error: Could not open file " << E_Tseitin_variables  << '\n';
-        exit(1);
-    }
-}
-
 
 void QDimacsParser::parse()
 {   
@@ -47,12 +20,6 @@ void QDimacsParser::parse()
 
     while (std::getline(file, line))
     {   
-        if (line[0] == 'c' && line[2] == '!' && line[3] == '!')
-        {
-            tseitin_clause_flag = true;
-            // std::cout << line << '\n';
-            continue;
-        }
         if (line[0] == 'c' || line.empty()) /* comment line or empty */
         {   
             continue;
@@ -69,16 +36,6 @@ void QDimacsParser::parse()
             parse_clause_line(line, clauseID++);
     }
 
-    if (mode == qbf::GAME_ON)
-    {
-        separate_rules_from_tseitin();
-
-        /* read universal tseitin variables */
-        read_tseitin_variables(A_Tseitin_file, 'a');
-
-        /* read existential tseitin variables */
-        read_tseitin_variables(E_Tseitin_file, 'e');
-    }
 }
 
 
@@ -139,12 +96,6 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
     std::vector<int> state(literals.size(), qbf::AVAILABLE);
 
     clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
-    // std::cout << clauseID << ' ';
-    if (tseitin_clause_flag)
-    {
-        first_tseitin_clauseID = clauseID;
-        tseitin_clause_flag = false;
-    }
    
     int index = 0, var;
     for (int literal : clauses.at(clauseID).get_literals())
@@ -175,62 +126,6 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
 }
 
 
-void QDimacsParser::separate_rules_from_tseitin()
-{   
-    for (auto& [clauseID, clause] : clauses)
-    {
-        if (clauseID >= first_tseitin_clauseID)
-        {
-            numTseitinClauses++;
-            clause.set_tseitin(true);
-        }
-        else
-        {
-            clause.set_rule(true);
-        }
-    }
-}
-
-
-void QDimacsParser::read_tseitin_variables(std::ifstream& filestream, char var_type)
-{   
-    std::string line;
-    while (std::getline(filestream, line))
-    {
-        std::istringstream iss(line);
-        int var, pos1, pos2, pos3;
-        char colon;
-
-        if (!(iss >> var >> colon >> pos1 >> pos2 >> pos3) || colon != ':')
-        {
-            std::cerr << "Error parsing line: " << line << '\n';
-            exit(1); 
-        }
-
-        if (var_type == 'e')
-        {
-            e_tseitin.insert({var, std::make_tuple(pos1, pos2, pos3)});
-            variables.at(var).set_tseitin(true);
-            S.erase(var);
-            numOfExistentialVars--;
-        }
-        else
-        {
-            a_tseitin.insert({var, std::make_tuple(pos1, pos2, pos3)});
-            variables.at(var).set_tseitin(true);
-            P.erase(var);
-            numOfUniversalVars--;
-        }
-        numTseitinVariables++;
-    }
-
-    tseitin_blockID = numBlocks;
-    blocks.erase(tseitin_blockID);
-    prefix.erase(tseitin_blockID);
-    numBlocks--;
-}
-
-
 SolverData QDimacsParser::to_solver_data() const
 {
     SolverData data;
@@ -249,8 +144,6 @@ SolverData QDimacsParser::to_solver_data() const
     data.Clauses = clauses;
     data.Blocks = blocks;
     data.prefix = prefix;
-    data.a_tseitin = a_tseitin;
-    data.e_tseitin = e_tseitin;
 
     for (const auto& [clauseID, clause] : data.Clauses) 
     {

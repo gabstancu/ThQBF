@@ -202,28 +202,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
             }
             break;
         }
-    }
-
-    /* detect unit universal clauses if GAME_FLAG is 1 */
-    if (data.Clauses.at(clauseID).get_a_num() == 1 && GAME_FLAG == qbf::GAME_ON)
-    {
-        for (size_t i = 0; i < data.Clauses.at(clauseID).get_size(); i++)
-        {
-            if (data.Clauses.at(clauseID).get_state()[i] != qbf::AVAILABLE)
-                continue;
-            
-            int var = std::abs(data.Clauses.at(clauseID).get_literals()[i]);
-
-            if (data.Variables.at(var).is_universal() && (data.Clauses.at(clauseID).is_rule() || data.Clauses.at(clauseID).is_tseitin()))
-            {   
-                // std::cout << "alaniiiii... " << clauseID << '\n';
-                universal_unit_clauses.push({clauseID, searchLevel});
-                data.Clauses.at(clauseID).set_universal_position(i);
-                break;
-            }   
-        }
-    }
-    
+    }  
 }
 
 
@@ -465,40 +444,6 @@ void Solver::imply(int searchLevel)
 }
 
 
-void Solver::imply_universal_move(int searchLevel)
-{
-    while (!universal_unit_clauses.empty())
-    {
-        int unit_clauseID = universal_unit_clauses.top().first;
-        int unit_literal_position = data.Clauses.at(unit_clauseID).get_universal_position();
-        int unit_literal = data.Clauses.at(unit_clauseID).get_literals()[unit_literal_position];
-        int var = std::abs(unit_literal);
-        // printf("unit clauseID: %d | unit position: %d | literal: %d\n", unit_clauseID, unit_literal_position, unit_literal);
-        
-        if (unit_literal > 0)
-        {   
-            if (data.Variables.at(var).is_tseitin())
-            {
-                std::cout << "implying " << var << " to be true.\n";
-                std::cout << "a has found a winning strategy... UNSAT\n";
-                state = qbf::UNSAT;
-            }
-            assign(unit_literal, 1, searchLevel);
-            implied_universals.push({unit_literal, searchLevel});
-        }
-        else
-        {
-            assign(std::abs(unit_literal), 0, searchLevel);
-            implied_universals.push({std::abs(unit_literal), searchLevel});
-        }
-
-        universal_unit_clauses.pop();
-    }
-
-    std::cout << "DONE implying universal moves...\n";
-}
-
-
 int Solver::clause_is_unit(int clauseID, int reference_varID)
 {   
     int reference_level = data.Variables.at(reference_varID).get_blockID();
@@ -696,7 +641,7 @@ void Solver::print_Clauses()
 {
     for (const auto& [clauseID, clause] : data.Clauses)
     {
-        if (clause.is_available() == qbf::AVAILABLE && clause.is_tseitin() == false)
+        if (clause.is_available() == qbf::AVAILABLE)
         {
             std::cout << "clauseID: " << clauseID << " | size: " << clause.get_size() << " | e_num: " << clause.get_e_num() << " a_num: " << clause.get_a_num() << " | ";
             for (size_t i = 0; i < clause.get_size(); i++)
@@ -766,8 +711,6 @@ void Solver::print()
     std::cout << "State: " << state << '\n';
     std::cout << "numClauses: " << data.numClauses << '\n';
     std::cout << "numVars: " << data.numVars << '\n';
-    std::cout << "numTseitinVars: " << data.numTseitinVariables << '\n';
-    std::cout << "numTseitinClauses: " << data.numTseitinClauses << '\n';
 }
 
 
@@ -777,8 +720,6 @@ bool Solver::solve()
     std::cout << "state: " << state << '\n';
     std::cout << "numVars: " << data.numVars << '\n';
     print_Clauses();
-    // std::cout << "numTseitinVars: " << data.numTseitinVariables << '\n';
-    // std::cout << "numTseitinClauses: " << data.numTseitinClauses << '\n';
 
     /* e plays {0, 0} */
     // level = 1;
