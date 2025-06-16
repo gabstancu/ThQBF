@@ -884,7 +884,7 @@ bool Solver::solve()
             std::cout << '\n';
     }
 
-    // top of implication stack
+    // top of implication stack -> (implied_variable, implied_at_level)
     std::cout << implied_variables.top().first << " " << implied_variables.top().second << '\n';
     
     

@@ -14,8 +14,8 @@ Clause::Clause (const std::vector<int>& literals,
           unique_existential_position(qbf::UNDEFINED),
           e_num(0), 
           a_num(0),
-          learned(learned), 
-          tseitin(false)
+          learned(learned)
+          // tseitin(false)
 { 
   std::sort(this->literals.begin(), this->literals.end());
 }
@@ -33,7 +33,7 @@ void Clause::print()
     std::cout << "availability: " << available << "   ";
     std::cout << "candidate unit literal position: " << unique_existential_position << "   ";
     std::cout << "learned: " << learned << "   ";
-    std::cout << "tseitin: " << tseitin << "   ";
+    // std::cout << "tseitin: " << tseitin << "   ";
     std::cout << '\n';
 }
 

@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
     Solver solver(data);
     solver.set_mode(mode);
     solver.solve();
-    solver.print_Prefix();
+    // solver.print_Prefix();
 
     return 0;
 }

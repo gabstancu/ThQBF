@@ -49,7 +49,7 @@ struct QCDCL
     std::unordered_map<int, int> learned_clauses; // {clauseID, level}
 };
 
-struct CubeLearning
+struct Cubes
 {
     
 };
