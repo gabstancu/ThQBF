@@ -56,6 +56,7 @@ class Solver
 
         // void universal_reduction();
         // void pure_literal();
+        void unit_propagation();
 
         std::unordered_map<int, int> vector_to_hashmap(std::vector<int> literals){
             std::unordered_map<int, int> clause = {};
@@ -69,7 +70,7 @@ class Solver
         std::vector<int> hashmap_to_vec(std::unordered_map<int, int> literals){
             std::vector<int> clause = {};
             
-            for (const auto [literal, sign] : literals)
+            for (const auto& [literal, sign] : literals)
             {
                 clause.push_back(literal);
             }
