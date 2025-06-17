@@ -94,8 +94,10 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
     }
 
     std::vector<int> state(literals.size(), qbf::AVAILABLE);
+    std::sort(literals.begin(), literals.end());
 
     clauses.insert({clauseID, Clause(literals, state, qbf::PRESEARCH, false)});
+    // printVector(clauses.at(clauseID).get_literals(), true);
    
     int index = 0, var;
     for (int literal : clauses.at(clauseID).get_literals())
@@ -103,12 +105,10 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
         // std::cout << "literal: " << literal << " " << " variable: " << std::abs(literal) << " position: " << index << '\n';
         if (literal > 0)
         {
-            // variables[literal].addOccurrence(clauseID, index, 1);
             variables.at(literal).addOccurrence(clauseID, index, 1);
         }
         else
         {   var = std::abs(literal);
-            // variables[var].addOccurrence(clauseID, index, 0);
             variables.at(var).addOccurrence(clauseID, index, 0);
         }
 

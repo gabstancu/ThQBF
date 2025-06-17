@@ -44,7 +44,7 @@ class Solver
 
         /* clause learning: game mode off */
         void analyze_conflict(); // entry point
-        void choose_literal(); // pick most recently implied literal
+        int choose_literal(std::vector<int> cl); // pick most recently implied literal
         std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
         bool stop_criterion_met(std::unordered_map<int, int> c1, int currentSearchLevel); // 
         void clause_asserting_level(); // returns the backtracking level (the clause becomes unit at that level)
@@ -54,9 +54,27 @@ class Solver
         void matrix_is_empty();
         void imply(int searchLevel);
 
-        void imply_universal_move(int searchLevel); /* only if game mode is on */
         // void universal_reduction();
         // void pure_literal();
+
+        std::unordered_map<int, int> vector_to_hashmap(std::vector<int> literals){
+            std::unordered_map<int, int> clause = {};
+            
+            for (int literal : literals)
+                (literal > 0) ? clause.insert({literal, 1}) : clause.insert({literal, 0});
+
+            return clause;
+        };
+
+        std::vector<int> hashmap_to_vec(std::unordered_map<int, int> literals){
+            std::vector<int> clause = {};
+            
+            for (const auto [literal, sign] : literals)
+            {
+                clause.push_back(literal);
+            }
+            return clause;
+        };
 
         
     public:

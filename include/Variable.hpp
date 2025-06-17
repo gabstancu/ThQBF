@@ -18,6 +18,7 @@ class Variable
         int available;
         int assignment;
         int antecedent;
+        int pos_in_antecedent;
         int level;
         int num_of_values;
         bool implied = false;
@@ -52,6 +53,7 @@ class Variable
         int get_numNegAppear () const { return numNegAppear; }
         int get_numPosAppear () const { return numPosAppear; }
         int get_antecedent_clause () { return antecedent; }
+        int get_pos_in_antecedent () { return pos_in_antecedent; }
 
         const std::unordered_map<int, int>& get_negativeOccurrences () const 
         { 
@@ -74,6 +76,7 @@ class Variable
         std::unordered_map<int, int>& get_negativeOccurrences () { return negativeOccurrences;}
         std::unordered_map<int, int>& get_positiveOccurrences ()  { return positiveOccurrences;}
         void set_antecedent_clause (int antecedent_clause) { antecedent = antecedent_clause; }
+        void set_pos_in_antecedent (int position_in_clause) { pos_in_antecedent = position_in_clause; }
         void set_implied (bool is_implied) { implied = is_implied; }
         
         void increase_posNum() { numPosAppear++; }

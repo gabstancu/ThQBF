@@ -53,9 +53,10 @@ void Solver::assign(int varID, int value, int searchLevel)
                 remove_clause(clauseID, searchLevel);
                 if (state == qbf::SAT)
                 {   
+                    /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
                     /* ??? restore ??? */
-                    // return;
+                    return;
                 }
             }
         }
@@ -72,9 +73,10 @@ void Solver::assign(int varID, int value, int searchLevel)
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
                 if (state == qbf::UNSAT)
                 {   
+                    /* IN SEARCH LOOP */
                     /* ??? analyze_conflict ??? */
                     /* ??? restore ??? */
-                    // return;
+                    return;
                 }
             }
         } 
@@ -94,9 +96,10 @@ void Solver::assign(int varID, int value, int searchLevel)
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
                 if (state == qbf::UNSAT)
                 {   
+                    /* IN SEARCH LOOP */
                     /* ??? analyze_conflict ??? */
                     /* ??? restore ??? */
-                    // return;
+                    return;
                 }
             }
         }
@@ -114,6 +117,7 @@ void Solver::assign(int varID, int value, int searchLevel)
                 remove_clause(clauseID, searchLevel);
                 if (state == qbf::SAT)
                 {   
+                    /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
                     /* ??? restore ??? */
                     return;
@@ -168,7 +172,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
         conflicting_clause = clauseID;
         conflicting_clauses.insert(conflicting_clause);
         state = qbf::UNSAT;
-        // return;
+        return;
     }
 
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
@@ -177,7 +181,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
         conflicting_clause = clauseID;
         conflicting_clauses.insert(conflicting_clause);
         state = qbf::UNSAT;
-        // return;
+        return;
     }
 
     /* if e_num == 1 find position of the only existential in the clause */
@@ -418,29 +422,56 @@ void Solver::imply(int searchLevel)
         
         data.Variables.at(std::abs(unit_literal)).set_implied(true);
         data.Variables.at(std::abs(unit_literal)).set_antecedent_clause(unit_clauseID);
+        data.Variables.at(std::abs(unit_literal)).set_pos_in_antecedent(unit_literal_position);
 
         if (unit_literal > 0)
         {   
-            if (GAME_FLAG == qbf::GAME_ON && data.Variables.at(var).is_tseitin())
-            {
-                std::cout << "implying " << var << " to be true.\n";
-                std::cout << "e has found a winning strategy... SAT\n";
-                state = qbf::SAT;
-            }
             assign(unit_literal, 1, searchLevel);
             implied_variables.push({unit_literal, searchLevel});
+            if (state == qbf::UNSAT)
+            {
+                std::cout << "concluded UNSAT\n";
+                std::cout << "solver state: " << state << '\n';
+                std::cout << "conflict clause: " << conflicting_clause << '\n';
+                // print_Clauses();
+                return;
+            }
+
+            if (state == qbf::SAT)
+            {
+                std::cout << "concluded SAT\n";
+                std::cout << "solver state: " << state << '\n';
+                // print_Clauses();
+                return;
+            }
         }
         else
         {   
             assign(std::abs(unit_literal), 0, searchLevel);
-            implied_variables.push({std::abs(unit_literal), searchLevel});
+            // implied_variables.push({std::abs(unit_literal), searchLevel});
+            implied_variables.push({unit_literal, searchLevel});
+            if (state == qbf::UNSAT)
+            {
+                std::cout << "concluded UNSAT\n";
+                std::cout << "solver state: " << state << '\n';
+                std::cout << "conflict clause: " << conflicting_clause << '\n';
+                // print_Clauses();
+                return;
+            }
+
+            if (state == qbf::SAT)
+            {
+                std::cout << "concluded SAT\n";
+                std::cout << "solver state: " << state << '\n';
+                // print_Clauses();
+                return;
+            }
         }
         
         unit_clauses.pop();
     }
 
     std::cout << "DONE implying...\n";
-    printStackOfPairsSafe(implied_variables);
 }
 
 
@@ -489,6 +520,35 @@ int Solver::clause_is_unit(int clauseID, int reference_varID)
 }
 
 
+int Solver::choose_literal(std::vector<int> cl)
+{   
+    printVector(cl, true);
+    int most_recently_implied = qbf::UNDEFINED;
+    int implication_level = qbf::UNDEFINED;
+
+    for (int literal:cl)
+    {
+        int var = std::abs(literal);
+
+        if (data.Variables.at(var).get_antecedent_clause() == qbf::UNDEFINED)
+            continue;
+
+        if (data.Variables.at(var).get_decision_level()>=implication_level)
+        {
+            std::cout << "found...\n" << literal << '\n';
+            most_recently_implied = literal;
+            implication_level = data.Variables.at(var).get_decision_level();
+        }
+    }
+
+    // std::cout << "current level (conflict detection level) " << level << '\n';
+    std::cout << "implication level of most recently implied literal: " << implication_level << '\n';
+    std::cout << "most recently implied literal: " << most_recently_implied << '\n';
+
+    return most_recently_implied;
+}
+
+
 bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSearchLevel)
 {   
     /*  
@@ -497,7 +557,7 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
         them has the highest decision level (which may not be
         the current decision level). Suppose this variable is V.
     */
-
+    std::cout << "innn\n";
     int V = -1, highest_decision_level = 0;
     std::pair<int, int> p;
     std::unordered_map<int, std::pair<int, int>> levels = {}; /* { descision_level: (appearances, V) } */
@@ -533,8 +593,6 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
     int decision_var = decision_variable_at[highest_decision_level];
     if (!data.Variables.at(decision_var).is_existential())
         return false;
-
-
 
     /*
                          3rd condition
@@ -594,7 +652,6 @@ std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<in
         (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 0}); /* add literal to clause */
     }
 
-
     return new_clause;
 }
 
@@ -608,7 +665,7 @@ void Solver::analyze_conflict()
         return;
     }
     int currentDecisionLevel = level;
-    Clause c1 = data.Clauses.at(conflicting_clause);
+    Clause cl = data.Clauses.at(conflicting_clause);
     // while (!stop_criterion_met(c1))
     // {
     //     int literal = choose_literal(c1);
@@ -721,68 +778,7 @@ bool Solver::solve()
     std::cout << "numVars: " << data.numVars << '\n';
     print_Clauses();
 
-    /* e plays {0, 0} */
-    // level = 1;
-    // int varID = 1;
-    // int value = 1;
-    // assign(varID, value, level);
-    // imply(level);
-    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
-
-    // // print_Clauses();
-    // /* a plays {1, 3} */
-    // level++;
-    // varID = 14;ß
-    // value = 1;
-    // assign(varID, value, level);
-    // imply(level);
-    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
-
-    // /* e plays {2, 1} */
-    // level++;
-    // varID = 20;
-    // value = 1;
-    // assign(varID, value, level);
-    // imply(level);
-    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
-
-    // /* a plays {3, 4} */
-    // level++;
-    // varID = 32;
-    // value = 1;
-    // assign(varID, value, level);
-    // imply(level);
-    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
-
-    // /* e plays {4, 2} */
-    // level++;
-    // varID = 39;
-    // value = 1;
-    // assign(varID, value, level);
-    // imply(level);
-    // if (GAME_FLAG == qbf::GAME_ON) imply_universal_move(level);
-
-    // level++;
-    // varID = 11;
-    // value = 1;
-    
-    // assign(varID, value, level);
-    // imply(level);
-    // imply_universal_move(level);
-
-    // print_Clauses();
-
-    // printStackOfPairsSafe(implied_variables);
-
-    // level++;
-    // varID = 10;
-    // value = 1;
-    // assign(varID, value, level);
-
-    // if (state == qbf::UNSAT)
-    //     restore_level(level);
-
-    std::cout << conflicting_clause << '\n';
+    // std::cout << conflicting_clause << '\n';
 
     level = 1;
     assign(1, 0, level);
@@ -812,49 +808,62 @@ bool Solver::solve()
     std::cout << "conflict clause: " << conflicting_clause << '\n';
     print_Clauses();
 
+
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
     
-    for (int literal : data.Clauses.at(conflicting_clause).get_literals())
-    {
-        std::cout << literal << ": ";
-        int variable = std::abs(literal);
-        if (data.Variables.at(variable).get_antecedent_clause() != qbf::UNDEFINED)
-        {
-            std::cout << "implied due to " << data.Variables.at(variable).get_antecedent_clause() << " at level " << data.Variables.at(variable).get_decision_level() << '\n';
-        }
-        else
-            std::cout << '\n';
-    }
+    // while(1)
+    // {
+    //     if(level == qbf::ROOT)
+    //         return false;
 
-    // top of implication stack -> (implied_variable, implied_at_level)
-    std::cout << implied_variables.top().first << " " << implied_variables.top().second << '\n';
+    //     std::vector<int> cl_vec = data.Clauses.at(conflicting_clause).get_literals();
+    //     std::unordered_map<int, int> cl_hash = vector_to_hashmap(cl_vec);
+
+    //     while(!stop_criterion_met(cl_hash, level))
+    //     {   
+    //         std::cout << "yeee\n";
+    //         int most_recently_implied_literal = choose_literal(cl_vec);
+    //         int variable = std::abs(most_recently_implied_literal);
+
+    //         if (most_recently_implied_literal == qbf::UNDEFINED)
+    //             break;
+
+    //         int antecedentID = data.Variables.at(variable).get_antecedent_clause();
+    //         std::vector<int> antecedent_vec = data.Clauses.at(antecedentID).get_literals();
+    //         cl_hash = resolve(cl_vec, antecedent_vec, variable);
+    //         cl_vec = hashmap_to_vec(cl_hash);
+    //         // print_hashmap(cl_hash);
+    //         // printVector(cl_vec, true);
+    //         // printVector(data.Clauses.at(conflicting_clause).get_literals(), true);
+    //     }
+    //     std::cout << "done...\n";
+    //     return true;
+    // }
+
+
+    // /* find most recently implied literal */
+    // printVector(data.Clauses.at(clause_falsified).get_literals(), true);
+    // int pivot_literal = implied_variables.top().first;
+    // int pivot_var = (pivot_literal > 0) ? pivot_literal : std::abs(pivot_literal);
+    // int pivot_literal_position;
+    // if (pivot_literal > 0)
+    //     pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, true);
+    // else
+    //     pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, false); 
     
-    
-    /* find conflict clause */
-    int clause_falsified = conflicting_clause; 
-    std::vector<int> cl = data.Clauses.at(clause_falsified).get_literals();
+    // /* get antecedent */
+    // int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
+    // std::vector<int> antecedent = data.Clauses.at(antecedent_clause).get_literals();
+    // printVector(antecedent, true);
 
-    /* find most recently implied literal */
-    printVector(data.Clauses.at(clause_falsified).get_literals(), true);
-    int pivot_literal = implied_variables.top().first;
-    int pivot_var = (pivot_literal > 0) ? pivot_literal : std::abs(pivot_literal);
-    int pivot_literal_position;
-    if (pivot_literal > 0)
-        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, true);
-    else
-        pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, false); 
-    
-    /* get antecedent */
-    int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
-    std::vector<int> antecedent = data.Clauses.at(antecedent_clause).get_literals();
-    printVector(antecedent, true);
+    // /* perform resolution */
+    // std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
 
-    /* perform resolution */
-    std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
+    // bool criteria_met = stop_criterion_met(new_clause, level);
+    // print_hashmap(new_clause);
 
-    bool criteria_met = stop_criterion_met(new_clause, level);
-    print_hashmap(new_clause);
-
-    std::cout << criteria_met << '\n';
+    // std::cout << criteria_met << '\n';
 
     return state;
 }

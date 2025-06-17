@@ -18,14 +18,11 @@ class Clause
         std::vector<int> literals;
         std::vector<int> state;
         int unique_existential_position;
-        int unique_universal_position;
 
-        int e_num; // number of existential literals active
-        int a_num; // number of universal literals active
+        int e_num;
+        int a_num;
 
         bool learned = false;
-        // bool tseitin = false;
-        // bool rule = false;
 
     public:
         Clause (const std::vector<int>& literals, 
@@ -41,10 +38,7 @@ class Clause
         void set_assigned(int a) { assigned = a; }
         std::vector<int>& get_literals() { return literals; }
         std::vector<int>& get_state() { return state; }
-        void set_unit_position(int position) { unique_existential_position = position; }
-        void set_universal_position(int position) { unique_universal_position = position; }
-        // void set_tseitin(bool ts) { tseitin = ts; }
-        // void set_rule(bool r) { rule = r; }
+       void set_unit_position(int position) { unique_existential_position = position; }
 
         /* Read only access */
         size_t get_size() const { return size; }
@@ -55,15 +49,11 @@ class Clause
         const std::vector<int>& get_literals() const { return literals; }
         const std::vector<int>& get_state() const { return state; }
         int get_unit_position() const { return unique_existential_position; }
-        int get_universal_position() const { return unique_universal_position; }
         int get_e_num() const { return e_num; }
         int get_a_num() const { return a_num; }
         bool is_learned() const { return learned; }
-        // bool is_tseitin() const { return tseitin; }
-        // bool is_rule() const { return rule; }
 
         /* other */
-        // void print(std::vector<int> vec) { printVector(vec); }
         void print();
         void set_literal_state(int positionInClause, int newState) { state[positionInClause] = newState; }
         void increase_e_num() { e_num++; }

@@ -15,9 +15,8 @@ Clause::Clause (const std::vector<int>& literals,
           e_num(0), 
           a_num(0),
           learned(learned)
-          // tseitin(false)
 { 
-  std::sort(this->literals.begin(), this->literals.end());
+  // std::sort(this->literals.begin(), this->literals.end());
 }
 
 
