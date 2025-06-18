@@ -17,8 +17,6 @@ class QDimacsParser
 {
     private:
         std::ifstream file;
-        std::ifstream A_Tseitin_file;
-        std::ifstream E_Tseitin_file;
 
         int numVars = 0;
         int numClauses = 0;
@@ -61,8 +59,6 @@ class QDimacsParser
         std::unordered_map<int, Clause>& get_clauses() { return clauses; }
         std::unordered_map<int, Block>& get_blocks() { return blocks; }
         std::map<int, std::set<int>>& get_prefix() { return prefix; }
-        // std::unordered_map<int, std::tuple<int, int, int>>& get_e_tseitin() { return e_tseitin; }
-        // std::unordered_map<int, std::tuple<int, int, int>>& get_a_tseitin() { return a_tseitin; }
 };
 
 

@@ -31,8 +31,6 @@ void Solver::assign(int varID, int value, int searchLevel)
     data.Variables.at(varID).assign(value);
     data.Variables.at(varID).decrease_num_of_values();
     data.Variables.at(varID).set_availability(qbf::UNAVAILABLE);
-    // data.numVars--;
-    // data.Variables_trail.at(searchLevel).emplace(varID); /* add to variables trail | is being added in remove_clause */
     
     if (value == 1) /* assign positive */
     {
@@ -71,14 +69,23 @@ void Solver::assign(int varID, int value, int searchLevel)
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
-                if (state == qbf::UNSAT)
-                {   
-                    /* IN SEARCH LOOP */
-                    /* ??? analyze_conflict ??? */
-                    /* ??? restore ??? */
-                    return;
-                }
+                // if (state == qbf::UNSAT)
+                // {   
+                //     /* IN SEARCH LOOP */
+                //     /* ??? analyze_conflict ??? */
+                //     /* ??? restore ??? */
+                //     return;
+                // }
             }
+            if (state == qbf::UNSAT)
+            {   
+                /* IN SEARCH LOOP */
+                /* ??? analyze_conflict ??? */
+                /* ??? restore ??? */
+                return;
+            }
+
+            
         } 
     }
     else /* assign negative */
@@ -94,13 +101,20 @@ void Solver::assign(int varID, int value, int searchLevel)
                 if (data.Clauses.at(clauseID).is_available() == qbf::UNAVAILABLE) continue;
 
                 remove_literal_from_clause(varID, clauseID, positionInClause, searchLevel);
-                if (state == qbf::UNSAT)
-                {   
-                    /* IN SEARCH LOOP */
-                    /* ??? analyze_conflict ??? */
-                    /* ??? restore ??? */
-                    return;
-                }
+                // if (state == qbf::UNSAT)
+                // {   
+                //     /* IN SEARCH LOOP */
+                //     /* ??? analyze_conflict ??? */
+                //     /* ??? restore ??? */
+                //     return;
+                // }
+            }
+            if (state == qbf::UNSAT)
+            {   
+                /* IN SEARCH LOOP */
+                /* ??? analyze_conflict ??? */
+                /* ??? restore ??? */
+                return;
             }
         }
         
@@ -219,12 +233,12 @@ void Solver::remove_clause(int clauseID, int searchLevel)
     // std::cout << "removing clause " << clauseID << " at level " << searchLevel << '\n';
 
     data.numClauses--;
-    if (!data.numClauses) /* check for empty matrix -> return SAT */
-    {
-        std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
-        state = qbf::SAT;
-        return;
-    }
+    // if (!data.numClauses) /* check for empty matrix -> return SAT */
+    // {
+    //     std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
+    //     state = qbf::SAT;
+    //     return;
+    // }
 
     data.Clauses.at(clauseID).set_availability(qbf::UNAVAILABLE);
     // std::cout << data.Clauses.at(clauseID).is_available() << "\n\n";
@@ -247,6 +261,13 @@ void Solver::remove_clause(int clauseID, int searchLevel)
         data.Variables_trail[searchLevel].insert(std::abs(literal));
 
         data.Clauses.at(clauseID).get_state()[i] = searchLevel;
+    }
+
+    if (!data.numClauses) /* check for empty matrix -> return SAT */
+    {
+        std::cout << "empty matrix at searchLevel " << searchLevel << " (clauseID " << clauseID << ")\n";
+        state = qbf::SAT;
+        return;
     }
 }
 
@@ -555,7 +576,8 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
     std::cout << "checking stop criteria on: \n";
     print_hashmap(c1);
 
-    int V = -1, highest_decision_level = 0;
+    int v = -1, highest_decision_level = 0;
+    int V = v;
     std::pair<int, int> p;
     std::unordered_map<int, std::pair<int, int>> levels = {}; /* { descision_level: (appearances, V) } */
     
@@ -564,15 +586,18 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
         if (data.Variables.at(std::abs(literal)).is_universal())
             continue;
 
-        V = std::abs(literal);
+        v = std::abs(literal);
         int decision_level = data.Variables.at(std::abs(literal)).get_decision_level();
         
         if (decision_level > highest_decision_level) /* keep MAX and check at the end */
-            highest_decision_level = decision_level;
-
+        {
+             highest_decision_level = decision_level;
+             V = v;
+        } 
+           
         if (levels.find(decision_level) == levels.end()) /* level not found */
         { 
-            p = std::make_pair(1, V);
+            p = std::make_pair(1, v);
             levels.insert({decision_level, p});
         }
         else
@@ -581,6 +606,9 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
 
     if (levels[highest_decision_level].first > 1)
         return false;
+    
+    std::cout << "V = " << V << '\n';
+    std::cout << "highest decision level = " << highest_decision_level << '\n';
     
     /*  
                         2nd condition
@@ -594,7 +622,7 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
     /*
                          3rd condition
         All universal literals with quantification level smaller than V’s are 
-        assigned 0 before decision level of V’s.
+        assigned to 0 before the decision level of V.
     */    
     int V_quant_level = data.Variables.at(V).get_blockID();
     for (const auto& [literal, sign] : c1)
@@ -616,7 +644,6 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
         else
             return false;
     }
-    std::cout << "---\n";
     return true;
 }
 
@@ -779,6 +806,8 @@ bool Solver::solve()
 
     level = 1;
     assign(1, 0, level);
+    SStack.push({1, level});
+    Search_Stack.push({1, level});
     print_Clauses();
     imply(level);
     print_Clauses();
@@ -789,6 +818,8 @@ bool Solver::solve()
 
     level++;
     assign(2, 0, level);
+    SStack.push({2, level});
+    Search_Stack.push({2, level});
     print_Clauses();
     imply(level);
     print_Clauses();
@@ -797,6 +828,8 @@ bool Solver::solve()
 
     level++;
     assign(3, 1, level);
+    PStack.push({3, level});
+    Search_Stack.push({3, level});
     print_Clauses();
     imply(level);
     print_Clauses();
@@ -805,6 +838,8 @@ bool Solver::solve()
 
     level++;
     assign(4, 1, level);
+    SStack.push({4, level});
+    Search_Stack.push({4, level});
     print_Clauses();
     imply(level);
     print_Clauses();
@@ -813,6 +848,8 @@ bool Solver::solve()
 
     level++;
     assign(5, 1, level);
+    PStack.push({5, level});
+    Search_Stack.push({5, level});
     print_Clauses();
     imply(level);
     print_Clauses();
@@ -822,14 +859,16 @@ bool Solver::solve()
     print_Prefix();
 
 
-    
+    std::vector<int> cl_vec;
+    std::unordered_map<int, int> cl_hash;
+
     while(1)
     {
         if(level == qbf::ROOT)
             return false;
 
-        std::vector<int> cl_vec = data.Clauses.at(conflicting_clause).get_literals();
-        std::unordered_map<int, int> cl_hash = vector_to_hashmap(cl_vec);
+        cl_vec = data.Clauses.at(conflicting_clause).get_literals();
+        cl_hash = vector_to_hashmap(cl_vec);
 
         std::cout << "=========================================================\n";
         std::cout << "before entering main loop\n";
@@ -842,8 +881,8 @@ bool Solver::solve()
             int most_recently_implied_literal = choose_literal(cl_vec);
             int variable = std::abs(most_recently_implied_literal);
 
-            // if (most_recently_implied_literal == qbf::UNDEFINED)
-            //     break;
+            if (most_recently_implied_literal == qbf::UNDEFINED)
+                break;
 
             int antecedentID = data.Variables.at(variable).get_antecedent_clause();
             std::cout << "antecedent clauseID of most recently implied literal: " << antecedentID << '\n';
@@ -858,13 +897,54 @@ bool Solver::solve()
             cl_vec = hashmap_to_vec(cl_hash);
             std::cout << "resolution result:\n";
 
-            print_hashmap(cl_hash);
-            printVector(cl_vec, true);
+            // print_hashmap(cl_hash);
+            // printVector(cl_vec, true);
         }
         std::cout << "done...\n";
+        break;
+    }
+
+    print_hashmap(cl_hash);
+    printVector(cl_vec, true);
+    std::cout << "current level: " << level << '\n';
+
+    /* find clause asserting level */
+
+    int asserting_literal = qbf::UNDEFINED;
+    int clause_asserting_level = qbf::UNDEFINED;
+
+    /* 
+        conlict occured due to a universal assignment: 
+        backtrack to the last existential decision 
+    */
+    if (data.Variables.at(Search_Stack.top().first).is_universal())
+    {
+        clause_asserting_level = SStack.top().second;
+        std::cout << "backtracking to " << clause_asserting_level << '\n';
         return true;
     }
 
+    int existential_literals_at_current_level = 0;
+    int diff = 0;
+    int conflict_level  = level;
+
+    for(int literal : cl_vec)
+    {
+        if (data.Variables.at(std::abs(literal)).is_universal())
+            continue;
+        
+        int e_var = std::abs(literal);
+        int existential_level = data.Variables.at(e_var).get_decision_level();
+
+        if (diff >= conflict_level - existential_level)
+        {
+            diff = conflict_level - existential_level;
+            asserting_literal = literal;
+            clause_asserting_level = existential_level;
+        }
+    }
+
+    return true;
 
     // /* find most recently implied literal */
     // printVector(data.Clauses.at(clause_falsified).get_literals(), true);

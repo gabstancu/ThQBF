@@ -135,8 +135,6 @@ SolverData QDimacsParser::to_solver_data() const
     data.numBlocks = numBlocks;
     data.numOfExistentialVars = numOfExistentialVars;
     data.numOfUniversalVars = numOfUniversalVars;
-    data.numTseitinClauses = numTseitinClauses;
-    data.numTseitinVariables = numTseitinVariables;
     data.last_clause_idx = numClauses;
     data.S = S;
     data.P = P;

@@ -15,9 +15,6 @@ struct SolverData
 {
     int numVars, numClauses, numBlocks, numOfExistentialVars, numOfUniversalVars;
 
-    int numTseitinClauses;
-    int numTseitinVariables;
-
     int last_clause_idx;
     std::set<int> P, S; /* sets of universal and existential variables respectively */
 
@@ -26,13 +23,7 @@ struct SolverData
     std::unordered_set<std::size_t> ClauseHashes; // checking for duplicate clauses
     std::unordered_map<int, Block> Blocks;
     std::map<int, std::set<int>> prefix;
-
-    // std::unordered_map<int, Variable> Tseitin_variables;
-    // std::unordered_map<int, Clause> Tseitin_clauses;
-    // std::unordered_map<int, Block> Tseitin_block;
-    std::unordered_map<int, std::tuple<int, int, int>> e_tseitin; // {varID : (pos1, pos2, pos3)}
-    std::unordered_map<int, std::tuple<int, int, int>> a_tseitin; // {varID : (pos1, pos2, pos3)}
-
+    
     /* search related */
     std::unordered_map<int, std::set<int>> Clauses_trail = {};
     std::unordered_map<int, std::set<int>> Variables_trail = {};
