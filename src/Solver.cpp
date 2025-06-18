@@ -679,6 +679,45 @@ std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<in
     return new_clause;
 }
 
+
+int Solver::clause_asserting_level(std::vector<int> cl_vec)
+{
+    int asserting_literal = qbf::UNDEFINED;
+    int clause_asserting_lvl = qbf::UNDEFINED;
+
+    /* 
+        conlict occured due to a universal assignment: 
+        backtrack to the last existential decision 
+    */
+    if (data.Variables.at(Search_Stack.top().first).is_universal())
+    {
+        clause_asserting_lvl = SStack.top().second;
+        std::cout << "backtracking to " << clause_asserting_lvl << '\n';
+        return clause_asserting_lvl;
+    }
+
+    int existential_literals_at_current_level = 0;
+    int diff = INT_MAX;
+    int conflict_level  = level;
+
+    for (int literal : cl_vec)
+    {
+        if (data.Variables.at(std::abs(literal)).is_universal())
+            continue;
+        
+        int e_var = std::abs(literal);
+        int existential_level = data.Variables.at(e_var).get_decision_level();
+
+        if (diff >= conflict_level - existential_level)
+        {
+            diff = conflict_level - existential_level;
+            asserting_literal = literal;
+            clause_asserting_lvl = existential_level;
+        }
+    }
+    return clause_asserting_lvl;
+}
+
 /* TODO: write body */
 void Solver::analyze_conflict()
 {
@@ -688,15 +727,10 @@ void Solver::analyze_conflict()
         state = qbf::UNSAT;
         return;
     }
-    int currentDecisionLevel = level;
-    Clause cl = data.Clauses.at(conflicting_clause);
-    // while (!stop_criterion_met(c1))
-    // {
-    //     int literal = choose_literal(c1);
-    //     int var = std::abs(literal);
-    //     Clause ante = antecedent(var); // the clause that implied a value for var
-    //     c1 = resolve(c1, ante, var);
-    // }
+    int currentDecisionLevel = level; /* conflict level */
+
+    std::vector<int> cl_vec = data.Clauses.at(conflicting_clause).get_literals();
+    std::unordered_map<int, int> cl_hash = vector_to_hashmap(cl_vec);
 
     // std::size_t h = c1.compute_hash();
     // if (ClauseHashes.find(h) == ClauseHashes.end())
@@ -909,65 +943,9 @@ bool Solver::solve()
     std::cout << "current level: " << level << '\n';
 
     /* find clause asserting level */
-
-    int asserting_literal = qbf::UNDEFINED;
-    int clause_asserting_level = qbf::UNDEFINED;
-
-    /* 
-        conlict occured due to a universal assignment: 
-        backtrack to the last existential decision 
-    */
-    if (data.Variables.at(Search_Stack.top().first).is_universal())
-    {
-        clause_asserting_level = SStack.top().second;
-        std::cout << "backtracking to " << clause_asserting_level << '\n';
-        return true;
-    }
-
-    int existential_literals_at_current_level = 0;
-    int diff = 0;
-    int conflict_level  = level;
-
-    for(int literal : cl_vec)
-    {
-        if (data.Variables.at(std::abs(literal)).is_universal())
-            continue;
-        
-        int e_var = std::abs(literal);
-        int existential_level = data.Variables.at(e_var).get_decision_level();
-
-        if (diff >= conflict_level - existential_level)
-        {
-            diff = conflict_level - existential_level;
-            asserting_literal = literal;
-            clause_asserting_level = existential_level;
-        }
-    }
-
-    return true;
-
-    // /* find most recently implied literal */
-    // printVector(data.Clauses.at(clause_falsified).get_literals(), true);
-    // int pivot_literal = implied_variables.top().first;
-    // int pivot_var = (pivot_literal > 0) ? pivot_literal : std::abs(pivot_literal);
-    // int pivot_literal_position;
-    // if (pivot_literal > 0)
-    //     pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, true);
-    // else
-    //     pivot_literal_position = data.Variables.at(pivot_var).get_position_in_clause(clause_falsified, false); 
+    int clause_asserting_lvl = clause_asserting_level(cl_vec);
     
-    // /* get antecedent */
-    // int antecedent_clause = data.Variables.at(pivot_var).get_antecedent_clause();
-    // std::vector<int> antecedent = data.Clauses.at(antecedent_clause).get_literals();
-    // printVector(antecedent, true);
 
-    // /* perform resolution */
-    // std::unordered_map<int, int> new_clause = resolve(cl, antecedent, pivot_var);
-
-    // bool criteria_met = stop_criterion_met(new_clause, level);
-    // print_hashmap(new_clause);
-
-    // std::cout << criteria_met << '\n';
 
     return state;
 }
