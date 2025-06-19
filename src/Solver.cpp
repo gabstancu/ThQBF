@@ -77,13 +77,13 @@ void Solver::assign(int varID, int value, int searchLevel)
                 //     return;
                 // }
             }
-            if (state == qbf::UNSAT)
-            {   
-                /* IN SEARCH LOOP */
-                /* ??? analyze_conflict ??? */
-                /* ??? restore ??? */
-                return;
-            }
+            // if (state == qbf::UNSAT)
+            // {   
+            //     /* IN SEARCH LOOP */
+            //     /* ??? analyze_conflict ??? */
+            //     /* ??? restore ??? */
+            //     return;
+            // }
 
             
         } 
@@ -109,13 +109,13 @@ void Solver::assign(int varID, int value, int searchLevel)
                 //     return;
                 // }
             }
-            if (state == qbf::UNSAT)
-            {   
-                /* IN SEARCH LOOP */
-                /* ??? analyze_conflict ??? */
-                /* ??? restore ??? */
-                return;
-            }
+            // if (state == qbf::UNSAT)
+            // {   
+            //     /* IN SEARCH LOOP */
+            //     /* ??? analyze_conflict ??? */
+            //     /* ??? restore ??? */
+            //     return;
+            // }
         }
         
 
@@ -182,14 +182,14 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
     data.Clauses.at(clauseID).increase_assigned();
 
     /* UNSAT checks */
-    if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
-    {   
-        std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
-        conflicting_clause = clauseID;
-        conflicting_clauses.insert(conflicting_clause);
-        state = qbf::UNSAT;
-        return;
-    }
+    // if (data.Clauses.at(clauseID).get_a_num() != 0 && data.Clauses.at(clauseID).get_e_num() == 0)
+    // {   
+    //     std::cout << "all universal clause " << clauseID << " " << "at level " << searchLevel << '\n';
+    //     conflicting_clause = clauseID;
+    //     conflicting_clauses.insert(conflicting_clause);
+    //     state = qbf::UNSAT;
+    //     // return;
+    // }
 
     if (data.Clauses.at(clauseID).get_a_num() == 0 && data.Clauses.at(clauseID).get_e_num() == 0)
     {
@@ -197,7 +197,7 @@ void Solver::remove_literal_from_clause(int varID, int clauseID, int positionInC
         conflicting_clause = clauseID;
         conflicting_clauses.insert(conflicting_clause);
         state = qbf::UNSAT;
-        return;
+        // return;
     }
 
     /* if e_num == 1 find position of the only existential in the clause */
@@ -759,18 +759,16 @@ void Solver::add_clause_to_db(std::vector<int> cl_vec, std::unordered_map<int, i
 
             index++;
 
-            if (literal_state != qbf::AVAILABLE)
+            if (literal_state == qbf::AVAILABLE)
             {
-                new_clause.increase_assigned();
+                if (data.Variables.at(std::abs(literal)).is_existential())
+                    new_clause.increase_e_num();
+                else 
+                    new_clause.increase_a_num();
                 continue;
             }
-                
-            new_clause.increase_unassigned();
-            if (data.Variables.at(std::abs(literal)).is_existential())
-                new_clause.increase_e_num();
-            else 
-                new_clause.increase_a_num();
-            
+            new_clause.increase_assigned();
+            new_clause.decrease_unassigned();
         }
 
 
@@ -904,12 +902,11 @@ bool Solver::solve()
     std::cout << "numClauses: " << data.numClauses << '\n';
     std::cout << "state: " << state << '\n';
     std::cout << "numVars: " << data.numVars << '\n';
+    std::cout << "conflicting clause: " << conflicting_clause << '\n';
     print_Clauses();
 
-    // std::cout << conflicting_clause << '\n';
-
     level = 1;
-    assign(1, 0, level);
+    assign(1, 1, level);
     SStack.push({1, level});
     Search_Stack.push({1, level});
     print_Clauses();
@@ -917,61 +914,68 @@ bool Solver::solve()
     print_Clauses();
     std::cout << "solver state: " << state << '\n';
     std::cout << "conflict clause: " << conflicting_clause << '\n';
-
     print_Prefix();
 
-    level++;
-    assign(2, 0, level);
-    SStack.push({2, level});
-    Search_Stack.push({2, level});
-    print_Clauses();
-    imply(level);
-    print_Clauses();
-    std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflicting_clause << '\n';
+    // int result = analyze_conflict(level);
+    // std::cout << result << '\n';
 
-    level++;
-    assign(3, 1, level);
-    PStack.push({3, level});
-    Search_Stack.push({3, level});
-    print_Clauses();
-    imply(level);
-    print_Clauses();
-    std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflicting_clause << '\n';
+    // // print_Clauses();
 
-    level++;
-    assign(4, 1, level);
-    SStack.push({4, level});
-    Search_Stack.push({4, level});
-    print_Clauses();
-    imply(level);
-    print_Clauses();
-    std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflicting_clause << '\n';
-
-    level++;
-    assign(5, 1, level);
-    PStack.push({5, level});
-    Search_Stack.push({5, level});
-    print_Clauses();
-    imply(level);
-    print_Clauses();
-    std::cout << "solver state: " << state << '\n';
-    std::cout << "conflict clause: " << conflicting_clause << '\n';
-
-    print_Prefix();
+    // data.Clauses.at(data.last_clause_idx).print();
 
 
-    std::cout << "conflict level: " << level << '\n';
+    // level++;
+    // assign(2, 0, level);
+    // SStack.push({2, level});
+    // Search_Stack.push({2, level});
+    // print_Clauses();
+    // imply(level);
+    // print_Clauses();
+    // std::cout << "solver state: " << state << '\n';
+    // std::cout << "conflict clause: " << conflicting_clause << '\n';
 
-    int result = analyze_conflict(level);
-    std::cout << result << '\n';
+    // level++;
+    // assign(3, 1, level);
+    // PStack.push({3, level});
+    // Search_Stack.push({3, level});
+    // print_Clauses();
+    // imply(level);
+    // print_Clauses();
+    // std::cout << "solver state: " << state << '\n';
+    // std::cout << "conflict clause: " << conflicting_clause << '\n';
 
-    print_Clauses();
+    // level++;
+    // assign(4, 1, level);
+    // SStack.push({4, level});
+    // Search_Stack.push({4, level});
+    // print_Clauses();
+    // imply(level);
+    // print_Clauses();
+    // std::cout << "solver state: " << state << '\n';
+    // std::cout << "conflict clause: " << conflicting_clause << '\n';
 
-    std::cout << data.last_clause_idx << '\n';
-    data.Clauses.at(data.last_clause_idx).print();
+    // level++;
+    // assign(5, 1, level);
+    // PStack.push({5, level});
+    // Search_Stack.push({5, level});
+    // print_Clauses();
+    // imply(level);
+    // print_Clauses();
+    // std::cout << "solver state: " << state << '\n';
+    // std::cout << "conflict clause: " << conflicting_clause << '\n';
+
+    // print_Prefix();
+
+
+    // std::cout << "conflict level: " << level << '\n';
+
+    // int result = analyze_conflict(level);
+    // std::cout << result << '\n';
+
+    // print_Clauses();
+
+    // std::cout << data.last_clause_idx << '\n';
+    // data.Clauses.at(data.last_clause_idx).print();
     
 
     return state;
