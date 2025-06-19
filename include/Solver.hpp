@@ -10,22 +10,28 @@ class Solver
         
         int state;
         int level;
-        int conflict_clause;
+        int conflicting_clause;
         bool strategy_found = false;
 
         int GAME_FLAG;
 
-        std::stack<std::pair<int, int>> VStack;
-        std::stack<std::pair<int, int>> SStack;
-        std::stack<std::pair<int, int>> Search_Stack;
+        std::stack<std::pair<int, int>> PStack; // { decision_a_var: decision_level }
+        std::stack<std::pair<int, int>> SStack; // { decision_e_var: decision_level }
+        std::stack<std::pair<int, int>> Search_Stack; // {decision_var: decision_level}
+        std::unordered_map<int, int> decision_variable_at; // { level: decision_variable}
 
         /* existential variables (use for learning) */
         std::stack<std::pair<int, int>> implied_variables; // (var, level)
         std::stack<std::pair<int, int>> unit_clauses; // (unit_clause, level)
 
-        /* universal variables (do not use for learning) */
+        std::set<int> conflicting_clauses; // (conlicting_clause, level)
+
+        /* universal variables (do not use for learning): game mode is on */
         std::stack<std::pair<int, int>> implied_universals; // (var, level)
         std::stack<std::pair<int, int>> universal_unit_clauses; // (unit_clause, level)
+
+
+        void add_clause_to_db(std::vector<int> cl_vec, std::unordered_map<int, int> cl_hash);
 
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel);
@@ -39,17 +45,45 @@ class Solver
         void restore_clause(int clauseID, int searchLevel);
         int clause_is_unit(int clauseID, int reference_varID);
 
-        void analyze_conflict();
+        int analyze_conflict(int conflict_level); // entry point
+        int choose_literal(std::vector<int> cl); // pick most recently implied literal
+        std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
+        bool stop_criterion_met(std::unordered_map<int, int> c1); // 
+        int clause_asserting_level(std::vector<int> cl_vec); // returns the backtracking level (the clause becomes unit at that level)
+
+        /* cube learning */
         void analyze_SAT();
         void matrix_is_empty();
         void imply(int searchLevel);
 
-        void imply_universal_move(int searchLevel);
         // void universal_reduction();
         // void pure_literal();
+        void unit_propagation();
 
-        int any_a_tseitin_true();
-        int any_e_tseitin_true();
+        std::unordered_map<int, int> vector_to_hashmap(std::vector<int> literals){
+            std::unordered_map<int, int> clause = {};
+            int index = 0, literal_state = qbf::AVAILABLE;
+            
+            for (int literal : literals)
+            {
+                int literal_decision_level = data.Variables.at(std::abs(literal)).get_decision_level();
+                (literal_decision_level != qbf::UNDEFINED) ? literal_state = literal_decision_level : literal_state = qbf::AVAILABLE;
+                clause.insert({literal, literal_state});
+                index++;
+            }
+
+            return clause;
+        };
+
+        std::vector<int> hashmap_to_vec(std::unordered_map<int, int> literals){
+            std::vector<int> clause = {};
+            
+            for (const auto& [literal, state] : literals)
+            {
+                clause.push_back(literal);
+            }
+            return clause;
+        };
 
         
     public:
@@ -65,7 +99,7 @@ class Solver
 
         /* 
             mode -> 0: for a random generated QBF instance
-            mode -> 1: for tic-tac-toe instance
+            mode -> 1: for a tic-tac-toe instance
         */
         void set_mode(int mode) { GAME_FLAG = mode; };
 

@@ -3,10 +3,9 @@
 
 namespace qbf
 {
-    /* literals/ variables */
+    /* literals, variables, level */
     constexpr int AVAILABLE = -2;
     constexpr int UNAVAILABLE = -3;
-    constexpr int PRESEARCH = -1;
 
     /* assignments */
     constexpr int UNASSIGNED = 0;
@@ -21,10 +20,13 @@ namespace qbf
     constexpr int UNDEFINED = -666;
     constexpr int GAME_ON = 1;
     constexpr int GAME_OFF = 0;
+    constexpr int PRESEARCH = -1;
 
     /* search */
-    constexpr bool SAT = true;
-    constexpr bool UNSAT = false;
+    constexpr int SAT = 1;
+    constexpr int UNSAT = 0;
+    constexpr int SIMPLIFIED = -1;
+    constexpr int ROOT = 0;
 }
 
 

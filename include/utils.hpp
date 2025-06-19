@@ -3,11 +3,12 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 #include <map>
 #include <set>
 
 template <typename T>
-void printVector(const std::vector<T>& vec) 
+void printVector(const std::vector<T>& vec, bool new_line) 
 {
     std::cout << "[ ";
     for (const auto& item : vec) 
@@ -15,6 +16,8 @@ void printVector(const std::vector<T>& vec)
         std::cout << item << " ";
     }
     std::cout << "]";
+    if (new_line)
+        std::cout << '\n';
 }
 
 template <typename T>
@@ -31,6 +34,21 @@ void print2DVector(const std::vector<std::vector<T>>& matrix)
         std::cout << "]\n";
     }
     std::cout << "]\n";
+}
+
+template <typename T>
+void printSet(const T& s, const std::string& label = "Set") {
+    static_assert(
+        std::is_same_v<T, std::set<typename T::key_type>> ||
+        std::is_same_v<T, std::unordered_set<typename T::key_type>>,
+        "Template argument must be a set or unordered_set"
+    );
+
+    std::cout << label << " contains: { ";
+    for (const auto& elem : s) {
+        std::cout << elem << " ";
+    }
+    std::cout << "}\n";
 }
 
 template<typename K, typename V>
