@@ -551,21 +551,21 @@ int Solver::choose_literal(std::vector<int> cl)
 
         if (data.Variables.at(var).get_decision_level()>=implication_level)
         {
-            std::cout << "found...\n" << literal << '\n';
+            // std::cout << "found...\n" << literal << '\n';
             most_recently_implied = literal;
             implication_level = data.Variables.at(var).get_decision_level();
         }
     }
 
     // std::cout << "current level (conflict detection level) " << level << '\n';
-    std::cout << "implication level of most recently implied literal: " << implication_level << '\n';
-    std::cout << "most recently implied literal: " << most_recently_implied << '\n';
+    // std::cout << "implication level of most recently implied literal: " << implication_level << '\n';
+    // std::cout << "most recently implied literal: " << most_recently_implied << '\n';
 
     return most_recently_implied;
 }
 
 
-bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSearchLevel)
+bool Solver::stop_criterion_met(std::unordered_map<int, int> c1)
 {   
     /*  
                         1st condition
@@ -573,8 +573,6 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
         them has the highest decision level (which may not be
         the current decision level). Suppose this variable is V.
     */
-    std::cout << "checking stop criteria on: \n";
-    print_hashmap(c1);
 
     int v = -1, highest_decision_level = 0;
     int V = v;
@@ -607,8 +605,6 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
     if (levels[highest_decision_level].first > 1)
         return false;
     
-    std::cout << "V = " << V << '\n';
-    std::cout << "highest decision level = " << highest_decision_level << '\n';
     
     /*  
                         2nd condition
@@ -650,12 +646,19 @@ bool Solver::stop_criterion_met(std::unordered_map<int, int> c1, int currentSear
 
 std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<int> c2, int pivot_variable)
 {
-    std::unordered_map<int, int> new_clause = {}; // literal, sign (1: positive, 0: negative)
+    std::unordered_map<int, int> new_clause = {}; // literal, state
+    int state_in_clause = qbf::UNDEFINED;
 
     for (int literal : c1)
     {   
         if (std::abs(literal) == pivot_variable) continue;
-        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 0});
+
+        if (data.Variables.at(std::abs(literal)).get_decision_level() == qbf::UNDEFINED)
+            state_in_clause = qbf::AVAILABLE;
+        else
+            state_in_clause = data.Variables.at(std::abs(literal)).get_decision_level();
+
+        new_clause.insert({literal, state_in_clause});
     }
 
     for (int literal : c2)
@@ -673,7 +676,13 @@ std::unordered_map<int, int> Solver::resolve(std::vector<int> c1, std::vector<in
             }
         }
 
-        (literal > 0) ? new_clause.insert({literal, 1}) : new_clause.insert({literal, 0}); /* add literal to clause */
+        /* add literal to clause */
+        if (data.Variables.at(std::abs(literal)).get_decision_level() == qbf::UNDEFINED)
+            state_in_clause = qbf::AVAILABLE;
+        else
+            state_in_clause = data.Variables.at(std::abs(literal)).get_decision_level();
+
+        new_clause.insert({literal, state_in_clause});
     }
 
     return new_clause;
@@ -692,7 +701,7 @@ int Solver::clause_asserting_level(std::vector<int> cl_vec)
     if (data.Variables.at(Search_Stack.top().first).is_universal())
     {
         clause_asserting_lvl = SStack.top().second;
-        std::cout << "backtracking to " << clause_asserting_lvl << '\n';
+        // std::cout << "backtracking to " << clause_asserting_lvl << '\n';
         return clause_asserting_lvl;
     }
 
@@ -718,37 +727,98 @@ int Solver::clause_asserting_level(std::vector<int> cl_vec)
     return clause_asserting_lvl;
 }
 
-/* TODO: write body */
-void Solver::analyze_conflict()
+
+void Solver::add_clause_to_db(std::vector<int> cl_vec, std::unordered_map<int, int> cl_hash)
 {
-    if (level == 0)
+    std::sort(cl_vec.begin(), cl_vec.end()); /* sort literals in clause */
+    std::vector<int> state(cl_vec.size(), qbf::AVAILABLE);
+    print_hashmap(cl_hash);
+
+    int index = 0;
+    
+    Clause new_clause = Clause(cl_vec, state, level, true);
+    std::size_t h = new_clause.compute_hash();
+
+    /* adding learned clause to database */
+    if (data.ClauseHashes.find(h) == data.ClauseHashes.end())
     {   
-        std::cout << "analyze_conflict() led to root (" << level << ")" << '\n';
-        state = qbf::UNSAT;
+        data.last_clause_idx++; data.numClauses++;
+        data.ClauseHashes.insert(h);
+
+        /* ------------------- init. new clause ------------------- */
+
+        for (int literal : cl_vec)
+        {
+            int literal_state = cl_hash[literal];
+            new_clause.get_state()[index] = literal_state;
+
+            if (literal>0)
+                data.Variables.at(literal).addOccurrence(data.last_clause_idx, index, true);
+            else
+                data.Variables.at(std::abs(literal)).addOccurrence(data.last_clause_idx, index, false);
+
+            index++;
+
+            if (literal_state != qbf::AVAILABLE)
+            {
+                new_clause.increase_assigned();
+                continue;
+            }
+                
+            new_clause.increase_unassigned();
+            if (data.Variables.at(std::abs(literal)).is_existential())
+                new_clause.increase_e_num();
+            else 
+                new_clause.increase_a_num();
+            
+        }
+
+
+        new_clause.set_size(cl_vec.size());
+        new_clause.set_availability(qbf::AVAILABLE);
+
+        data.Clauses.insert({data.last_clause_idx, new_clause});
+        data.Clauses_trail.at(level).insert(data.last_clause_idx);
+
         return;
     }
-    int currentDecisionLevel = level; /* conflict level */
+    
+}
+
+
+int Solver::analyze_conflict(int conflict_level)
+{
+    if (conflict_level == 0)
+    {   
+        std::cout << "analyze_conflict() led to root (" << conflict_level << ")" << '\n';
+        state = qbf::UNSAT;
+        return -1;
+    }
+    int currentDecisionLevel = conflict_level; /* conflict level */
 
     std::vector<int> cl_vec = data.Clauses.at(conflicting_clause).get_literals();
     std::unordered_map<int, int> cl_hash = vector_to_hashmap(cl_vec);
 
-    // std::size_t h = c1.compute_hash();
-    // if (ClauseHashes.find(h) == ClauseHashes.end())
-    // {
-        // std::cout << "New learned clause: \n";
-        // c1.print();
-        // data.ClauseHashes.insert(h);
-        // data.Clauses[++data.last_clause_idx] = c1;
-        // add_clause_to_database(c1); /* ??? if ??? */
-    // }
-    // else
-    // {
-    //     std::cout << "Skipping learned clause (duplicate):\n";
-    //     c1.print();
-    // }
+    while (!stop_criterion_met(cl_hash))
+    {
+        int most_recently_implied_literal = choose_literal(cl_vec);
+        int variable = std::abs(most_recently_implied_literal);
 
-    // back_dl = clause_asserting_level(c1);
-    // return back_dl;
+        if (most_recently_implied_literal == qbf::UNDEFINED)
+            break;
+
+        int antecedentID = data.Variables.at(variable).get_antecedent_clause();
+        std::vector<int> antecedent_vec = data.Clauses.at(antecedentID).get_literals();
+
+        cl_hash = resolve(cl_vec, antecedent_vec, variable);
+        cl_vec = hashmap_to_vec(cl_hash);
+    }
+    
+    int back_dl = clause_asserting_level(cl_vec);
+
+    add_clause_to_db(cl_vec, cl_hash);
+
+    return back_dl;
 }
 
 
@@ -893,59 +963,16 @@ bool Solver::solve()
     print_Prefix();
 
 
-    std::vector<int> cl_vec;
-    std::unordered_map<int, int> cl_hash;
+    std::cout << "conflict level: " << level << '\n';
 
-    while(1)
-    {
-        if(level == qbf::ROOT)
-            return false;
+    int result = analyze_conflict(level);
+    std::cout << result << '\n';
 
-        cl_vec = data.Clauses.at(conflicting_clause).get_literals();
-        cl_hash = vector_to_hashmap(cl_vec);
+    print_Clauses();
 
-        std::cout << "=========================================================\n";
-        std::cout << "before entering main loop\n";
-        std::cout << "cl:\n";
-        printVector(cl_vec, true);
-        print_hashmap(cl_hash);
-
-        while(!stop_criterion_met(cl_hash, level))
-        {   
-            int most_recently_implied_literal = choose_literal(cl_vec);
-            int variable = std::abs(most_recently_implied_literal);
-
-            if (most_recently_implied_literal == qbf::UNDEFINED)
-                break;
-
-            int antecedentID = data.Variables.at(variable).get_antecedent_clause();
-            std::cout << "antecedent clauseID of most recently implied literal: " << antecedentID << '\n';
-            std::vector<int> antecedent_vec = data.Clauses.at(antecedentID).get_literals();
-            printVector(antecedent_vec, true);
-
-            std::cout << "resolving\n";
-            printVector(cl_vec, true);
-            printVector(antecedent_vec, true);
-
-            cl_hash = resolve(cl_vec, antecedent_vec, variable);
-            cl_vec = hashmap_to_vec(cl_hash);
-            std::cout << "resolution result:\n";
-
-            // print_hashmap(cl_hash);
-            // printVector(cl_vec, true);
-        }
-        std::cout << "done...\n";
-        break;
-    }
-
-    print_hashmap(cl_hash);
-    printVector(cl_vec, true);
-    std::cout << "current level: " << level << '\n';
-
-    /* find clause asserting level */
-    int clause_asserting_lvl = clause_asserting_level(cl_vec);
+    std::cout << data.last_clause_idx << '\n';
+    data.Clauses.at(data.last_clause_idx).print();
     
-
 
     return state;
 }

@@ -38,7 +38,7 @@ class Clause
         void set_assigned(int a) { assigned = a; }
         std::vector<int>& get_literals() { return literals; }
         std::vector<int>& get_state() { return state; }
-       void set_unit_position(int position) { unique_existential_position = position; }
+        void set_unit_position(int position) { unique_existential_position = position; }
 
         /* Read only access */
         size_t get_size() const { return size; }

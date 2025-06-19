@@ -30,6 +30,9 @@ class Solver
         std::stack<std::pair<int, int>> implied_universals; // (var, level)
         std::stack<std::pair<int, int>> universal_unit_clauses; // (unit_clause, level)
 
+
+        void add_clause_to_db(std::vector<int> cl_vec, std::unordered_map<int, int> cl_hash);
+
         void assign (int varID, int value, int searchLevel);
         void remove_literal_from_clause(int varID, int clauseID, int positionInClause, int searchLevel);
         // void retract_assignment (int varID, int value, int searchLevel);
@@ -42,11 +45,10 @@ class Solver
         void restore_clause(int clauseID, int searchLevel);
         int clause_is_unit(int clauseID, int reference_varID);
 
-        /* clause learning: game mode off */
-        void analyze_conflict(); // entry point
+        int analyze_conflict(int conflict_level); // entry point
         int choose_literal(std::vector<int> cl); // pick most recently implied literal
         std::unordered_map<int, int> resolve(std::vector<int> c1, std::vector<int> c2, int pivot_literal); // resolve with respect to the pivot variable
-        bool stop_criterion_met(std::unordered_map<int, int> c1, int currentSearchLevel); // 
+        bool stop_criterion_met(std::unordered_map<int, int> c1); // 
         int clause_asserting_level(std::vector<int> cl_vec); // returns the backtracking level (the clause becomes unit at that level)
 
         /* cube learning */
@@ -60,9 +62,15 @@ class Solver
 
         std::unordered_map<int, int> vector_to_hashmap(std::vector<int> literals){
             std::unordered_map<int, int> clause = {};
+            int index = 0, literal_state = qbf::AVAILABLE;
             
             for (int literal : literals)
-                (literal > 0) ? clause.insert({literal, 1}) : clause.insert({literal, 0});
+            {
+                int literal_decision_level = data.Variables.at(std::abs(literal)).get_decision_level();
+                (literal_decision_level != qbf::UNDEFINED) ? literal_state = literal_decision_level : literal_state = qbf::AVAILABLE;
+                clause.insert({literal, literal_state});
+                index++;
+            }
 
             return clause;
         };
@@ -70,7 +78,7 @@ class Solver
         std::vector<int> hashmap_to_vec(std::unordered_map<int, int> literals){
             std::vector<int> clause = {};
             
-            for (const auto& [literal, sign] : literals)
+            for (const auto& [literal, state] : literals)
             {
                 clause.push_back(literal);
             }

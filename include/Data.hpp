@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <type_traits>
 
 #include "Variable.hpp"
 #include "Clause.hpp"
