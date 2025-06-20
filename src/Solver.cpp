@@ -20,7 +20,7 @@ void Solver::assign(int varID, int value, int searchLevel)
     // std::cout << "assigning variable " << varID << " to " << value << " at level " << searchLevel << '\n';
     if (data.Variables.at(varID).is_available() == qbf::UNAVAILABLE)
     {   
-        // std::cout << "variable " << varID << " is not available (level " << searchLevel << ")\n"; 
+        std::cout << "variable " << varID << " is not available (level " << searchLevel << ")\n"; 
         return;
     }
     std::cout << "assigning variable " << varID << " to " << value << " at level " << searchLevel << '\n';
@@ -701,7 +701,7 @@ int Solver::clause_asserting_level(std::vector<int> cl_vec)
     if (data.Variables.at(Search_Stack.top().first).is_universal())
     {
         clause_asserting_lvl = SStack.top().second;
-        // std::cout << "backtracking to " << clause_asserting_lvl << '\n';
+        std::cout << "backtracking to " << clause_asserting_lvl << '\n';
         return clause_asserting_lvl;
     }
 
@@ -770,7 +770,6 @@ void Solver::add_clause_to_db(std::vector<int> cl_vec, std::unordered_map<int, i
             new_clause.increase_assigned();
             new_clause.decrease_unassigned();
         }
-
 
         new_clause.set_size(cl_vec.size());
         new_clause.set_availability(qbf::AVAILABLE);
@@ -907,14 +906,65 @@ bool Solver::solve()
 
     level = 1;
     assign(1, 1, level);
-    SStack.push({1, level});
+    PStack.push({1, level});
     Search_Stack.push({1, level});
-    print_Clauses();
+    // print_Clauses();
     imply(level);
     print_Clauses();
     std::cout << "solver state: " << state << '\n';
     std::cout << "conflict clause: " << conflicting_clause << '\n';
     print_Prefix();
+
+    level++;
+    assign(2, 1, level);
+    PStack.push({2, level});
+    Search_Stack.push({2, level});
+    // print_Clauses();
+    imply(level);
+    print_Clauses();
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+
+    level++;
+    assign(3, 0, level);
+    PStack.push({3, level});
+    Search_Stack.push({3, level});
+    // print_Clauses();
+    imply(level);
+    print_Clauses();
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+
+    level++;
+    assign(4, 1, level);
+    SStack.push({4, level});
+    Search_Stack.push({4, level});
+    // print_Clauses();
+    imply(level);
+    print_Clauses();
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+
+    level++;
+    assign(5, 1, level);
+    SStack.push({5, level});
+    Search_Stack.push({5, level});
+    // print_Clauses();
+    imply(level);
+    print_Clauses();
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+
+    level++;
+    assign(6, 1, level);
+    SStack.push({6, level});
+    Search_Stack.push({6, level});
+    // print_Clauses();
+    imply(level);
+    print_Clauses();
+    std::cout << "solver state: " << state << '\n';
+    std::cout << "conflict clause: " << conflicting_clause << '\n';
+
 
     // int result = analyze_conflict(level);
     // std::cout << result << '\n';
@@ -922,38 +972,7 @@ bool Solver::solve()
     // // print_Clauses();
 
     // data.Clauses.at(data.last_clause_idx).print();
-
-
-    // level++;
-    // assign(2, 0, level);
-    // SStack.push({2, level});
-    // Search_Stack.push({2, level});
-    // print_Clauses();
-    // imply(level);
-    // print_Clauses();
-    // std::cout << "solver state: " << state << '\n';
-    // std::cout << "conflict clause: " << conflicting_clause << '\n';
-
-    // level++;
-    // assign(3, 1, level);
-    // PStack.push({3, level});
-    // Search_Stack.push({3, level});
-    // print_Clauses();
-    // imply(level);
-    // print_Clauses();
-    // std::cout << "solver state: " << state << '\n';
-    // std::cout << "conflict clause: " << conflicting_clause << '\n';
-
-    // level++;
-    // assign(4, 1, level);
-    // SStack.push({4, level});
-    // Search_Stack.push({4, level});
-    // print_Clauses();
-    // imply(level);
-    // print_Clauses();
-    // std::cout << "solver state: " << state << '\n';
-    // std::cout << "conflict clause: " << conflicting_clause << '\n';
-
+    
     // level++;
     // assign(5, 1, level);
     // PStack.push({5, level});
