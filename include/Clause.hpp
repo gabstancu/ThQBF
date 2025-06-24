@@ -28,7 +28,18 @@ class Clause
         Clause (const std::vector<int>& literals, 
                 const std::vector<int>& state, 
                 int level,
-                bool learned);
+                bool learned) : 
+                size(literals.size()), 
+                available(qbf::AVAILABLE), 
+                level(level), 
+                unassigned(literals.size()), 
+                assigned(0),
+                literals(literals), 
+                state(state), 
+                unique_existential_position(qbf::UNDEFINED),  
+                e_num(0),
+                a_num(0), 
+                learned(learned) {}
         
         /* Mutators (during search) */
         void set_size(size_t s) { size = s; }
@@ -54,7 +65,16 @@ class Clause
         bool is_learned() const { return learned; }
 
         /* other */
-        void print();
+        void pprint()
+        {
+            printVector(literals, true);
+            printVector(state, true);
+            std::cout << "level: " << level << "   ";
+            std::cout << "availability: " << available << "   ";
+            std::cout << "candidate unit literal position: " << unique_existential_position << "   ";
+            std::cout << "learned: " << learned << "   ";
+            std::cout << '\n';
+        }
         void set_literal_state(int positionInClause, int newState) { state[positionInClause] = newState; }
         void increase_e_num() { e_num++; }
         void decrease_e_num() { e_num--; }
@@ -77,9 +97,8 @@ class Clause
         }
 
         /* extend for unit clause detection and resolution and add to .cpp */
-        bool is_empty() { return (e_num == 0 && a_num == 0); }
-        bool is_unit();
-        void resolve(Clause& c, int referenceVar);
+        bool is_empty() const { return (e_num == 0 && a_num == 0); }
+        bool is_unit() const { return e_num == 1; }
 };
 
 #endif // CLAUSE_HPP
