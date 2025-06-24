@@ -1,17 +1,15 @@
-c prefix_class = Pi_3
-c num_vars 4
-c num_clauses 6
-c num_blocks 3
-c block_sizes[0] = 2
-c block_sizes[1] = 1
-c block_sizes[2] = 1
-p cnf 4 6
-a 1 2 0
-e 3 0
-a 4 0
--1 -2 -4 0
--1 2 4 0
-1 -2 4 0
-1 2 -4 0
-3 4 0
--3 -4 0
+p cnf 7 11
+e 1 2 3 0
+a 4 5 0
+e 6 7 0
+-1 -2 -6 0
+-1 2 6 0
+1 -2 6 0
+1 2 -6 0
+-3 7 0
+3 -7 0
+-6 -7 0
+-4 -7 0
+5 6 0
+6 7 0
+-6 0

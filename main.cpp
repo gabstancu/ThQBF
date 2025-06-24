@@ -16,7 +16,7 @@ int main (int argc, char* argv[])
 
     SolverData data;
     int mode;
-    if (argc == 2) /* one input file -> regular QBF instance */
+    if (argc == 2) /* one input file; regular QBF instance */
     {
         std::string QDIMACS = argv[1];
         std::cout << "Reading QDIMACS " << QDIMACS << "\n";
