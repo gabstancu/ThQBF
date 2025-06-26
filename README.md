@@ -1,0 +1,1 @@
+# A symmetric search-based solver for quantified Boolean formulae
