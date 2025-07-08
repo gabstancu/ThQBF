@@ -13,6 +13,17 @@ namespace qbf
             EMPTY: no literals or only universals (set solver state to unsat)
         */
     };
+
+    inline const char* to_string(ClauseStatus s) {
+        switch (s) 
+        {
+            case ClauseStatus::ACTIVE: return "ACTIVE";
+            case ClauseStatus::DELETED: return "DELETED";
+            case ClauseStatus::SATISFIED: return "SATISFIED";
+            case ClauseStatus::EMPTY: return "EMPTY";
+        }
+        return "INVALID.";
+    }
 }
 
 struct Clause

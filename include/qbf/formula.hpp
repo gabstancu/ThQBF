@@ -12,6 +12,17 @@ namespace qbf
             SIMPLIFIED: simplified 
         */
     };
+
+    inline const char* to_string(FormulaStatus s) 
+    {
+        switch (s) 
+        {
+            case FormulaStatus::SAT: return "SAT";
+            case FormulaStatus::UNSAT: return "UNSAT";
+            case FormulaStatus::SIMPLIFIED: return "SIMPLIFIED";
+        }
+        return "INVALID";
+    }
 }
 
 struct formula

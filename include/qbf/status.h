@@ -1,22 +1,22 @@
-#ifndef STATUS_HPP
-#define STATUS_HPP
+// #ifndef STATUS_HPP
+// #define STATUS_HPP
 
-namespace qbf
-{
-    enum class SolverStatus { SAT, UNSAT, UNKNOWN };
+// namespace qbf
+// {
+//     enum class SolverStatus { SAT, UNSAT, UNKNOWN };
 
-    enum class ClauseStatus { ACTIVE,  DELETED, SATISFIED };
+//     enum class ClauseStatus { ACTIVE,  DELETED, SATISFIED };
 
-    enum class LiteralStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
+//     enum class LiteralStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
 
-    enum class VariableStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
+//     enum class VariableStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
 
-    // variables related: active, assigned, eliminated
-    // literals: available, unavailable
-    // clauses: active, deleted, satisfied
-    // solver status: SAT, UNSAT, SIMPLIFIED
-    // 
-} // namespace qbf
+//     // variables related: active, assigned, eliminated
+//     // literals: available, unavailable
+//     // clauses: active, deleted, satisfied
+//     // solver status: SAT, UNSAT, SIMPLIFIED
+    
+// } // namespace qbf
 
 
 // namespace Status
@@ -45,4 +45,4 @@ namespace qbf
 //     constexpr int ROOT = 0;
 // }
 
-#endif // STATUS_HPP
+// #endif // STATUS_HPP

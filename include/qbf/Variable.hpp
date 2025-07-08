@@ -13,11 +13,24 @@ namespace qbf
             IMPLIED: has been assigned due to implication
         */
     };
+
+    inline const char* to_string(VariableStatus s) 
+    {
+        switch (s) 
+        {
+            case VariableStatus::ACTIVE: return "ACTIVE";
+            case VariableStatus::ASSIGNED: return "ASSIGNED";
+            case VariableStatus::ELIMINATED: return "ELIMINATED";
+            case VariableStatus::IMPLIED: return "IMPLIED";
+        }
+        return "INVALID";
+    }
 }
 
 struct Variable
 {
     /* data */
+    qbf::VariableStatus status;
 };
 
 

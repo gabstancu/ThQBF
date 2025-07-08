@@ -13,6 +13,18 @@ namespace qbf
             SEARCH: during search
         */
     };
+
+    inline const char* to_string(SolverStatus s) 
+    {
+        switch (s) 
+        {
+            case SolverStatus::SAT: return "SAT";
+            case SolverStatus::UNSAT: return "UNSAT";
+            case SolverStatus::PRESEARCH: return "PRESEARCH";
+            case SolverStatus::SEARCH: return "SEARCH";
+        }
+        return "INVALID";
+    }
 }
 
 class QBFSolver
