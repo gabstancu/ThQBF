@@ -56,8 +56,12 @@ class ThQBF
         int remainingVars;
         int remainingClauses;
         int remainingBlocks;
-        std::stack<std::pair<int, int>> implied_variables = {}; // { variableid, level }
-        std::stack<std::pair<int, int>> unit_clauses      = {}; // { clauseID,   level }
+        std::stack<std::pair<int, int>> PStack               = {}; // { decision_a_var: decision_level }
+        std::stack<std::pair<int, int>> SStack               = {}; // { decision_e_var: decision_level }
+        std::stack<std::pair<int, int>> Search_Stack         = {}; // { decision_var: decision_level }
+        std::stack<std::pair<int, int>> implied_variables    = {}; // { variableid, level }
+        std::stack<std::pair<int, int>> unit_clauses         = {}; // { clauseID,   level }
+        std::unordered_map<int, int>    decision_variable_at = {}; // { level: decision_variable }
         
 
         /* ====================== Trailing ====================== */
@@ -74,7 +78,7 @@ class ThQBF
 
 
         /* ====================== -------- ====================== */
-        void assign                     ();
+        void assign                     (int varID, int value);
         void remove_literal_from_clause ();
         void restore_level              ();
         void remove_variable            ();
@@ -93,7 +97,7 @@ class ThQBF
 
 
         /* ====================== Clause learning ====================== */
-
+        int conflict_clause;
 
 
 

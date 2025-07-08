@@ -7,7 +7,7 @@ namespace qbf
 {
     enum class VariableStatus
     {
-        ACTIVE, ASSIGNED, ELIMINATED, IMPLIED, UNDEFINED
+        ACTIVE, ASSIGNED, ELIMINATED, IMPLIED
         /*
             ACTIVE: stil available
             ASSIGNED: has been assigned a value due to a decision
@@ -25,11 +25,10 @@ namespace qbf
     {
         switch (s) 
         {
-            case VariableStatus::ACTIVE: return "ACTIVE";
-            case VariableStatus::ASSIGNED: return "ASSIGNED";
+            case VariableStatus::ACTIVE:     return "ACTIVE";
+            case VariableStatus::ASSIGNED:   return "ASSIGNED";
             case VariableStatus::ELIMINATED: return "ELIMINATED";
-            case VariableStatus::IMPLIED: return "IMPLIED";
-            case VariableStatus::UNDEFINED: return "UNDEFINED";
+            case VariableStatus::IMPLIED:    return "IMPLIED";
         }
         return "INVALID";
     }
