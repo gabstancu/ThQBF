@@ -29,7 +29,7 @@ namespace qbf
 
 struct Variable
 {
-    /* data */
+    int varID;
     qbf::VariableStatus status;
 };
 
