@@ -26,12 +26,13 @@ namespace qbf
             case SolverStatus::UNSAT:     return "UNSAT";
             case SolverStatus::PRESEARCH: return "PRESEARCH";
             case SolverStatus::SEARCH:    return "SEARCH";
+            case SolverStatus::ROOT:      return "ROOT";
         }
         return "INVALID";
     }
 }
 
-class QBFSolver
+class ThQBF
 {   
     private:
         /* ====================== Formula data ====================== */
@@ -100,21 +101,7 @@ class QBFSolver
 
 
     public:
-        QBFSolver(QDimacsParser parser)
-        {
-            this->Clauses              = parser.matrix;
-            this->Blocks               = parser.quantifier_prefix;
-            this->Variables            = parser.variables; 
-            this->numVars              = parser.numVars;
-            this->numClauses           = parser.numClauses;
-            this->numBlocks            = parser.numBlocks;
-            this->numOfExistentialVars = parser.numOfExistentialVars;
-            this->numOfUniversalVars   = parser.numOfUniversalVars;
-
-            this->remainingVars        = parser.numVars;
-            this->remainingClauses     = parser.numClauses;
-            this->remainingBlocks      = parser.numBlocks;
-        }
+        ThQBF(QDimacsParser parser);
 
         void solve ();
 
