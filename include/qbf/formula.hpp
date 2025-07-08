@@ -1,26 +1,23 @@
 #ifndef FORMULA_HPP
 #define FORMULA_HPP
 
-enum class QuantifierType { EXISTS, FORALL };
+namespace qbf
+{
+    enum class FormulaStatus 
+    {
+        SAT, UNSAT, SIMPLIFIED
+        /*
+            SAT: empty
+            UNSAT: empty clause
+            SIMPLIFIED: simplified 
+        */
+    };
+}
 
-struct Variable
+struct formula
 {
     /* data */
 };
-
-struct Literal
-{
-    /* data */
-};
-
-
-
-struct Clause
-{
-    /* data */
-};
-
-
 
 
 #endif // FORMULA_HPP

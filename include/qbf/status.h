@@ -7,38 +7,15 @@ namespace qbf
 
     enum class ClauseStatus { ACTIVE,  DELETED, SATISFIED };
 
-    enum class LiteralStatus { UNASSIGNED, TRUE, FALSE };
+    enum class LiteralStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
 
+    enum class VariableStatus { ASSIGNED, UNASSIGNED, TRUE, FALSE };
 
-    inline const char* to_string(SolverStatus status) {
-    switch (status) 
-    {
-        case SolverStatus::SAT: return "SAT";
-        case SolverStatus::UNSAT: return "UNSAT";
-        case SolverStatus::UNKNOWN: return "UNKNOWN";
-    }
-        return "INVALID";
-    }
-
-    inline const char* to_string(ClauseStatus status) {
-        switch (status) 
-        {
-            case ClauseStatus::ACTIVE: return "ACTIVE";
-            case ClauseStatus::DELETED: return "DELETED";
-            case ClauseStatus::SATISFIED: return "SATISFIED";
-        }
-        return "INVALID";
-    }
-
-    inline const char* to_string(LiteralStatus status) {
-        switch (status) 
-        {
-            case LiteralStatus::UNASSIGNED: return "UNASSIGNED";
-            case LiteralStatus::TRUE: return "TRUE";
-            case LiteralStatus::FALSE: return "FALSE";
-        }
-        return "INVALID";
-    }
+    // variables related: active, assigned, eliminated
+    // literals: available, unavailable
+    // clauses: active, deleted, satisfied
+    // solver status: SAT, UNSAT, SIMPLIFIED
+    // 
 } // namespace qbf
 
 
