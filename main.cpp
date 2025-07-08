@@ -21,14 +21,6 @@ int main (int argc, char* argv[])
 
     ThQBF solver(parser);
 
-    // for (QuantifierBlock c : parser.quantifier_prefix)
-    // {
-    //     for (int v : c.variables)
-    //     {
-    //         std::cout << v << ' ';
-    //     }
-    //     std::cout << '\n';
-    // }
     // solver.solve();
     // solver.print();
 

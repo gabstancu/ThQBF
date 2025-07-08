@@ -27,27 +27,74 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED)
     }
 }
 
-// TODO
+// TODO: assign ()
 void ThQBF::assign ()
 {
 
 }
 
-// TODO
+// TODO: remove_literal_from_clause ()
 void ThQBF::remove_literal_from_clause ()
 {
 
 }
 
-// TODO
+// TODO: restore_level()
 void ThQBF::restore_level ()
 {
 
 }
 
-// TODO
+// TODO: remove_variable()
 void ThQBF::remove_variable ()
 {
 
 }
 
+// TODO: restore_variable()
+void ThQBF::restore_variable ()
+{
+
+}
+
+// TODO: check_affected_vars()
+void ThQBF::check_affected_vars ()
+{
+
+}
+
+// TODO: remove_clause()
+void ThQBF::remove_clause ()
+{
+
+}
+
+// TODO: restore_clause()
+void ThQBF::restore_clause ()
+{
+
+}
+
+// TODO: UnitPropagation()
+void ThQBF::UnitPropagation ()
+{
+
+}
+
+// TODO: UniversalReduction()
+void ThQBF::UniversalReduction ()
+{
+
+}
+
+// TODO: PureLiteral()
+void ThQBF::PureLiteral ()
+{
+
+}
+
+// TODO: deduce()
+void ThQBF::deduce ()
+{
+
+}
