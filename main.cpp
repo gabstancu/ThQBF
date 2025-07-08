@@ -25,12 +25,12 @@ int main (int argc, char* argv[])
     //     c.print();
     //     std::cout << "\n=====================================\n";
     // }
-    std::cout << "\n=====================================\n";
-    for (Variable v : parser.variables)
-    {
-        v.print();
-        std::cout << "\n=====================================\n";
-    }
+    // std::cout << "\n=====================================\n";
+    // for (Variable v : parser.variables)
+    // {
+    //     v.print();
+    //     std::cout << "\n=====================================\n";
+    // }
 
     return 0;
 }
