@@ -19,6 +19,7 @@ namespace qbf
     enum class LiteralStatus: int32_t
     {
         AVAILABLE = -2
+        // if state not AVAILABLE then the literal is UNAVAILABLE
     };
 
     inline const char* to_string(ClauseStatus s) 
@@ -37,8 +38,9 @@ namespace qbf
 struct Clause
 {
     int size;
-    qbf::ClauseStatus available;
+    qbf::ClauseStatus status;
     int level;
+    int clauseID;
 
     int num_of_unassigned, num_of_assigned;
 
@@ -49,6 +51,8 @@ struct Clause
 
     bool learned;
 
+    size_t hash;
+
     std::size_t compute_hash() const 
     {
         std::size_t h = 0;
@@ -57,7 +61,6 @@ struct Clause
         }
         return h;
     }
-
 
     bool is_empty ()
     {
@@ -69,13 +72,18 @@ struct Clause
         return e_num == 1;
     }
 
+    bool is_literal_available (int position)
+    {
+        return state[position] == static_cast<int>(qbf::LiteralStatus::AVAILABLE);
+    }
+
     void print ()
     {
         printVector(literals, false);
         std::cout << "  " ;
         printVector(state, false);
         std::cout << "  level: " << level << "  ";
-        std::cout << "availability: " << to_string(available) << "  ";
+        std::cout << "availability: " << to_string(status) << "  ";
         std::cout << "candidate unit literal position: " << unique_existential_position << "   ";
         std::cout << "learned: " << learned << "  ";
     }

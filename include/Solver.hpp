@@ -1,11 +1,13 @@
 #ifndef SOLVER_HPP
 #define SOLVER_HPP
 
+#include "qbf/qbf.hpp"
+
 namespace qbf
 {
     enum class SolverStatus
     {
-        SAT, UNSAT, PRESEARCH, SEARCH
+        SAT, UNSAT, PRESEARCH, SEARCH, ROOT = -1
         /* 
             SAT: empty matrix
             UNSAT: empty clause detected

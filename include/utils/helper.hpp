@@ -37,7 +37,8 @@ void print2DVector(const std::vector<std::vector<T>>& matrix)
 }
 
 template <typename T>
-void printSet(const T& s, const std::string& label = "Set") {
+void printSet(const T& s, const std::string& label = "Set") 
+{
     static_assert(
         std::is_same_v<T, std::set<typename T::key_type>> ||
         std::is_same_v<T, std::unordered_set<typename T::key_type>>,
@@ -45,25 +46,31 @@ void printSet(const T& s, const std::string& label = "Set") {
     );
 
     std::cout << label << " contains: { ";
-    for (const auto& elem : s) {
+    for (const auto& elem : s) 
+    {
         std::cout << elem << " ";
     }
     std::cout << "}\n";
 }
 
 template<typename K, typename V>
-void print_hashmap(const std::unordered_map<K, V>& m) {
-    for (const auto& [key, value] : m) {
+void print_hashmap(const std::unordered_map<K, V>& m) 
+{
+    for (const auto& [key, value] : m) 
+    {
         std::cout << "  [" << key << "] = " << value << "\n";
     }
     std::cout << std::endl;
 }
 
 template<typename K, typename V>
-void print_map_of_sets(const std::map<K, std::set<V>>& m) {
-    for (const auto& [key, value_set] : m) {
+void print_map_of_sets(const std::map<K, std::set<V>>& m) 
+{
+    for (const auto& [key, value_set] : m) 
+    {
         std::cout << "  [" << key << "] = { ";
-        for (const auto& val : value_set) {
+        for (const auto& val : value_set) 
+        {
             std::cout << val << " ";
         }
         std::cout << "}\n";
@@ -72,29 +79,32 @@ void print_map_of_sets(const std::map<K, std::set<V>>& m) {
 }
 
 template<typename T1, typename T2>
-void printStackOfPairsSafe(const std::stack<std::pair<T1, T2>>& original) {
+void printStackOfPairsSafe(const std::stack<std::pair<T1, T2>>& original) 
+{
     std::stack<std::pair<T1, T2>> copy = original;
     std::vector<std::pair<T1, T2>> elements;
 
-    while (!copy.empty()) {
+    while (!copy.empty()) 
+    {
         elements.push_back(copy.top());
         copy.pop();
     }
 
     // std::cout << "Stack contents (bottom to top):\n";
-    for (auto it = elements.rbegin(); it != elements.rend(); ++it) {
+    for (auto it = elements.rbegin(); it != elements.rend(); ++it) 
+    {
         std::cout << "(" << it->first << ", " << it->second << ")\n";
     }
 }
 
 template<typename K, typename T1, typename T2, typename T3>
-void printTseitinMap(const std::unordered_map<K, std::tuple<T1, T2, T3>>& tseitinMap) {
-    for (const auto& [key, values] : tseitinMap) {
+void printTseitinMap(const std::unordered_map<K, std::tuple<T1, T2, T3>>& tseitinMap) 
+{
+    for (const auto& [key, values] : tseitinMap) 
+    {
         const auto& [v1, v2, v3] = values;
         std::cout << key << " : " << v1 << " " << v2 << " " << v3 << '\n';
     }
 }
-
-
 
 #endif // UTILS_HPP

@@ -25,7 +25,7 @@ namespace qbf
     }
 }
 
-struct formula
+struct Formula
 {
     /* data */
 };
