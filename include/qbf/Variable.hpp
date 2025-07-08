@@ -9,7 +9,7 @@ namespace qbf
     {
         ACTIVE, ASSIGNED, ELIMINATED, IMPLIED, UNDEFINED
         /*
-            ACTIVE: still available
+            ACTIVE: stil available
             ASSIGNED: has been assigned a value due to a decision
             ELIMINATED: eliminated during preprocessing
             IMPLIED: has been assigned due to implication

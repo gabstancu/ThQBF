@@ -95,6 +95,7 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     else
         block.quantifier = qbf::QuantifierType::UNIVERSAL;
 
+    quantifier_prefix.push_back(block);
     numBlocks++;
     // std::cout << blockID << "   " << line << '\n';
 }

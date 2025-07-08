@@ -73,10 +73,23 @@ class ThQBF
 
 
 
+        /* ====================== -------- ====================== */
+        void assign                     ();
+        void remove_literal_from_clause ();
+        void restore_level              ();
+        void remove_variable            ();
+        void restore_variable           ();
+        void check_affected_vars        ();
+
+        void remove_clause              ();
+        void restore_clause             ();
+
+
         /* ====================== Implication rules ====================== */
         void UnitPropagation    ();
         void UniversalReduction ();
         void PureLiteral        ();
+        void deduce             ();
 
 
         /* ====================== Clause learning ====================== */
@@ -88,20 +101,8 @@ class ThQBF
 
 
 
-        void build_prefix ()
-        {
-            for (QuantifierBlock b : Blocks)
-            {
-                for (int variable : b.variables)
-                {
-                    this->PREFIX[b.blockID].insert(variable);
-                }
-            }
-        }
-
-
     public:
-        ThQBF(QDimacsParser parser);
+        ThQBF(const QDimacsParser& parser);
 
         void solve ();
 

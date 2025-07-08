@@ -1,6 +1,6 @@
 #include <iostream>
-#include "utils/QDimacsParser.hpp"
 #include "utils/helper.hpp"
+#include "ThQBF.hpp"
 
 int main (int argc, char* argv[])
 {
@@ -18,6 +18,19 @@ int main (int argc, char* argv[])
     QDimacsParser parser(QDIMACS);
     parser.parse();
     std::cout << "Done." << "\n";
+
+    ThQBF solver(parser);
+
+    // for (QuantifierBlock c : parser.quantifier_prefix)
+    // {
+    //     for (int v : c.variables)
+    //     {
+    //         std::cout << v << ' ';
+    //     }
+    //     std::cout << '\n';
+    // }
+    // solver.solve();
+    // solver.print();
 
     // std::cout << "=====================================\n";
     // for (Clause c : parser.matrix)

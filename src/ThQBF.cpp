@@ -1,6 +1,6 @@
 #include "ThQBF.hpp"
 
-ThQBF::ThQBF (QDimacsParser parser) : level(UNDEFINED)
+ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED)
 {
     this->Clauses              = parser.matrix;
     this->Blocks               = parser.quantifier_prefix;
@@ -15,5 +15,39 @@ ThQBF::ThQBF (QDimacsParser parser) : level(UNDEFINED)
     this->remainingClauses     = parser.numClauses;
     this->remainingBlocks      = parser.numBlocks;
 
-    build_prefix();
+    this->last_clause_idx      = parser.numClauses;
+    
+    // construct prefix
+    for (QuantifierBlock b : this->Blocks)
+    {
+        for (int variable : b.variables)
+        {
+            this->PREFIX[b.blockID].insert(variable);
+        }
+    }
 }
+
+// TODO
+void ThQBF::assign ()
+{
+
+}
+
+// TODO
+void ThQBF::remove_literal_from_clause ()
+{
+
+}
+
+// TODO
+void ThQBF::restore_level ()
+{
+
+}
+
+// TODO
+void ThQBF::remove_variable ()
+{
+
+}
+
