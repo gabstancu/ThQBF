@@ -33,16 +33,10 @@ namespace qbf
 
 struct Formula
 {
-    std::vector<QuantifierBlock> QuantifierPrefix; 
-    std::vector<Clause>          Matrix;           
-    std::vector<Variable>        Variables; 
+    std::vector<QuantifierBlock>    QuantifierPrefix;
+    std::vector<Clause>             Matrix;           
+    std::vector<Variable>           Variables; 
     std::unordered_set<std::size_t> ClauseHashes;
-    int numVars,    remainingVars;
-    int numClauses, remainingClauses;
-    int numBlocks,  remainingBlocks;
-    int numExistentialVars;
-    int numUniversalVars;
-    int last_clause_idx;
 
     Formula (std::vector<Clause> clauses, 
              std::vector<Variable> variables, 
@@ -55,31 +49,6 @@ struct Formula
         for (Clause c : Matrix)
         {
             ClauseHashes.insert(c.hash);
-        }
-    }
-
-
-    void print_matrix ()
-    {
-        for (Clause c : Matrix)
-        {
-
-        }
-    }
-
-    void print_QuantifierPrefix ()
-    {
-        for (QuantifierBlock b : QuantifierPrefix)
-        {
-
-        }
-    }
-
-    void print_Variables ()
-    {
-        for (Variable v : Variables)
-        {
-            
         }
     }
 };

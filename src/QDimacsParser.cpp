@@ -58,8 +58,6 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     int var, positionInBlock = 0;
     while (iss >> var && var != 0)
     {
-        Prefix[blockID].insert(var);
-
         Variable variable;
         variable.status = qbf::VariableStatus::UNDEFINED;
         variable.varID = var - 1;
