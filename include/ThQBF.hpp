@@ -69,10 +69,8 @@ class ThQBF
         void remove_variable            (int variable);
         void restore_variable           (int variable);
         void check_affected_vars        ();
-
         void remove_clause              (int clauseID);
-
-        int clause_is_unit              (int clauseID, int referenceVariable);
+        int  clause_is_unit             (int clauseID, int referenceVariable);
 
 
         /* ====================== Implication rules ====================== */
@@ -85,6 +83,7 @@ class ThQBF
 
         /* ====================== Clause learning ====================== */
         int conflict_clause;
+        // TODO: data structure for all conflicting clauses (entropy based sorting)
 
 
 

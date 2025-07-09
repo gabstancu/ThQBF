@@ -128,7 +128,7 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
     clause.hash                  = clause.compute_hash();
     clause.unit_literal_position = UNDEFINED;
     clause.level                 = UNDEFINED;
-   
+    
     int index = 0, var;
     for (int literal : literals)
     {   

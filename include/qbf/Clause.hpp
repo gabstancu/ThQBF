@@ -40,7 +40,7 @@ struct Clause
     std::vector<int> literals, state;
     int unit_literal_position;
 
-    int e_num, a_num;
+    int e_num = 0, a_num = 0;
 
     bool learned;
 
