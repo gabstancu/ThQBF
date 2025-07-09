@@ -5,33 +5,6 @@
 #include "utils/Logger.hpp"
 #include "utils/QDimacsParser.hpp"
 
-// namespace qbf
-// {
-//     enum class SolverStatus
-//     {
-//         SAT, UNSAT, PRESEARCH, SEARCH, ROOT = -1
-//         /* 
-//             SAT: empty matrix
-//             UNSAT: empty clause detected
-//             PRESEARCH: preprocessing
-//             SEARCH: during search
-//         */
-//     };
-
-//     inline const char* to_string(SolverStatus s) 
-//     {
-//         switch (s) 
-//         {
-//             case SolverStatus::SAT:       return "SAT";
-//             case SolverStatus::UNSAT:     return "UNSAT";
-//             case SolverStatus::PRESEARCH: return "PRESEARCH";
-//             case SolverStatus::SEARCH:    return "SEARCH";
-//             case SolverStatus::ROOT:      return "ROOT";
-//         }
-//         return "INVALID";
-//     }
-// }
-
 namespace qbf::SolverStatus
 {
     constexpr int SAT       =  1;
@@ -116,6 +89,13 @@ class ThQBF
 
 
         /* ====================== Cube Learning ====================== */
+
+
+
+        void print_Clauses   ();
+        void print_Variables ();
+        void print_Blocks    ();
+        void print_Prefix    ();
 
 
 

@@ -35,6 +35,8 @@ void ThQBF::assign (int varID, int value)
         return;
     }
 
+    std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n";
+
     if (Variables[varID].status != qbf::VariableStatus::IMPLIED)
     {
         decision_variable_at[level] = varID;
@@ -131,6 +133,8 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     {
         return;
     }
+
+    Clauses[clauseID].state[positionInClause] = level;
 
     Clauses_trail[level].insert(clauseID);
     Variables_trail[level].insert(varID);
@@ -438,13 +442,84 @@ void ThQBF::deduce ()
 {   
     if (solver_status == qbf::SolverStatus::PRESEARCH)
     {
-
+        std::cout << "Solver stage: PRESEARCH\n\n"; 
     }
+}
+
+
+void ThQBF::print_Clauses ()
+{
+    for (int i = 0; i < Clauses.size(); i++)
+    {
+        if (Clauses[i].status == qbf::ClauseStatus::ACTIVE)
+        {   
+            std::cout << i << ": "; 
+            for (int j = 0; j < Clauses[i].size; j++)
+            {
+                if (Clauses[i].state[j] == qbf::LiteralStatus::AVAILABLE)
+                {
+                    std::cout << Clauses[i].literals[j] << " ";
+                }
+            }
+            std::cout << " unassigned: " << Clauses[i].num_of_unassigned << '\n';
+        }
+    }
+}
+
+
+void ThQBF::print_Variables ()
+{
+    for (int i = 0; i < Variables.size(); i++)
+    {
+        if (Variables[i].status != qbf::VariableStatus::ACTIVE)
+        {
+            continue;
+        }
+
+        std::cout << "varID: " << i + 1 << " pos.: " << Variables[i].numPosAppear << " neg.: " << Variables[i].numNegAppear << '\n';
+    }
+}
+
+
+void ThQBF::print_Blocks ()
+{
+    for (int i = 0; i < Blocks.size(); i++)
+    {
+        if (Blocks[i].status == qbf::QuantifierBlockStatus::UNAVAILABLE)
+        {
+            continue;
+        }
+    }
+}
+
+
+void ThQBF::print_Prefix ()
+{
+    for (const auto& [blockID, variables] : PREFIX)
+    {
+        std::cout << blockID << ": ";
+        for (int variable : variables)
+        {
+            std::cout << variable << " ";
+        }
+        std::cout << '\n';
+    }
+    std::cout << '\n';
 }
 
 
 void ThQBF::solve ()
 {
     /* assign variables */
+    solver_status = qbf::SolverStatus::PRESEARCH;
+    level = PRESEARCH;
+    deduce();
+
+    level = 1;
     solver_status = qbf::SolverStatus::SEARCH;
+    print_Clauses();
+
+    assign(0, 1);
+    print_Clauses();
+
 }
