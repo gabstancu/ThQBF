@@ -84,10 +84,10 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     }
 
     QuantifierBlock block;
-    block.available = qbf::QuantifierBlockStatus::AVAILABLE;
-    block.variables = block_variables;
-    block.size = block_variables.size();
-    block.blockID = blockID;
+    block.status              = qbf::QuantifierBlockStatus::AVAILABLE;
+    block.variables           = block_variables;
+    block.size                = block_variables.size();
+    block.blockID             = blockID;
     block.available_variables = block_variables.size();
 
     if (quantifier == 'e')
@@ -113,21 +113,21 @@ void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
         literals.push_back(lit);
     }
 
-    std::vector<int> state(literals.size(), static_cast<int>(qbf::LiteralStatus::AVAILABLE));
+    std::vector<int> state(literals.size(), qbf::LiteralStatus::AVAILABLE);
     std::sort(literals.begin(), literals.end());
 
     Clause clause;
-    clause.clauseID = clauseID;
-    clause.size = literals.size();
-    clause.status = qbf::ClauseStatus::ACTIVE;
-    clause.num_of_unassigned = literals.size();
-    clause.num_of_assigned = 0;
-    clause.literals = literals;
-    clause.state = state;
-    clause.learned = false;
-    clause.hash = clause.compute_hash();
-    clause.unique_existential_position = UNDEFINED;
-    clause.level = UNDEFINED;
+    clause.clauseID              = clauseID;
+    clause.size                  = literals.size();
+    clause.status                = qbf::ClauseStatus::ACTIVE;
+    clause.num_of_unassigned     = literals.size();
+    clause.num_of_assigned       = 0;
+    clause.literals              = literals;
+    clause.state                 = state;
+    clause.learned               = false;
+    clause.hash                  = clause.compute_hash();
+    clause.unit_literal_position = UNDEFINED;
+    clause.level                 = UNDEFINED;
    
     int index = 0, var;
     for (int literal : literals)

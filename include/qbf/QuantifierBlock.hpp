@@ -2,45 +2,48 @@
 #define QUANTIFIER_BLOCK_HPP
 
 #include <iostream>
-namespace qbf
+
+namespace qbf::QuantifierBlockStatus
 {
-    enum class QuantifierType
-    {
-        EXISTENTIAL, UNIVERSAL
-    };
 
-    enum class QuantifierBlockStatus
-    {
-        AVAILABLE, UNAVAILABLE
-    };
+    constexpr int AVAILABLE   = 1;
+    constexpr int UNAVAILABLE = 0;
 
-    inline const char* to_string(QuantifierType qt) 
-    {
-        switch (qt) 
-        {
-            case QuantifierType::EXISTENTIAL: return "∃";
-            case QuantifierType::UNIVERSAL: return "∀";
-        }
-        return "???";
-    }
-
-    inline const char* to_string(QuantifierBlockStatus s) 
+    inline const char* to_string(int s) 
     {
         switch (s) 
         {
-            case QuantifierBlockStatus::AVAILABLE: return "AVAILABLE";
+            case QuantifierBlockStatus::AVAILABLE:   return "AVAILABLE";
             case QuantifierBlockStatus::UNAVAILABLE: return "UNAVAILABLE";
         }
         return "???";
     }
 }
+
+namespace qbf::QuantifierType
+{
+
+    constexpr char EXISTENTIAL = 'e';
+    constexpr char UNIVERSAL   = 'a';
+
+    inline const char* to_string(char qt) 
+    {
+        switch (qt) 
+        {
+            case QuantifierType::EXISTENTIAL: return "∃";
+            case QuantifierType::UNIVERSAL:   return "∀";
+        }
+        return "???";
+    }
+
+}
 struct QuantifierBlock
 {
-    qbf::QuantifierType quantifier;
-    qbf::QuantifierBlockStatus available;
-    int size;
-    int blockID;
-    int available_variables;
+    char quantifier;
+    int  status;
+    int  size;
+    int  blockID;
+    int  available_variables;
 
     std::vector<int> variables;
 

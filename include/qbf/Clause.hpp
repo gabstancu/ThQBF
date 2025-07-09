@@ -3,49 +3,42 @@
 
 #include <iostream>
 #include "utils/helper.hpp"
-namespace qbf
+
+namespace qbf::ClauseStatus
 {
-    enum class ClauseStatus
-    {
-        ACTIVE, DELETED, SATISFIED, EMPTY
-        /*
-            ACTIVE: still in
-            DELETED: removed/satisfied during preprocessing
-            SATISFIED: removed/satisfied during search
-            EMPTY: no literals or only universals (set solver state to unsat)
-        */
-    };
+    constexpr int ACTIVE    =  1;
+    constexpr int DELETED   = -1;
+    constexpr int SATISFIED = -2;
 
-    enum class LiteralStatus: int32_t
-    {
-        AVAILABLE = -2
-        // if state not AVAILABLE then the literal is UNAVAILABLE
-    };
-
-    inline const char* to_string(ClauseStatus s) 
+    inline const char* to_string(int s) 
     {
         switch (s) 
         {
-            case ClauseStatus::ACTIVE: return "ACTIVE";
-            case ClauseStatus::DELETED: return "DELETED";
+            case ClauseStatus::ACTIVE:    return "ACTIVE";
+            case ClauseStatus::DELETED:   return "DELETED";
             case ClauseStatus::SATISFIED: return "SATISFIED";
-            case ClauseStatus::EMPTY: return "EMPTY";
         }
         return "INVALID.";
     }
 }
 
+namespace qbf::LiteralStatus
+{
+    constexpr int AVAILABLE = -2;
+}
+
+
 struct Clause
 {
     int size;
-    qbf::ClauseStatus status;
+    int status;
     int level;
     int clauseID;
 
     int num_of_unassigned, num_of_assigned;
 
     std::vector<int> literals, state;
-    int unique_existential_position;
+    int unit_literal_position;
 
     int e_num, a_num;
 
@@ -74,7 +67,7 @@ struct Clause
 
     bool is_literal_available (int position)
     {
-        return state[position] == static_cast<int>(qbf::LiteralStatus::AVAILABLE);
+        return state[position] == qbf::LiteralStatus::AVAILABLE;
     }
 
     void print ()
@@ -83,8 +76,8 @@ struct Clause
         std::cout << "  " ;
         printVector(state, false);
         std::cout << "  level: " << level << "  ";
-        std::cout << "availability: " << to_string(status) << "  ";
-        std::cout << "candidate unit literal position: " << unique_existential_position << "   ";
+        std::cout << "availability: " << qbf::ClauseStatus::to_string(status) << "  ";
+        std::cout << "candidate unit literal position: " << unit_literal_position << "   ";
         std::cout << "learned: " << learned << "  ";
     }
 };

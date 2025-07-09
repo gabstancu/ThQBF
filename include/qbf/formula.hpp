@@ -7,19 +7,14 @@
 #include "QuantifierBlock.hpp"
 #include "utils/helper.hpp"
 
-namespace qbf
-{
-    enum class FormulaStatus 
-    {
-        SAT, UNSAT, SIMPLIFIED
-        /*
-            SAT: empty
-            UNSAT: empty clause
-            SIMPLIFIED: simplified 
-        */
-    };
+namespace qbf::FormulaStatus
+{   
 
-    inline const char* to_string(FormulaStatus s) 
+    constexpr int SAT        =  1;
+    constexpr int UNSAT      =  0;
+    constexpr int SIMPLIFIED = -1;
+
+    inline const char* to_string(int s) 
     {
         switch (s) 
         {

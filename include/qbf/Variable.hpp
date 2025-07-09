@@ -3,25 +3,33 @@
 
 #include <iostream>
 #include "internal.h"
-namespace qbf
+
+namespace qbf::VariableType
 {
-    enum class VariableStatus
-    {
-        ACTIVE, ASSIGNED, ELIMINATED, IMPLIED
-        /*
-            ACTIVE: stil available
-            ASSIGNED: has been assigned a value due to a decision
-            ELIMINATED: eliminated during preprocessing
-            IMPLIED: has been assigned due to implication
-        */
-    };
+    constexpr char EXISTENTIAL = 'e';
+    constexpr char UNIVERSAL   = 'a';
 
-    enum class VariableType
-    {
-        EXISTENTIAL, UNIVERSAL
-    };
 
-    inline const char* to_string(VariableStatus s) 
+    inline const char* to_string(char t) 
+    {
+        switch (t) 
+        {
+            case VariableType::EXISTENTIAL: return "∃";
+            case VariableType::UNIVERSAL:   return "∀";
+        }
+        return "INVALID";
+    }
+}
+
+namespace qbf::VariableStatus
+{   
+
+    constexpr int ACTIVE     =  1; 
+    constexpr int ASSIGNED   =  3; 
+    constexpr int ELIMINATED =  0; 
+    constexpr int IMPLIED    =  2;
+
+    inline const char* to_string(int s) 
     {
         switch (s) 
         {
@@ -32,29 +40,20 @@ namespace qbf
         }
         return "INVALID";
     }
-
-    inline const char* to_string(VariableType t) 
-    {
-        switch (t) 
-        {
-            case VariableType::EXISTENTIAL: return "∃";
-            case VariableType::UNIVERSAL: return "∀";
-        }
-        return "INVALID";
-    }
 }
 
 struct Variable
 {
-    int varID;
-    int variable;
-    qbf::VariableStatus status;
-    qbf::VariableType quantifier;
+    int  varID;
+    int  variable;
+    int  status;
+    char quantifier;
 
-    int assignment = UNDEFINED;
-    int antecedent = UNDEFINED, pos_in_antecedent = UNDEFINED;
-    int level = UNDEFINED;
-    int available_values = 2;
+    int assignment        = UNDEFINED;
+    int antecedent        = UNDEFINED;
+    int pos_in_antecedent = UNDEFINED;
+    int level             = UNDEFINED;
+    int available_values  = 2;
 
     int blockID;
     int positionInBlock;
@@ -102,14 +101,14 @@ struct Variable
 
     void print ()
     {
-        std::cout << "Status: " << to_string(status) << '\n';
+        std::cout << "Status: " << qbf::VariableStatus::to_string(status) << '\n';
         std::cout << "Level: " << level << '\n';
         std::cout << "Assignment: " << assignment << '\n';
         std::cout << "Variable: " << variable << '\n';
         std::cout << "Antecedent clause: " << antecedent << '\n';
         std::cout << "Position in antecedent: " << pos_in_antecedent << '\n';
         std::cout << "Block: " << blockID << '\n';
-        std::cout << "Quantifier: " << to_string(quantifier) << '\n';
+        std::cout << "Quantifier: " << qbf::VariableType::to_string(quantifier) << '\n';
         std::cout << "+: " << numPosAppear << " -: " << numNegAppear << '\n';
     }
 };
