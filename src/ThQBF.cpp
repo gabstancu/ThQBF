@@ -28,8 +28,10 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(qbf
 }
 
 
-void ThQBF::assign (int varID, int value)
-{
+void ThQBF::assign (int variable, int value)
+{   
+    int varID = variable - 1;
+
     if (Variables[varID].status != qbf::VariableStatus::ACTIVE)
     {
         return;
@@ -80,7 +82,7 @@ void ThQBF::assign (int varID, int value)
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
                 
-                literal = - (varID + 1);
+                literal = -(variable);
                 remove_literal_from_clause(literal, clauseID, positionInClause);
             }
         } 
@@ -115,7 +117,7 @@ void ThQBF::assign (int varID, int value)
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
                 
-                literal = varID + 1;    
+                literal = variable;    
                 remove_literal_from_clause(literal, clauseID, positionInClause);
             }
         }
@@ -282,8 +284,9 @@ void ThQBF::restore_level (int search_level)
 }
 
 
-void ThQBF::remove_variable (int varID)
-{
+void ThQBF::remove_variable (int variable)
+{   
+    int varID           = variable - 1; 
     int blockID         = Variables[varID].blockID;
     int positionInBlock = Variables[varID].positionInBlock;
 
@@ -303,8 +306,9 @@ void ThQBF::remove_variable (int varID)
 }
 
 
-void ThQBF::restore_variable (int varID)
-{
+void ThQBF::restore_variable (int variable)
+{   
+    int varID                   = variable -1;
     Variables[varID].status     = qbf::VariableStatus::ACTIVE;
     Variables[varID].level      = UNDEFINED;
     Variables[varID].assignment = UNDEFINED;
@@ -385,8 +389,9 @@ void ThQBF::remove_clause (int clauseID)
 }
 
 
-int ThQBF::clause_is_unit (int clauseID, int referenceVarID)
-{
+int ThQBF::clause_is_unit (int clauseID, int referenceVariable)
+{   
+    int referenceVarID  =  referenceVariable - 1;
     int reference_level =  Variables[referenceVarID].blockID;
     int unit_flag       =  1;
 
@@ -519,7 +524,7 @@ void ThQBF::solve ()
     solver_status = qbf::SolverStatus::SEARCH;
     print_Clauses();
 
-    assign(0, 1);
+    assign(1, 1);
     print_Clauses();
 
 }

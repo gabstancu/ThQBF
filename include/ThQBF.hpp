@@ -63,16 +63,16 @@ class ThQBF
 
 
         /* ====================== -------- ====================== */
-        void assign                     (int varID,   int value);
+        void assign                     (int variable,   int value);
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
         void restore_level              (int search_level);
-        void remove_variable            (int varID);
-        void restore_variable           (int varID);
+        void remove_variable            (int variable);
+        void restore_variable           (int variable);
         void check_affected_vars        ();
 
         void remove_clause              (int clauseID);
 
-        int clause_is_unit              (int clauseID, int referenceVarID);
+        int clause_is_unit              (int clauseID, int referenceVariable);
 
 
         /* ====================== Implication rules ====================== */
