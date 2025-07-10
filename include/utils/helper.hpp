@@ -97,14 +97,4 @@ void printStackOfPairsSafe(const std::stack<std::pair<T1, T2>>& original)
     }
 }
 
-template<typename K, typename T1, typename T2, typename T3>
-void printTseitinMap(const std::unordered_map<K, std::tuple<T1, T2, T3>>& tseitinMap) 
-{
-    for (const auto& [key, values] : tseitinMap) 
-    {
-        const auto& [v1, v2, v3] = values;
-        std::cout << key << " : " << v1 << " " << v2 << " " << v3 << '\n';
-    }
-}
-
 #endif // UTILS_HPP

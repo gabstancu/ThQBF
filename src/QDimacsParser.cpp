@@ -55,14 +55,15 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
     iss >> quantifier;
 
     std::vector<int> block_variables;
-    int var, positionInBlock = 0;
+    int              var, positionInBlock = 0;
+
     while (iss >> var && var != 0)
     {
         Variable variable;
-        variable.status = qbf::VariableStatus::ACTIVE;
-        variable.varID = var - 1;
-        variable.variable = var;
-        variable.blockID = blockID;
+        variable.status          = qbf::VariableStatus::ACTIVE;
+        variable.varID           = var - 1;
+        variable.variable        = var;
+        variable.blockID         = blockID;
         variable.positionInBlock = positionInBlock;
 
         if (quantifier == 'e') 
