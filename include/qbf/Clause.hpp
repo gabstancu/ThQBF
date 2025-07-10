@@ -38,7 +38,7 @@ struct Clause
     int num_of_unassigned, num_of_assigned;
 
     std::vector<int> literals, state;
-    int unit_literal_position;
+    int              unit_literal_position;
 
     int e_num = 0, a_num = 0;
 
@@ -55,6 +55,7 @@ struct Clause
         return h;
     }
 
+    /* TODO: complete with watched literals and highest (lowest) existential (universal) literal level */
     bool is_empty ()
     {
         return (e_num == 0 && a_num == 0);
