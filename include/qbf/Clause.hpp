@@ -39,6 +39,8 @@ struct Clause
 
     std::vector<int> literals, state;
     int              unit_literal_position;
+    // int              lowest_universal_level;    // highest by blockID value
+    // int              highest_existential_level; // smallest by blockID value
 
     int e_num = 0, a_num = 0;
 
@@ -49,21 +51,22 @@ struct Clause
     std::size_t compute_hash() const 
     {
         std::size_t h = 0;
-        for (int lit : literals) {
+        for (int lit : literals) 
+        {
             h ^= std::hash<int>{}(lit) + 0x9e3779b9 + (h << 6) + (h >> 2);
         }
         return h;
     }
 
-    /* TODO: complete with watched literals and highest (lowest) existential (universal) literal level */
     bool is_empty ()
     {
         return (e_num == 0 && a_num == 0);
     }
 
+    /* TODO: complete with watched literals and highest (lowest) existential (universal) literal level */
     bool is_unit ()
     {
-        return e_num == 1;
+        return e_num == 1 && a_num == 0;
     }
 
     bool is_literal_available (int position)

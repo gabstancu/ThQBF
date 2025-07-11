@@ -9,9 +9,9 @@ namespace qbf::SolverStatus
 {
     constexpr int SAT       =  1;
     constexpr int UNSAT     =  0;
-    constexpr int PRESEARCH = -2;
+    constexpr int PRESEARCH = -1;
     constexpr int SEARCH    =  2;
-    constexpr int ROOT      = -1;
+    constexpr int ROOT      = -1; // same value as PRESEARCH in internal.h
 }
 
 class ThQBF
@@ -41,13 +41,14 @@ class ThQBF
         int remainingVars;
         int remainingClauses;
         int remainingBlocks;
-        std::stack<std::pair<int, int>> PStack               = {}; // { decision_a_var: decision_level }
-        std::stack<std::pair<int, int>> SStack               = {}; // { decision_e_var: decision_level }
-        std::stack<std::pair<int, int>> Search_Stack         = {}; // { decision_var: decision_level }
-        std::stack<std::pair<int, int>> implied_variables    = {}; // { variableid, level }
-        std::stack<std::pair<int, int>> unit_clauses         = {}; // { clauseID,   level }
-        std::unordered_map<int, int>    decision_variable_at = {}; // { level: decision_variable }
-        
+        std::stack<std::pair<int, int>>          PStack                     = {}; // { decision_a_var: decision_level }
+        std::stack<std::pair<int, int>>          SStack                     = {}; // { decision_e_var: decision_level }
+        std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
+        // std::stack<std::pair<int, int>>          implied_variables          = {}; // { variableid, level }
+        std::unordered_map<int, std::stack<int>> implied_variables          = {};  // { level, implied variables at level}
+        std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
+        std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
+    
 
         /* ====================== Trailing ====================== */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
