@@ -28,6 +28,11 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(qbf
             this->PREFIX[b.blockID].insert(variable - 1); // start indexing in prefix from 0
         }
     }
+
+    for (int i = 0; i < this->numClauses; i++)
+    {
+        this->ClauseHashes.insert(this->Clauses[i].hash);
+    }
 }
 
 
@@ -40,8 +45,7 @@ void ThQBF::assign (int variable, int value)
         return;
     }
 
-    std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n";
-    // TODO: FIX !!! 
+    std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n"; 
     if (solver_status == qbf::SolverStatus::PRESEARCH)
     {
         Variables[varID].status = qbf::VariableStatus::ELIMINATED;
@@ -72,10 +76,9 @@ void ThQBF::assign (int variable, int value)
         {
             for (const auto& [clauseID, positionInClause] : Variables[varID].positiveOccurrences)
             {   
-                std::cout << "checking to remove clause " << clauseID << " due to variable " << variable << '\n';
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
-                std::cout << "removing...\n";
+
                 remove_clause(clauseID);
                 if (solver_status == qbf::SolverStatus::SAT)
                 {
@@ -141,7 +144,7 @@ void ThQBF::assign (int variable, int value)
     check_affected_vars();
 }
 
-// TODO: improve early unit clause detection
+
 void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionInClause)
 {   
     int varID = std::abs(literal) - 1;
@@ -181,6 +184,7 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     if (Clauses[clauseID].e_num == 0)
     {   
         conflict_clause = clauseID;
+        conficting_clases.push_back(clauseID);
         solver_status = qbf::SolverStatus::UNSAT;
         return;
     }
@@ -311,6 +315,7 @@ void ThQBF::restore_variable (int variable)
     Variables[varID].status     = qbf::VariableStatus::ACTIVE;
     Variables[varID].level      = UNDEFINED;
     Variables[varID].assignment = UNDEFINED;
+    Variables[varID].available_values++;
     remainingVars++;
 
     int blockID         = Variables[varID].blockID;
@@ -455,8 +460,8 @@ void ThQBF::imply ()
         Variables[varID].pos_in_antecedent = unit_literal_position;
 
         if (unit_literal > 0)
-        {   
-            std::cout << "Implying " << unit_literal << " to be " << 1 << '\n';
+        {  
+            // std::cout << "Implying " << unit_literal << " to be " << 1 << '\n';
             unit_clauses.pop();
             assign(variable, 1);
             // implied_variables.push({varID, level});
@@ -464,14 +469,16 @@ void ThQBF::imply ()
         }
         else
         {   
-            std::cout << "Implying " << unit_literal << " to be " << 0 << '\n';
+            // std::cout << "Implying " << unit_literal << " to be " << 0 << '\n';
             unit_clauses.pop();
             assign(variable, 0);
             // implied_variables.push({varID, level});
             implied_variables[level].push(varID);
         }
         if (solver_status == qbf::SolverStatus::UNSAT)
-        {
+        {   
+            std::cout << "Empty (all universal clause) detected at level " << level << "\n";
+            std::cout << "Conflicting clause: " << conflict_clause << '\n';
             return;
         }
     }
@@ -561,7 +568,7 @@ void ThQBF::deduce ()
     }
 }
 
-// TODO: fix printing
+
 void ThQBF::print_Clauses ()
 {
     for (int i = 0; i < Clauses.size(); i++)
@@ -640,11 +647,10 @@ void ThQBF::solve ()
 
     print_Clauses();
 
-    // level = 1;
-    // solver_status = qbf::SolverStatus::SEARCH;
-
-    // assign(1, 1);
-    // print_Clauses();
+    level = 1;
+    solver_status = qbf::SolverStatus::SEARCH;
+    assign(1, 1);
+    print_Clauses();
     // std::cout << "------------ implying ------------\n";
     // imply();
     // print_Clauses();

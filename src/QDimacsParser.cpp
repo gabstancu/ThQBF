@@ -15,8 +15,8 @@ QDimacsParser::QDimacsParser(const std::string filename)
 void QDimacsParser::parse()
 {   
     std::string line;
-    int clauseID = 0;
-    int blockID = 0;
+    int         clauseID = 0;
+    int         blockID  = 0;
 
     while (std::getline(file, line))
     {   
@@ -39,7 +39,7 @@ void QDimacsParser::parse()
 }
 
 
-void QDimacsParser::parse_header(const std::string line)
+void QDimacsParser::parse_header (const std::string line)
 {   
     std::istringstream iss(line);
     std::string t;
@@ -48,7 +48,7 @@ void QDimacsParser::parse_header(const std::string line)
 }
 
 
-void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
+void QDimacsParser::parse_quantifier_line (const std::string line, int blockID)
 {   
     std::istringstream iss(line);
     char quantifier;
@@ -102,7 +102,7 @@ void QDimacsParser::parse_quantifier_line(const std::string line, int blockID)
 }
 
 
-void QDimacsParser::parse_clause_line(const std::string line, int clauseID)
+void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
 {   
     std::vector<int> literals;
     int lit;

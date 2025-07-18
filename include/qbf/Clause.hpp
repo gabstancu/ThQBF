@@ -41,10 +41,8 @@ struct Clause
     int              unit_literal_position;
     // int              lowest_universal_level;    // highest by blockID value
     // int              highest_existential_level; // smallest by blockID value
-
-    int e_num = 0, a_num = 0;
-
-    bool learned;
+    int              e_num = 0, a_num = 0;
+    bool             learned;
 
     size_t hash;
 
@@ -63,7 +61,6 @@ struct Clause
         return (e_num == 0 && a_num == 0);
     }
 
-    /* TODO: complete with watched literals and highest (lowest) existential (universal) literal level */
     bool is_unit ()
     {
         return e_num == 1 && a_num == 0;

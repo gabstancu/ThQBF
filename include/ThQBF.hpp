@@ -59,7 +59,7 @@ class ThQBF
         std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
         std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
         std::map<int, int>                        deduceAssignments     = {};  /* deduce assignments */
-        std::map<int, int>                        preprocessAssignments = {};  /* forced assignments during preprocessin*/
+        std::map<int, int>                        preprocessAssignments = {};  /* forced assignments during preprocessing */
 
 
 
@@ -84,6 +84,7 @@ class ThQBF
 
         /* ====================== Clause learning ====================== */
         int conflict_clause;
+        std::vector<int> conficting_clases = {};
         // TODO: data structure for all conflicting clauses (entropy based sorting)
 
 
