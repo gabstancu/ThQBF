@@ -36,6 +36,15 @@ void QDimacsParser::parse()
             parse_clause_line(line, clauseID++);
     }
 
+    for (Variable v : this->variables)
+    {   
+        std::cout << "--------------\n";
+        std::cout << "variable " << v.variable << " ID " << v.varID <<"\n\n";
+        std::cout << "positive:\n";
+        print_hashmap(v.negativeOccurrences);
+        std::cout << "negative:\n";
+        print_hashmap(v.positiveOccurrences);
+    }
 }
 
 
@@ -131,18 +140,20 @@ void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
     clause.level                 = UNDEFINED;
     
     int index = 0, var;
+    // std::cout << "----------------- clauseID: " << clauseID << "\n";
     for (int literal : literals)
     {   
         var = std::abs(literal) - 1;
+        // std::cout << "variable " << var << " literal " << literal << "\n";
         if (literal > 0)
         {
             variables[var].addOccurence(clauseID, index, 1);
-            variables[var].numPosAppear++;
+            // variables[var].numPosAppear++;
         }
         else
         {
             variables[var].addOccurence(clauseID, index, 0);
-            variables[var].numNegAppear++;
+            // variables[var].numNegAppear++;
         }
 
         if (variables[var].is_existential())

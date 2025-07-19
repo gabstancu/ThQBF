@@ -19,8 +19,15 @@ int main (int argc, char* argv[])
     parser.parse();
     std::cout << "Done." << "\n";
 
-    ThQBF solver(parser);
-    solver.solve();
+
+    // for (Variable v : parser.variables)
+    // {   
+    //     std::cout << "---------------------------\n";
+    //     v.print();
+    // }
+
+    // ThQBF solver(parser);
+    // solver.solve();
     // solver.print();
 
     // std::cout << "=====================================\n";
