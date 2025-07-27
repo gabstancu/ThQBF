@@ -53,6 +53,7 @@ class ThQBF
         /* ====================== Trailing ====================== */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
         std::unordered_map<int, std::set<int>> Variables_trail = {};  /* variables affected due to a clause removal */ 
+        std::unordered_map<int, int>           PureLiterals    = {}; 
 
 
         /* ====================== Assignments ====================== */
@@ -83,9 +84,11 @@ class ThQBF
 
 
         /* ====================== Clause learning ====================== */
-        int conflict_clause;
+        int              conflict_clause;
         std::vector<int> conficting_clases = {};
-        // TODO: data structure for all conflicting clauses (entropy based sorting)
+
+        std::unordered_map<int, int> resolve           (Clause c1, Clause c2, int pivot_variable);
+        bool                         stop_criteria_met (std::unordered_map<int, int> resolvent);
 
 
 

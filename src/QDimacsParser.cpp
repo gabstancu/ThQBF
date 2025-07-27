@@ -35,16 +35,6 @@ void QDimacsParser::parse()
         else /* clause line */
             parse_clause_line(line, clauseID++);
     }
-
-    for (Variable v : this->variables)
-    {   
-        std::cout << "--------------\n";
-        std::cout << "variable " << v.variable << " ID " << v.varID <<"\n\n";
-        std::cout << "positive:\n";
-        print_hashmap(v.negativeOccurrences);
-        std::cout << "negative:\n";
-        print_hashmap(v.positiveOccurrences);
-    }
 }
 
 

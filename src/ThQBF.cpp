@@ -21,18 +21,17 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(qbf
     this->last_clause_idx      = parser.numClauses;
     
     // construct prefix
-    for (QuantifierBlock b : this->Blocks)
+    for (QuantifierBlock b : Blocks)
     {
         for (int variable : b.variables)
         {   
-
-            this->PREFIX[b.blockID].insert(variable - 1); // start indexing in prefix from 0
+            PREFIX[b.blockID].insert(variable - 1); // start indexing in prefix from 0
         }
     }
 
     for (int i = 0; i < this->numClauses; i++)
     {
-        this->ClauseHashes.insert(this->Clauses[i].hash);
+        ClauseHashes.insert(Clauses[i].hash);
     }
 }
 
@@ -281,7 +280,7 @@ void ThQBF::restore_level (int search_level)
         {
             continue;
         }
-        restore_variable(varID);
+        restore_variable(varID + 1);
     }
 
     solver_status = qbf::SolverStatus::SEARCH;
@@ -289,14 +288,14 @@ void ThQBF::restore_level (int search_level)
 
 
 void ThQBF::remove_variable (int variable)
-{   
+{       
     int varID           = variable - 1; 
     int blockID         = Variables[varID].blockID;
     int positionInBlock = Variables[varID].positionInBlock;
 
     Blocks[blockID].size--;
     Blocks[blockID].available_variables--;
-    PREFIX.at(blockID).erase(varID);
+    PREFIX[blockID].erase(varID);
 
     if (!Blocks[blockID].available_variables)
     {
@@ -339,8 +338,8 @@ void ThQBF::check_affected_vars ()
     for (const auto& varID : Variables_trail.at(level))
     {   
         if (Variables[varID].numNegAppear == 0 && Variables[varID].numPosAppear == 0)
-        {   
-            remove_variable(varID);
+        {    
+            remove_variable(varID + 1);
         }
     }
     Variables_trail.erase(level);
@@ -366,8 +365,6 @@ void ThQBF::remove_clause (int clauseID)
     {
         Clauses[clauseID].status = qbf::ClauseStatus::SATISFIED;
     }
-
-    std::cout << "removing clause " << clauseID << "\n";
         
     Clauses[clauseID].level = level; 
     Clauses_trail[level].insert(clauseID);
@@ -385,15 +382,15 @@ void ThQBF::remove_clause (int clauseID)
 
         if (literal > 0)
         {   
-            std::cout << "literal " << literal << "\n";
+            // std::cout << "literal " << literal << "\n";
             Variables[varID].numPosAppear--;
-            std::cout << "numPosAppear " << Variables[varID].numPosAppear << "\n";
+            // std::cout << "numPosAppear " << Variables[varID].numPosAppear << "\n";
         }
         else
         {   
-            std::cout << "literal " << literal << "\n";
+            // std::cout << "literal " << literal << "\n";
             Variables[varID].numNegAppear--;
-            std::cout << "numNegAppear " << Variables[varID].numNegAppear << "\n";
+            // std::cout << "numNegAppear " << Variables[varID].numNegAppear << "\n";
         }
 
         Variables_trail[level].insert(varID);
@@ -449,7 +446,7 @@ void ThQBF::imply ()
 {
     while (!unit_clauses.empty())
     {   
-        std::cout << "num of unit clauses: " << unit_clauses.size() << '\n';
+        // std::cout << "num of unit clauses: " << unit_clauses.size() << '\n';
         int unit_clauseID         = unit_clauses.top().first;
         int unit_literal_position = Clauses[unit_clauseID].unit_literal_position;
         int unit_literal          = Clauses[unit_clauseID].literals[unit_literal_position];
@@ -554,14 +551,22 @@ void ThQBF::UniversalReduction ()
     {
         std::cout << "Solver stage: PRESEARCH\n\n"; 
     }
+    else
+    {
+        std::cout << "Solver stage: SEARCH\n\n";
+    }
 }
 
-// TODO: PureLiteral ()
+// TODO: PureLiteral () -> add pure literals 'trail'
 void ThQBF::PureLiteral ()
 {
     if (solver_status == qbf::SolverStatus::PRESEARCH)
     {
         std::cout << "Solver stage: PRESEARCH\n\n"; 
+    }
+    else
+    {
+        std::cout << "Solver stage: SEARCH\n\n";
     }
 }
 
@@ -573,6 +578,168 @@ void ThQBF::deduce ()
         std::cout << "Solver stage: PRESEARCH\n\n"; 
         UnitPropagation();
     }
+}
+
+
+std::unordered_map<int, int> ThQBF::resolve (Clause c1, Clause c2, int pivot_variable)
+{
+    std::unordered_map<int, int> new_clause;
+
+    /* add all literals of c1 to new_clause  */
+    for (int i = 0; i < c1.size; i++)
+    {   
+        if (std::abs(c1.literals[i]) == pivot_variable)
+        {
+            continue;
+        }
+        new_clause.insert({c1.literals[i], c1.state[i]});
+    }
+
+    /* add all literals of c2 to new_clause (omit opposite existentials) */
+    for (int i = 0; i < c2.size; i++)
+    {
+        if (std::abs(c2.literals[i]) == pivot_variable)
+        {
+            continue;
+        }
+
+        int literal  = c2.literals[i];
+        int variable = std::abs(c2.literals[i]);
+
+        /* literal is already in new_clause */
+        if (new_clause.find(literal) != new_clause.end())
+        {
+            continue;
+        }
+
+        /* opposite polarity is found */
+        if (new_clause.find(-literal) != new_clause.end())
+        {
+            if (Variables[variable-1].is_existential())
+            {
+                new_clause.erase(literal);
+                continue;
+            }
+            else
+            {
+                if (Variables[variable-1].blockID > Variables[pivot_variable-1].blockID)
+                {
+                    new_clause.insert({literal, c2.state[i]});
+                    continue;
+                }
+            }
+        } 
+    
+        /* add literal to clause */
+        new_clause.insert({literal, c2.state[i]});
+    }
+
+    return new_clause;
+}
+
+
+bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
+{   
+    /*  
+                        1st condition
+        Among all its existential variables, one and only one of
+        them has the highest decision level (which may not be
+        the current decision level). Suppose this variable is V.
+    */
+
+    int max_decision_level = -1;
+    std::unordered_map<int, std::pair<int, int>> decision_levels = {}; 
+    /* { descision_level: (count, V) } */
+
+    for (const auto& [literal, ct] : resolvent)
+    {   
+        int variable = std::abs(literal);
+
+        if (Variables[variable-1].is_universal())
+        {
+            continue;
+        }
+
+        int decision_level = Variables[variable-1].level;
+        if (decision_level > max_decision_level)
+        {
+            max_decision_level = Variables[variable-1].level;
+        }
+
+        if (decision_levels.find(decision_level) == decision_levels.end())
+        {
+            std::pair<int, int> p = std::make_pair(1, variable);
+            decision_levels.insert({decision_level, p});
+        }
+        else
+        {
+            decision_levels[decision_level].first++;
+        }
+    }
+    // check if max level appears more than once
+    if (decision_levels[max_decision_level].first > 1)
+        return false;
+
+    /*  
+                        2nd condition
+        V is in a decision level with an existential variable as the decision variable.
+    */
+    int V_decision_level       = decision_levels[max_decision_level].second;
+    int decision_variable_at_V = decision_variable_at[V_decision_level];
+
+    if (!Variables[decision_variable_at_V-1].is_existential())
+        return false;
+
+    /*
+                         3rd condition
+        All universal literals with quantification level smaller 
+        than V’s are  assigned to 0 before the decision level of V.
+    */ 
+    int V             = decision_levels[max_decision_level].second;
+    int V_quant_level = Variables[V-1].blockID;
+
+    for (const auto& [literal, ct] : resolvent)
+    {   
+        int variable              = std::abs(literal);
+        int variable_quant_level  = Variables[variable-1].blockID;
+
+        if (Variables[variable-1].is_existential())
+        {
+            continue;
+        }
+
+        if (variable_quant_level > V_quant_level)
+        {
+            continue;
+        }
+
+        /* only checking universal with qb(a) < qb(V) */
+
+        if (ct == qbf::LiteralStatus::AVAILABLE) // literal is free
+        {
+            return false;
+        }
+        
+
+        if (literal > 0) // has to be 0
+        {
+            int assignment = Variables[variable-1].assignment;
+            if (assignment == 1)
+            {
+                return false;
+            }
+        }
+        else // has to be 1
+        {
+            int assignment = Variables[variable-1].assignment;
+            if (assignment == 0)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 
@@ -632,7 +799,7 @@ void ThQBF::print_Prefix ()
         std::cout << blockID << ": ";
         for (int variable : variables)
         {
-            std::cout << variable << " ";
+            std::cout << variable + 1<< " ";
         }
         std::cout << '\n';
     }
@@ -642,15 +809,22 @@ void ThQBF::print_Prefix ()
 
 void ThQBF::solve ()
 {   
-    // print_Blocks();
-    // print_Prefix();
-    /* assign variables */
-    std::cout << "======================================================\n";
-    level = 1;
-    solver_status = qbf::SolverStatus::SEARCH;
-    assign(1, 1);
+    print_Blocks();
+    print_Prefix();
     print_Clauses();
-    print_Variables();
+    /* assign variables */
+    // level = 1;
+    // solver_status = qbf::SolverStatus::SEARCH;
+    // assign(1, 1);
+    // print_Clauses();
+    // print_Prefix();
+    // level++;
+    // assign(2, 0);
+    // print_Clauses();
+    // print_Prefix();
+
+    std::unordered_map<int, int> new_clause = resolve(Clauses[3], Clauses[4], 2);
+    print_hashmap(new_clause);
     // std::cout << "======================================================\n";;
 
 }

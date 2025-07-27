@@ -26,8 +26,8 @@ int main (int argc, char* argv[])
     //     v.print();
     // }
 
-    // ThQBF solver(parser);
-    // solver.solve();
+    ThQBF solver(parser);
+    solver.solve();
     // solver.print();
 
     // std::cout << "=====================================\n";
