@@ -8,9 +8,9 @@
 namespace qbf::LiteralStatus
 {
     constexpr int AVAILABLE           = -2;
-    constexpr int UNIVERSAL_REDUCTION =  0;
-    constexpr int PURE_LITERAL        =  1;
-    constexpr int ASSIGNMENT          =  2;
+    constexpr int UNIVERSAL_REDUCTION = -10;
+    constexpr int PURE_LITERAL        = -20;
+    constexpr int ASSIGNMENT          = -30;
 }
 
 

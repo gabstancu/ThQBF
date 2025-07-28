@@ -73,6 +73,19 @@ struct Clause
     bool is_literal_available (int position)
     {
         return state[position] == qbf::LiteralStatus::AVAILABLE;
+        // return lits[position].state == qbf::LiteralStatus::AVAILABLE;
+    }
+
+    std::unordered_map<int, int> map_representation ()
+    {
+        std::unordered_map<int, int> map;
+
+        for (int i = 0; i < this->size; i++)
+        {
+            map.insert({this->literals[i], this->state[i]});
+        }
+
+        return map;
     }
 
     void print ()

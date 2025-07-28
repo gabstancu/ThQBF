@@ -75,20 +75,24 @@ class ThQBF
         int  clause_is_unit             (int clauseID, int referenceVariable);
 
 
-        /* ====================== Implication rules ====================== */
+        /* ====================== Inference ====================== */
         void UnitPropagation    ();
-        void imply              ();
         void UniversalReduction ();
         void PureLiteral        ();
         void deduce             ();
+        void imply              ();
 
 
         /* ====================== Clause learning ====================== */
         int              conflict_clause;
         std::vector<int> conficting_clases = {};
 
-        std::unordered_map<int, int> resolve           (Clause c1, Clause c2, int pivot_variable);
+        int                          choose_literal    (std::unordered_map<int, int> cc);
+        std::unordered_map<int, int> resolve           (std::unordered_map<int, int> c1, 
+                                                        std::unordered_map<int, int> c2, 
+                                                        int pivot_variable);
         bool                         stop_criteria_met (std::unordered_map<int, int> resolvent);
+        int                          analyse_conflict  ();
 
 
 

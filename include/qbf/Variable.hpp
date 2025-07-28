@@ -74,6 +74,17 @@ struct Variable
         return quantifier == qbf::VariableType::UNIVERSAL;
     }
 
+    bool is_impied ()
+    {
+        return status == qbf::VariableStatus::IMPLIED;
+    }
+    
+    bool is_decision ()
+    {
+        return status == qbf::VariableStatus::ASSIGNED;
+    }
+
+    
     bool appears_in_clause (int clauseID)
     {
         return positiveOccurrences.count(clauseID) || negativeOccurrences.count(clauseID);

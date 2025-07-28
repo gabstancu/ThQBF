@@ -581,32 +581,59 @@ void ThQBF::deduce ()
 }
 
 
-std::unordered_map<int, int> ThQBF::resolve (Clause c1, Clause c2, int pivot_variable)
+int ThQBF::choose_literal (std::unordered_map<int, int> cc)
+{
+    int most_recently_implied = UNDEFINED;
+    int implication_level     = UNDEFINED;
+
+    for (const auto& [literal, ct] : cc)
+    {
+        int variable = std::abs(literal); 
+
+        if (Variables[variable-1].antecedent == UNDEFINED)
+        {
+            continue;
+        }
+
+        int level = Variables[variable-1].level;
+        if (level >= implication_level)
+        {
+            most_recently_implied = literal;
+            implication_level     = level;
+        }
+    }
+
+    return most_recently_implied;
+}
+
+
+
+std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1, 
+                                             std::unordered_map<int, int> c2, 
+                                             int pivot_variable)
 {
     std::unordered_map<int, int> new_clause;
 
     /* add all literals of c1 to new_clause  */
-    for (int i = 0; i < c1.size; i++)
-    {   
-        if (std::abs(c1.literals[i]) == pivot_variable)
+    for (const auto& [literal, ct] : c1)
+    {
+        if (std::abs(literal) == pivot_variable)
         {
             continue;
         }
-        new_clause.insert({c1.literals[i], c1.state[i]});
+        new_clause.insert({literal, ct});
     }
 
     /* add all literals of c2 to new_clause (omit opposite existentials) */
-    for (int i = 0; i < c2.size; i++)
+    for (const auto& [literal, ct] : c2)
     {
-        if (std::abs(c2.literals[i]) == pivot_variable)
+        if (std::abs(literal) == pivot_variable)
         {
             continue;
         }
 
-        int literal  = c2.literals[i];
-        int variable = std::abs(c2.literals[i]);
+        int variable = std::abs(literal);
 
-        /* literal is already in new_clause */
         if (new_clause.find(literal) != new_clause.end())
         {
             continue;
@@ -624,15 +651,16 @@ std::unordered_map<int, int> ThQBF::resolve (Clause c1, Clause c2, int pivot_var
             {
                 if (Variables[variable-1].blockID > Variables[pivot_variable-1].blockID)
                 {
-                    new_clause.insert({literal, c2.state[i]});
+                    new_clause.insert({literal, ct});
                     continue;
                 }
             }
-        } 
-    
+        }
+
         /* add literal to clause */
-        new_clause.insert({literal, c2.state[i]});
+        new_clause.insert({literal, ct});
     }
+
 
     return new_clause;
 }
@@ -719,11 +747,17 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
             return false;
         }
 
-        if (ct == qbf::LiteralStatus::UNIVERSAL_REDUCTION)
+        /* use Literal to determine whether the literal is tailing */
+        // if (ct == qbf::LiteralStatus::UNIVERSAL_REDUCTION) 
+        // {
+        //     continue;
+        // }
+
+        /* if the literal is not available but its variable has not been assigned then it has been reduced */
+        if (Variables[variable-1].assignment == UNDEFINED)
         {
             continue;
         }
-        
 
         if (literal > 0) // has to be 0
         {
@@ -816,19 +850,34 @@ void ThQBF::solve ()
     print_Blocks();
     print_Prefix();
     print_Clauses();
-    /* assign variables */
-    // level = 1;
-    // solver_status = qbf::SolverStatus::SEARCH;
-    // assign(1, 1);
-    // print_Clauses();
-    // print_Prefix();
-    // level++;
-    // assign(2, 0);
-    // print_Clauses();
-    // print_Prefix();
 
-    std::unordered_map<int, int> new_clause = resolve(Clauses[3], Clauses[4], 2);
+    /* assign variables */
+    level = 1;
+    solver_status = qbf::SolverStatus::SEARCH;
+    assign(1, 1);
+    print_Clauses();
+    std::cout << "prefix\n";
+    print_Prefix();
+
+    level++;
+    assign(2, 1);
+    print_Clauses();
+    std::cout << "prefix\n";
+    print_Prefix();
+    imply();
+
+    std::cout << "conflict clause: " << conflict_clause << "\n";
+    int most_recently_implied_literal = choose_literal(Clauses[conflict_clause].map_representation());
+    int var = std::abs(most_recently_implied_literal);
+    std::cout << "most recently implied literal: " << most_recently_implied_literal << "\n";
+    int antecedent = Variables[var-1].antecedent;
+    std::cout << "antecedent: " << antecedent << "\n";
+
+    std::unordered_map<int, int> new_clause = resolve(Clauses[conflict_clause].map_representation(), 
+                                                      Clauses[antecedent].map_representation(), 
+                                                      var);
     print_hashmap(new_clause);
+    // std::cout << stop_criteria_met(new_clause) << "\n\n";
     // std::cout << "======================================================\n";;
 
 }
