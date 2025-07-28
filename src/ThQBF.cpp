@@ -470,6 +470,8 @@ void ThQBF::imply ()
             assign(variable, 1);
             // implied_variables.push({varID, level});
             implied_variables[level].push(varID);
+            print_Clauses();
+            print_Prefix();
         }
         else
         {   
@@ -478,6 +480,8 @@ void ThQBF::imply ()
             assign(variable, 0);
             // implied_variables.push({varID, level});
             implied_variables[level].push(varID);
+            print_Clauses();
+            print_Prefix();
         }
         if (solver_status == qbf::SolverStatus::UNSAT)
         {   
@@ -544,7 +548,7 @@ void ThQBF::UnitPropagation ()
     imply();
 }
 
-// TODO: UniversalReduction () -> set literal to be zero
+
 void ThQBF::UniversalReduction ()
 {
     if (solver_status == qbf::SolverStatus::PRESEARCH)
@@ -781,6 +785,67 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
 }
 
 
+
+int ThQBF::clause_asserting_level (std::unordered_map<int, int> learned_clause)
+{
+    /* 
+        asserting literal      -> existential literal at the maximum decision level
+        clause asserting level -> second highest level among the decision level of the rest of the existentials
+    */
+    int asserting_literal      = UNDEFINED;
+    int clause_asserting_level = 0;
+    int max_level              = UNDEFINED;
+
+
+    int conflict_level = level;
+    int diff           = INT_MAX;
+
+    /* find max_level */
+    for (const auto& [literal, ct] : learned_clause)
+    {
+        int variable = std::abs(literal);
+        int level    = Variables[variable-1].level; 
+
+        if (Variables[variable-1].is_universal())
+        {
+            continue;
+        }
+
+        /* find max level */
+        if (level > max_level)
+        {   
+            asserting_literal = literal;
+            max_level         = level;
+        }
+    }
+
+    /* find second highest level: asserting level */
+    for (const auto& [literal, ct] : learned_clause)
+    {
+        int variable = std::abs(literal);
+        int level    = Variables[variable-1].level; 
+
+        if (Variables[variable-1].is_universal())
+        {
+            continue;
+        }
+
+        if (literal == asserting_literal)
+        {
+            continue;
+        }
+
+        if (diff > max_level - level)
+        {   
+            diff = max_level - level;
+            clause_asserting_level = level;
+        }
+    }
+
+    return clause_asserting_level;
+}
+
+
 void ThQBF::print_Clauses ()
 {
     for (int i = 0; i < Clauses.size(); i++)
@@ -851,11 +916,23 @@ void ThQBF::solve ()
     print_Prefix();
     print_Clauses();
 
+
+    level = PRESEARCH;
+    solver_status = qbf::SolverStatus::PRESEARCH;
+    UnitPropagation();
+    if (solver_status == qbf::SolverStatus::UNSAT)
+    {
+        std::cout << "UNSAT at root...\n";
+        return;
+    }
+
+    /* -------------------- test-UNSAT -------------------- */
     /* assign variables */
     level = 1;
     solver_status = qbf::SolverStatus::SEARCH;
     assign(1, 1);
     print_Clauses();
+    imply();
     std::cout << "prefix\n";
     print_Prefix();
 
@@ -865,6 +942,19 @@ void ThQBF::solve ()
     std::cout << "prefix\n";
     print_Prefix();
     imply();
+    std::cout << "prefix\n";
+    print_Prefix();
+
+    level++;
+    assign(3, 1);
+    print_Clauses();
+    std::cout << "prefix\n";
+    print_Prefix();
+    imply();
+    std::cout << "prefix\n";
+    print_Prefix();
+
+    std::cout << "solver status " << solver_status << "\n";
 
     std::cout << "conflict clause: " << conflict_clause << "\n";
     int most_recently_implied_literal = choose_literal(Clauses[conflict_clause].map_representation());
@@ -873,11 +963,65 @@ void ThQBF::solve ()
     int antecedent = Variables[var-1].antecedent;
     std::cout << "antecedent: " << antecedent << "\n";
 
+    Clauses[antecedent].print();
+    Clauses[conflict_clause].print();
+
     std::unordered_map<int, int> new_clause = resolve(Clauses[conflict_clause].map_representation(), 
                                                       Clauses[antecedent].map_representation(), 
                                                       var);
     print_hashmap(new_clause);
-    // std::cout << stop_criteria_met(new_clause) << "\n\n";
-    // std::cout << "======================================================\n";;
+    std::cout << stop_criteria_met(new_clause) << "\n\n";
+
+    most_recently_implied_literal = choose_literal(new_clause);
+    var = std::abs(most_recently_implied_literal);
+    std::cout << most_recently_implied_literal << "\n";
+    antecedent = Variables[var-1].antecedent;
+    new_clause = resolve(new_clause, 
+                         Clauses[antecedent].map_representation(), 
+                         var);
+    print_hashmap(new_clause);
+
+    std::cout << stop_criteria_met(new_clause) << "\n\n";
+    std::cout << clause_asserting_level(new_clause) << "\n"; // backtrack up to level 2 (exclusive)
+    // std::cout << "======================================================\n"
+
+
+
+    /*  -------------------- test-SAT -------------------- */
+    // level = PRESEARCH;
+    // solver_status = qbf::SolverStatus::PRESEARCH;
+    // UnitPropagation();
+    // if (solver_status == qbf::SolverStatus::UNSAT)
+    // {
+    //     std::cout << "UNSAT at root...\n";
+    //     return;
+    // }
+
+    /* assign variables */
+    // level = 1;
+    // solver_status = qbf::SolverStatus::SEARCH;
+    // assign(4, 0);
+    // imply();
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+
+    // level++;
+    // solver_status = qbf::SolverStatus::SEARCH;
+    // assign(5, 1);
+    // imply();
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+
+    // level++;
+    // solver_status = qbf::SolverStatus::SEARCH;
+    // assign(7, 0);
+    // imply();
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+
+
 
 }

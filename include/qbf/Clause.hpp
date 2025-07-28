@@ -97,6 +97,7 @@ struct Clause
         std::cout << "availability: " << qbf::ClauseStatus::to_string(status) << "  ";
         std::cout << "candidate unit literal position: " << unit_literal_position << "   ";
         std::cout << "learned: " << learned << "  ";
+        std::cout << "\n";
     }
 };
 

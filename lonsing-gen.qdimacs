@@ -1,4 +1,5 @@
-c prefix_class = Sigma_4c num_vars = 10
+c prefix_class = Pi_4
+c num_vars = 10
 c num_clauses = 30
 c clause_len = 5
 c num_blocks = 4

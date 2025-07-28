@@ -87,12 +87,13 @@ class ThQBF
         int              conflict_clause;
         std::vector<int> conficting_clases = {};
 
-        int                          choose_literal    (std::unordered_map<int, int> cc);
-        std::unordered_map<int, int> resolve           (std::unordered_map<int, int> c1, 
-                                                        std::unordered_map<int, int> c2, 
-                                                        int pivot_variable);
-        bool                         stop_criteria_met (std::unordered_map<int, int> resolvent);
-        int                          analyse_conflict  ();
+        int                          choose_literal         (std::unordered_map<int, int> cc);
+        int                          clause_asserting_level (std::unordered_map<int, int> learned_clause);
+        std::unordered_map<int, int> resolve                (std::unordered_map<int, int> c1, 
+                                                             std::unordered_map<int, int> c2, 
+                                                             int pivot_variable);
+        bool                         stop_criteria_met      (std::unordered_map<int, int> resolvent);
+        int                          analyse_conflict       ();
 
 
 
