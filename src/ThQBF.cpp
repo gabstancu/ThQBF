@@ -544,7 +544,7 @@ void ThQBF::UnitPropagation ()
     imply();
 }
 
-// TODO: UniversalReduction ()
+// TODO: UniversalReduction () -> set literal to be zero
 void ThQBF::UniversalReduction ()
 {
     if (solver_status == qbf::SolverStatus::PRESEARCH)

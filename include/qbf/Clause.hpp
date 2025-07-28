@@ -24,7 +24,10 @@ namespace qbf::ClauseStatus
 
 namespace qbf::LiteralStatus
 {
-    constexpr int AVAILABLE = -2;
+    constexpr int AVAILABLE           = -2;
+    constexpr int UNIVERSAL_REDUCTION =  0;
+    constexpr int PURE_LITERAL        =  1;
+    constexpr int ASSIGNMENT          =  2;
 }
 
 
@@ -37,10 +40,8 @@ struct Clause
 
     int num_of_unassigned, num_of_assigned;
 
-    std::vector<int> literals, state;
+    std::vector<int> literals, state, reason;
     int              unit_literal_position;
-    // int              lowest_universal_level;    // highest by blockID value
-    // int              highest_existential_level; // smallest by blockID value
     int              e_num = 0, a_num = 0;
     bool             learned;
 
