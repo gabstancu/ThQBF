@@ -584,6 +584,70 @@ void ThQBF::deduce ()
     }
 }
 
+// TODO: learned, unit_literal_position are set after the asserting level is found
+void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
+{
+    Clause           new_clause;
+    std::vector<int> literals;
+
+    for (const auto& [literal, ct] : learned_clause)
+    {
+        literals.push_back(literal);
+    }
+    std::sort(literals.begin(), literals.end());
+
+    new_clause.literals = literals;
+    size_t h            = new_clause.compute_hash();
+
+    if (ClauseHashes.find(h) == ClauseHashes.end())
+    {
+        ClauseHashes.insert(h);
+        new_clause.hash              = h;
+        new_clause.num_of_assigned   = 0;
+        new_clause.num_of_unassigned = new_clause.size;
+        
+        int index = 0;
+        /* set state */
+        for (const auto& [literal, ct] : learned_clause)
+        {   
+            int variable = std::abs(literal);
+            new_clause.state.push_back(ct);
+
+            if (literal > 0)
+            {
+                Variables[variable-1].addOccurence(last_clause_idx, index, 1);
+            }
+            else
+            {
+                Variables[variable-1].addOccurence(last_clause_idx, index, 0);
+            }
+
+            if (ct == qbf::LiteralStatus::AVAILABLE)
+            {
+                if (Variables[variable-1].is_existential())
+                {
+                    new_clause.e_num++;
+                }
+                else
+                {
+                    new_clause.a_num++;
+                }
+                new_clause.num_of_unassigned--;
+            }
+            else
+            {
+                new_clause.num_of_assigned++;
+            }
+
+            index++;
+        }
+
+        numClauses++;
+        Clauses.push_back(new_clause);
+        last_clause_idx++;
+    }
+}
+
 
 int ThQBF::choose_literal (std::unordered_map<int, int> cc)
 {

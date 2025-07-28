@@ -94,6 +94,7 @@ class ThQBF
                                                              int pivot_variable);
         bool                         stop_criteria_met      (std::unordered_map<int, int> resolvent);
         int                          analyse_conflict       ();
+        void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause);
 
 
 

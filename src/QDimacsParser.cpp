@@ -115,7 +115,6 @@ void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
 
     std::vector<Literal> lits;
     std::vector<int> state (literals.size(), qbf::LiteralStatus::AVAILABLE);
-    std::vector<int> reason(literals.size(), -1);
     std::sort(literals.begin(), literals.end());
 
     Clause clause;
