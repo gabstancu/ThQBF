@@ -714,10 +714,14 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
         }
 
         /* only checking universal with qb(a) < qb(V) */
-
         if (ct == qbf::LiteralStatus::AVAILABLE) // literal is free
         {
             return false;
+        }
+
+        if (ct == qbf::LiteralStatus::UNIVERSAL_REDUCTION)
+        {
+            continue;
         }
         
 

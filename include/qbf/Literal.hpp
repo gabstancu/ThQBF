@@ -16,9 +16,10 @@ namespace qbf::LiteralStatus
 
 struct Literal
 {
-    int value = UNDEFINED;
-    int state = UNDEFINED;
-    int level = UNDEFINED;
+    int value    = UNDEFINED;
+    int state    = UNDEFINED; 
+    int level    = UNDEFINED; // level removed
+    int clauseID = UNDEFINED;
 
 
     int var ()

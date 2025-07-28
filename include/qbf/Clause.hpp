@@ -2,6 +2,7 @@
 #define CLAUSE_HPP
 
 #include <iostream>
+#include "Literal.hpp"
 #include "utils/helper.hpp"
 
 namespace qbf::ClauseStatus
@@ -22,13 +23,13 @@ namespace qbf::ClauseStatus
     }
 }
 
-namespace qbf::LiteralStatus
-{
-    constexpr int AVAILABLE           = -2;
-    constexpr int UNIVERSAL_REDUCTION =  0;
-    constexpr int PURE_LITERAL        =  1;
-    constexpr int ASSIGNMENT          =  2;
-}
+// namespace qbf::LiteralStatus
+// {
+//     constexpr int AVAILABLE           = -2;
+//     constexpr int UNIVERSAL_REDUCTION =  0;
+//     constexpr int PURE_LITERAL        =  1;
+//     constexpr int ASSIGNMENT          =  2;
+// }
 
 
 struct Clause
@@ -44,6 +45,8 @@ struct Clause
     int              unit_literal_position;
     int              e_num = 0, a_num = 0;
     bool             learned;
+
+    std::vector<Literal> lits;
 
     size_t hash;
 
