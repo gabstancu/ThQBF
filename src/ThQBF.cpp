@@ -185,7 +185,7 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     {   
         conflict_clause = clauseID;
         solver_status   = qbf::SolverStatus::UNSAT;
-        conficting_clases.push_back(clauseID);
+        conficting_clauses.push_back(clauseID);
         return;
     }
 
@@ -582,6 +582,31 @@ void ThQBF::deduce ()
         std::cout << "Solver stage: PRESEARCH\n\n"; 
         UnitPropagation();
     }
+}
+
+
+int ThQBF::analyse_conflict ()
+{   
+    int back_dl;
+
+    if (level == qbf::SolverStatus::ROOT)
+    {
+        return 0;
+    }
+
+    std::unordered_map<int, int> cl = Clauses[conflict_clause].map_representation();
+    while (stop_criteria_met(cl))
+    {
+        int literal                       = choose_literal(cl);
+        int variable                      = std::abs(literal);
+        int antecedentID                  = Variables[variable-1].antecedent;
+        std::unordered_map<int, int> ante = Clauses[antecedentID].map_representation();
+        cl                                = resolve(cl, ante, variable);
+    }
+    add_clause_to_db(cl);
+    back_dl = clause_asserting_level(cl);
+
+    return back_dl;
 }
 
 // TODO: learned, unit_literal_position are set after the asserting level is found
@@ -1027,8 +1052,8 @@ void ThQBF::solve ()
     int antecedent = Variables[var-1].antecedent;
     std::cout << "antecedent: " << antecedent << "\n";
 
-    Clauses[antecedent].print();
-    Clauses[conflict_clause].print();
+    // Clauses[antecedent].print();
+    // Clauses[conflict_clause].print();
 
     std::unordered_map<int, int> new_clause = resolve(Clauses[conflict_clause].map_representation(), 
                                                       Clauses[antecedent].map_representation(), 
@@ -1044,9 +1069,15 @@ void ThQBF::solve ()
                          Clauses[antecedent].map_representation(), 
                          var);
     print_hashmap(new_clause);
+    
+    bool criteria_met = stop_criteria_met(new_clause);
+    int cl_asserting_level = clause_asserting_level(new_clause);
 
-    std::cout << stop_criteria_met(new_clause) << "\n\n";
-    std::cout << clause_asserting_level(new_clause) << "\n"; // backtrack up to level 2 (exclusive)
+    // backtrack up to clause asserting level (exclusive)
+    // set clause as learned
+    // mark is as unit -> get the asserting literal somehow
+
+
     // std::cout << "======================================================\n"
 
 

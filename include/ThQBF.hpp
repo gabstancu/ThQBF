@@ -85,7 +85,7 @@ class ThQBF
 
         /* ====================== Clause learning ====================== */
         int              conflict_clause;
-        std::vector<int> conficting_clases = {};
+        std::vector<int> conficting_clauses = {};
 
         int                          choose_literal         (std::unordered_map<int, int> cc);
         int                          clause_asserting_level (std::unordered_map<int, int> learned_clause);
@@ -93,8 +93,8 @@ class ThQBF
                                                              std::unordered_map<int, int> c2, 
                                                              int pivot_variable);
         bool                         stop_criteria_met      (std::unordered_map<int, int> resolvent);
-        int                          analyse_conflict       ();
         void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause);
+        int                          analyse_conflict       ();
 
 
 
@@ -102,6 +102,7 @@ class ThQBF
 
 
 
+        /* ====================== Solver utils ====================== */
         void print_Clauses   ();
         void print_Variables ();
         void print_Blocks    ();
