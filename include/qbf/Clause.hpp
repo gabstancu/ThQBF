@@ -42,7 +42,7 @@ struct Clause
     int num_of_unassigned, num_of_assigned;
 
     std::vector<int> literals, state;
-    int              unit_literal_position;
+    int              unit_literal_position = UNDEFINED;
     int              e_num = 0, a_num = 0;
     bool             learned;
 

@@ -595,16 +595,33 @@ int ThQBF::analyse_conflict ()
     }
 
     std::unordered_map<int, int> cl = Clauses[conflict_clause].map_representation();
-    while (stop_criteria_met(cl))
-    {
+    // std::cout << "conflict clause:\n ";
+    // print_hashmap(cl); 
+
+    while (!stop_criteria_met(cl))
+    {   
+        // std::cout << "======================START===========================\n";
         int literal                       = choose_literal(cl);
         int variable                      = std::abs(literal);
         int antecedentID                  = Variables[variable-1].antecedent;
         std::unordered_map<int, int> ante = Clauses[antecedentID].map_representation();
+
+        // std::cout << "resolving\n";
+        // print_hashmap(ante);
+        // std::cout << "\n";
+        // print_hashmap(cl);
+
         cl                                = resolve(cl, ante, variable);
+        // std::cout << "resolvent:\n";
+        // print_hashmap(cl);
+        // std::cout << "=======================END==========================\n";
     }
+    std::cout << "learned clause:\n";
+    print_hashmap(cl);
+
     add_clause_to_db(cl);
     back_dl = clause_asserting_level(cl);
+    // std::cout << "clause asserting level: " << back_dl << "\n";
 
     return back_dl;
 }
@@ -622,14 +639,19 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
     std::sort(literals.begin(), literals.end());
 
     new_clause.literals = literals;
+    new_clause.size     = literals.size();
     size_t h            = new_clause.compute_hash();
 
     if (ClauseHashes.find(h) == ClauseHashes.end())
     {
+        std::cout << "adding clause to db...\n";
         ClauseHashes.insert(h);
         new_clause.hash              = h;
         new_clause.num_of_assigned   = 0;
         new_clause.num_of_unassigned = new_clause.size;
+        new_clause.status            = qbf::ClauseStatus::ACTIVE;
+        new_clause.learned           = true;
+        new_clause.level             = UNDEFINED;
         
         int index = 0;
         /* set state */
@@ -668,8 +690,17 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
         }
 
         numClauses++;
+        // std::cout << "Clauses size: " << Clauses.size() << "\n";
+        // std::cout << "last_clause_index: " << last_clause_idx << "\n";
+        // std::cout << "numClauses: " << numClauses << "\n";
         Clauses.push_back(new_clause);
+        // std::cout << "after pushing new clause to db:\n";
+        // std::cout << "Clauses size: " << Clauses.size() << "\n";
+        // std::cout << "last_clause_index: " << last_clause_idx << "\n";
         last_clause_idx++;
+
+        // new_clause.print();
+        // print_Clauses();
     }
 }
 
@@ -870,6 +901,7 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
         }
     }
 
+    std::cout << "stop criteria met:" << true << "\n";
     return true;
 }
 
@@ -936,7 +968,7 @@ int ThQBF::clause_asserting_level (std::unordered_map<int, int> learned_clause)
 
 
 void ThQBF::print_Clauses ()
-{
+{   
     for (int i = 0; i < Clauses.size(); i++)
     {   
         if (Clauses[i].status != qbf::ClauseStatus::ACTIVE)
@@ -1043,35 +1075,11 @@ void ThQBF::solve ()
     std::cout << "prefix\n";
     print_Prefix();
 
-    std::cout << "solver status " << solver_status << "\n";
+    if (solver_status == qbf::SolverStatus::UNSAT)
+    {
+        analyse_conflict();
+    }
 
-    std::cout << "conflict clause: " << conflict_clause << "\n";
-    int most_recently_implied_literal = choose_literal(Clauses[conflict_clause].map_representation());
-    int var = std::abs(most_recently_implied_literal);
-    std::cout << "most recently implied literal: " << most_recently_implied_literal << "\n";
-    int antecedent = Variables[var-1].antecedent;
-    std::cout << "antecedent: " << antecedent << "\n";
-
-    // Clauses[antecedent].print();
-    // Clauses[conflict_clause].print();
-
-    std::unordered_map<int, int> new_clause = resolve(Clauses[conflict_clause].map_representation(), 
-                                                      Clauses[antecedent].map_representation(), 
-                                                      var);
-    print_hashmap(new_clause);
-    std::cout << stop_criteria_met(new_clause) << "\n\n";
-
-    most_recently_implied_literal = choose_literal(new_clause);
-    var = std::abs(most_recently_implied_literal);
-    std::cout << most_recently_implied_literal << "\n";
-    antecedent = Variables[var-1].antecedent;
-    new_clause = resolve(new_clause, 
-                         Clauses[antecedent].map_representation(), 
-                         var);
-    print_hashmap(new_clause);
-    
-    bool criteria_met = stop_criteria_met(new_clause);
-    int cl_asserting_level = clause_asserting_level(new_clause);
 
     // backtrack up to clause asserting level (exclusive)
     // set clause as learned
