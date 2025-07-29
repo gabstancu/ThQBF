@@ -185,7 +185,7 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     {   
         conflict_clause = clauseID;
         solver_status   = qbf::SolverStatus::UNSAT;
-        conficting_clases.push_back(clauseID);
+        conficting_clauses.push_back(clauseID);
         return;
     }
 
@@ -382,15 +382,11 @@ void ThQBF::remove_clause (int clauseID)
 
         if (literal > 0)
         {   
-            // std::cout << "literal " << literal << "\n";
             Variables[varID].numPosAppear--;
-            // std::cout << "numPosAppear " << Variables[varID].numPosAppear << "\n";
         }
         else
         {   
-            // std::cout << "literal " << literal << "\n";
             Variables[varID].numNegAppear--;
-            // std::cout << "numNegAppear " << Variables[varID].numNegAppear << "\n";
         }
 
         Variables_trail[level].insert(varID);
@@ -584,6 +580,35 @@ void ThQBF::deduce ()
     }
 }
 
+
+int ThQBF::analyse_conflict ()
+{   
+    int back_dl;
+
+    if (level == qbf::SolverStatus::ROOT)
+    {
+        return 0;
+    }
+
+    std::unordered_map<int, int> cl = Clauses[conflict_clause].map_representation();
+
+    while (!stop_criteria_met(cl))
+    {   
+        int literal                       = choose_literal(cl);
+        int variable                      = std::abs(literal);
+        int antecedentID                  = Variables[variable-1].antecedent;
+        std::unordered_map<int, int> ante = Clauses[antecedentID].map_representation();
+        cl                                = resolve(cl, ante, variable);
+    }
+    std::cout << "learned clause:\n";
+    print_hashmap(cl);
+
+    add_clause_to_db(cl);
+    back_dl = clause_asserting_level(cl);
+
+    return back_dl;
+}
+
 // TODO: learned, unit_literal_position are set after the asserting level is found
 void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
 {
@@ -597,14 +622,20 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
     std::sort(literals.begin(), literals.end());
 
     new_clause.literals = literals;
+    new_clause.size     = literals.size();
     size_t h            = new_clause.compute_hash();
 
     if (ClauseHashes.find(h) == ClauseHashes.end())
     {
+        std::cout << "adding clause to db...\n";
         ClauseHashes.insert(h);
         new_clause.hash              = h;
         new_clause.num_of_assigned   = 0;
         new_clause.num_of_unassigned = new_clause.size;
+        new_clause.status            = qbf::ClauseStatus::ACTIVE;
+        new_clause.learned           = true;
+        new_clause.level             = UNDEFINED;
+        new_clause.clauseID          = last_clause_idx;
         
         int index = 0;
         /* set state */
@@ -632,11 +663,11 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
                 {
                     new_clause.a_num++;
                 }
-                new_clause.num_of_unassigned--;
             }
             else
             {
                 new_clause.num_of_assigned++;
+                new_clause.num_of_unassigned--;
             }
 
             index++;
@@ -645,6 +676,9 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause)
         numClauses++;
         Clauses.push_back(new_clause);
         last_clause_idx++;
+
+        // new_clause.print();
+        print_Clauses();
     }
 }
 
@@ -845,6 +879,7 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
         }
     }
 
+    std::cout << "stop criteria met:" << true << "\n";
     return true;
 }
 
@@ -911,7 +946,7 @@ int ThQBF::clause_asserting_level (std::unordered_map<int, int> learned_clause)
 
 
 void ThQBF::print_Clauses ()
-{
+{   
     for (int i = 0; i < Clauses.size(); i++)
     {   
         if (Clauses[i].status != qbf::ClauseStatus::ACTIVE)
@@ -927,6 +962,7 @@ void ThQBF::print_Clauses ()
             }
         }
         std::cout << " unassigned: " << Clauses[i].num_of_unassigned << " ";
+        std::cout << " assigned: " << Clauses[i].num_of_assigned << " ";
         std::cout << " e_num.: " << Clauses[i].e_num << " ";
         std::cout << " a_num.: " << Clauses[i].a_num << " ";
         std::cout << " status: " << qbf::ClauseStatus::to_string(Clauses[i].status) << '\n';
@@ -1018,35 +1054,17 @@ void ThQBF::solve ()
     std::cout << "prefix\n";
     print_Prefix();
 
-    std::cout << "solver status " << solver_status << "\n";
+    if (solver_status == qbf::SolverStatus::UNSAT)
+    {
+        analyse_conflict();
+    }
 
-    std::cout << "conflict clause: " << conflict_clause << "\n";
-    int most_recently_implied_literal = choose_literal(Clauses[conflict_clause].map_representation());
-    int var = std::abs(most_recently_implied_literal);
-    std::cout << "most recently implied literal: " << most_recently_implied_literal << "\n";
-    int antecedent = Variables[var-1].antecedent;
-    std::cout << "antecedent: " << antecedent << "\n";
 
-    Clauses[antecedent].print();
-    Clauses[conflict_clause].print();
+    // backtrack up to clause asserting level (exclusive)
+    // set clause as learned
+    // mark is as unit -> get the asserting literal somehow
 
-    std::unordered_map<int, int> new_clause = resolve(Clauses[conflict_clause].map_representation(), 
-                                                      Clauses[antecedent].map_representation(), 
-                                                      var);
-    print_hashmap(new_clause);
-    std::cout << stop_criteria_met(new_clause) << "\n\n";
 
-    most_recently_implied_literal = choose_literal(new_clause);
-    var = std::abs(most_recently_implied_literal);
-    std::cout << most_recently_implied_literal << "\n";
-    antecedent = Variables[var-1].antecedent;
-    new_clause = resolve(new_clause, 
-                         Clauses[antecedent].map_representation(), 
-                         var);
-    print_hashmap(new_clause);
-
-    std::cout << stop_criteria_met(new_clause) << "\n\n";
-    std::cout << clause_asserting_level(new_clause) << "\n"; // backtrack up to level 2 (exclusive)
     // std::cout << "======================================================\n"
 
 
