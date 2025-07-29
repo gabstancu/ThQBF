@@ -62,7 +62,7 @@ struct Clause
 
     bool is_empty ()
     {
-        return (e_num == 0 && a_num == 0);
+        return (e_num == 0);
     }
 
     bool is_unit ()
