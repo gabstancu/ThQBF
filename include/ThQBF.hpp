@@ -28,6 +28,7 @@ class ThQBF
         std::unordered_set<std::size_t> ClauseHashes; /* avoid duplicate clauses */
         std::vector<int>                P;            /* set of universal variables */
         std::vector<int>                S;            /* set of existential variables */
+
         int numVars;
         int numClauses;
         int numBlocks;
@@ -41,10 +42,10 @@ class ThQBF
         int remainingVars;
         int remainingClauses;
         int remainingBlocks;
+
         std::stack<std::pair<int, int>>          PStack                     = {}; // { decision_a_var: decision_level }
         std::stack<std::pair<int, int>>          SStack                     = {}; // { decision_e_var: decision_level }
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
-        // std::stack<std::pair<int, int>>          implied_variables          = {}; // { variableid, level }
         std::unordered_map<int, std::stack<int>> implied_variables          = {};  // { level, implied variables at level}
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
@@ -71,7 +72,7 @@ class ThQBF
         void remove_variable            (int variable);
         void restore_variable           (int variable);
         void check_affected_vars        ();
-        void remove_clause              (int clauseID);
+        void remove_clause              (int clauseID, int referenceVarID);
         int  clause_is_unit             (int clauseID, int referenceVariable);
 
 
