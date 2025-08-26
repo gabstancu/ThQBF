@@ -121,8 +121,6 @@ void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
     clause.clauseID              = clauseID;
     clause.size                  = literals.size();
     clause.status                = qbf::ClauseStatus::ACTIVE;
-    clause.num_of_unassigned     = literals.size();
-    clause.num_of_assigned       = 0;
     clause.literals              = literals;
     clause.state                 = state;
     clause.learned               = false;

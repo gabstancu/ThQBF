@@ -23,23 +23,12 @@ namespace qbf::ClauseStatus
     }
 }
 
-// namespace qbf::LiteralStatus
-// {
-//     constexpr int AVAILABLE           = -2;
-//     constexpr int UNIVERSAL_REDUCTION =  0;
-//     constexpr int PURE_LITERAL        =  1;
-//     constexpr int ASSIGNMENT          =  2;
-// }
-
-
 struct Clause
 {
     int size;
     int status;
     int level;
     int clauseID;
-
-    int num_of_unassigned, num_of_assigned;
 
     std::vector<int> literals, state;
     int              unit_literal_position = UNDEFINED;

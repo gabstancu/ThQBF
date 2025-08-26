@@ -46,7 +46,7 @@ class ThQBF
         std::stack<std::pair<int, int>>          PStack                     = {}; // { decision_a_var: decision_level }
         std::stack<std::pair<int, int>>          SStack                     = {}; // { decision_e_var: decision_level }
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
-        std::unordered_map<int, std::stack<int>> implied_variables          = {};  // { level, implied variables at level}
+        std::unordered_map<int, std::stack<int>> implied_variables          = {}; // { level, implied variables at level}
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
     
@@ -71,7 +71,6 @@ class ThQBF
         void restore_level              (int search_level);
         void remove_variable            (int variable);
         void restore_variable           (int variable);
-        void check_affected_vars        ();
         void remove_clause              (int clauseID, int referenceVarID);
         int  clause_is_unit             (int clauseID, int referenceVariable);
 
@@ -89,13 +88,13 @@ class ThQBF
         std::vector<int> conficting_clauses = {};
 
         int                          choose_literal         (std::unordered_map<int, int> cc);
-        int                          clause_asserting_level (std::unordered_map<int, int> learned_clause);
+        std::pair<int, int>          clause_asserting_level (std::unordered_map<int, int> learned_clause);
         std::unordered_map<int, int> resolve                (std::unordered_map<int, int> c1, 
                                                              std::unordered_map<int, int> c2, 
                                                              int pivot_variable);
         bool                         stop_criteria_met      (std::unordered_map<int, int> resolvent);
-        void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause);
-        int                          analyse_conflict       ();
+        void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause, int asserting_literal);
+        std::pair<int, int>          analyse_conflict       ();
 
 
 

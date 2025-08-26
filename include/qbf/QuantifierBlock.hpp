@@ -56,6 +56,14 @@ struct QuantifierBlock
     {
         return quantifier == qbf::QuantifierType::UNIVERSAL;
     }
+
+    void print ()
+    {
+        std::cout << "BlockID: " << blockID << ' ';
+        std::cout << "Quantifier: " << quantifier << ' ';
+        std::cout << "Size: " << size << ' ';
+        std::cout << "Available variables: " << available_variables<< '\n';
+    }
 };
 
 
