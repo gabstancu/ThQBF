@@ -1,4 +1,5 @@
 #include "ThQBF.hpp"
+#include <assert.h>
 
 ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(qbf::SolverStatus::PRESEARCH)
 {
@@ -480,6 +481,7 @@ void ThQBF::imply ()
                 unit_clauses.pop();
                 assign(variable, 1);
                 implied_e_variables[level].push(varID);
+                Variables[varID].trail_index = implied_e_variables[level].size();
                 print_Clauses();
             }
             else
@@ -488,6 +490,7 @@ void ThQBF::imply ()
                 unit_clauses.pop();
                 assign(variable, 0);
                 implied_e_variables[level].push(varID);
+                Variables[varID].trail_index = implied_e_variables[level].size();
                 print_Clauses();
             }
             if (solver_status == qbf::SolverStatus::UNSAT)
@@ -617,7 +620,8 @@ std::pair<int, int> ThQBF::analyse_conflict ()
     {   
         int literal                       = choose_e_literal(cl);
         int variable                      = std::abs(literal);
-        int antecedent_clauseID                  = Variables[variable-1].antecedent_clause;
+        int varID                         = variable - 1;
+        int antecedent_clauseID           = Variables[varID].antecedent_clause;
         std::unordered_map<int, int> ante = Clauses[antecedent_clauseID].map_representation();
         cl                                = resolve(cl, ante, variable);
     }
@@ -722,25 +726,72 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
 int ThQBF::choose_e_literal (std::unordered_map<int, int> cc)
 {
     int most_recently_implied = UNDEFINED;
-    int implication_level     = UNDEFINED;
+    int best_trail_index      = UNDEFINED;
+    int top_level             = UNDEFINED;
 
+    // find highest decision level among implied existential variables
     for (const auto& [literal, ct] : cc)
     {
         int variable = std::abs(literal); 
+        int varID    = variable - 1;
 
-        if (Variables[variable-1].antecedent_clause == UNDEFINED)
+        if (Variables[varID].is_universal())
         {
             continue;
         }
 
-        int level = Variables[variable-1].level;
-        if (level >= implication_level)
+        if (Variables[varID].antecedent_clause == UNDEFINED)
+        {
+            continue;
+        }
+
+        top_level = std::max(top_level, Variables[varID].level);
+    }
+
+    assert(top_level>=0 && "No implied ∃ in clause (should be asserting or UNSAT-root).");
+
+    // pick latest implied existential literal at top level by trail index
+    for (const auto& [literal, ct] : cc)
+    {
+        int variable = std::abs(literal); 
+        int varID    = variable - 1;
+
+        if (Variables[varID].is_universal())
+        {
+            continue;
+        }
+
+        if (Variables[varID].antecedent_clause == UNDEFINED)
+        {
+            continue;
+        }
+
+        if (Variables[varID].level != top_level)
+        {
+            continue;
+        }
+
+        int trail_index = Variables[varID].trail_index;
+        if (trail_index > best_trail_index)
         {
             most_recently_implied = literal;
-            implication_level     = level;
+            best_trail_index      = trail_index;
         }
     }
 
+    assert(most_recently_implied != UNDEFINED && "No implied ∃ at top level (reason: bookkeeping bug?)");
+
+    // assert that antecedent contains -most_recently_implied
+    int var = std::abs(most_recently_implied) - 1;
+    int antecedent = Variables[var].antecedent_clause;
+
+    assert(Variables[var].appears_in_clause(antecedent) && "neg(literal) does not appear in antecedent!");
+    
+    bool polarity = (-most_recently_implied > 0);
+    int position_in_ante = Variables[var].get_position_in_clause(antecedent, polarity);
+
+    assert(Clauses[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent!");
+    
     return most_recently_implied;
 }
 
@@ -785,7 +836,7 @@ std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1,
                 new_clause.erase(literal);
                 continue;
             }
-            else
+            else /* if universal */
             {
                 if (Variables[variable-1].blockID > Variables[pivot_variable-1].blockID)
                 {

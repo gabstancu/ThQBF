@@ -48,7 +48,7 @@ class ThQBF
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
 
         std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
-        std::unordered_map<int, std::stack<int>> implied_a_variables        = {};
+        std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied e variables at level}
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
     

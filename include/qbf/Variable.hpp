@@ -53,11 +53,13 @@ struct Variable
     int level                    = UNDEFINED;
     int available_values         = 2;
 
+
+    int trail_index              = UNDEFINED;
     int antecedent_clause        = UNDEFINED;
     int pos_in_antecedent_clause = UNDEFINED;
     
     int antecedent_cube          = UNDEFINED;
-    
+    int pos_in_antecedent_cube   = UNDEFINED;
 
 
     int blockID;
