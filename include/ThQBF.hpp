@@ -20,7 +20,7 @@ class ThQBF
 
         int solver_status;
 
-        /* ====================== Formula data ====================== */
+        /* ================================ Formula data ================================ */
         std::vector<Clause>             Clauses;
         std::vector<QuantifierBlock>    Blocks;
         std::vector<Variable>           Variables;
@@ -37,7 +37,7 @@ class ThQBF
         int last_clause_idx;
 
 
-        /* ====================== Search data ====================== */
+        /* ================================ Search data ================================ */
         int level;
         int remainingVars;
         int remainingClauses;
@@ -46,26 +46,28 @@ class ThQBF
         std::stack<std::pair<int, int>>          PStack                     = {}; // { decision_a_var: decision_level }
         std::stack<std::pair<int, int>>          SStack                     = {}; // { decision_e_var: decision_level }
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
-        std::unordered_map<int, std::stack<int>> implied_variables          = {}; // { level, implied variables at level}
+
+        std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
+        std::unordered_map<int, std::stack<int>> implied_a_variables        = {};
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
     
 
-        /* ====================== Trailing ====================== */
+        /* ================================ Trailing ================================ */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
         std::unordered_map<int, std::set<int>> Variables_trail = {};  /* variables affected due to a clause removal */ 
         std::unordered_map<int, int>           PureLiterals    = {}; 
 
 
-        /* ====================== Assignments ====================== */
+        /* ================================ Assignments ================================ */
         std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
         std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
+
         std::map<int, int>                        deduceAssignments     = {};  /* deduce assignments */
         std::map<int, int>                        preprocessAssignments = {};  /* forced assignments during preprocessing */
 
 
-
-        /* ====================== -------- ====================== */
+        /* ================================ General ================================ */
         void assign                     (int variable,   int value);
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
         void restore_level              (int search_level);
@@ -75,19 +77,19 @@ class ThQBF
         int  clause_is_unit             (int clauseID, int referenceVariable);
 
 
-        /* ====================== Inference ====================== */
+        /* ================================ Inference ================================ */
         void UnitPropagation    ();
         void UniversalReduction ();
         void PureLiteral        ();
         void deduce             ();
-        void imply              ();
+        void imply              (); /* both unit clauses and cubes */
 
 
-        /* ====================== Clause learning ====================== */
+        /* ================================ Clause learning ================================ */
         int              conflict_clause;
-        std::vector<int> conficting_clauses = {};
+        // std::vector<int> conficting_clauses = {};
 
-        int                          choose_literal         (std::unordered_map<int, int> cc);
+        int                          choose_e_literal       (std::unordered_map<int, int> cc);
         std::pair<int, int>          clause_asserting_level (std::unordered_map<int, int> learned_clause);
         std::unordered_map<int, int> resolve                (std::unordered_map<int, int> c1, 
                                                              std::unordered_map<int, int> c2, 
@@ -98,11 +100,22 @@ class ThQBF
 
 
 
-        /* ====================== Cube Learning ====================== */
+        /* ================================ Cube Learning ================================ */
+        // std::vector<Cube>               Cubes;
+        // std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
+        
+        // std::unordered_map<int, int> find_SAT_cube              ();
+        // std::unordered_map<int, int> construct_SAT_induced_cube (std::unordered_map<int, int> Path);
+        // bool                         cube_stop_criteria_met     (std::unordered_map<int, int> cube);
+        // std::pair<int, int>          cube_asserting_level       (std::unordered_map<int, int> learned_cube);
+        
+        // std::unordered_map<int, int> consensus_gen_cube         (std::unordered_map<int, int> cube);
+        // int                          choose_a_literal           ();
+        // void                         add_cube_to_db             ();
+        // std::pair<int, int>          analyse_SAT                ();
 
 
-
-        /* ====================== Solver utils ====================== */
+        /* ================================ Solver utils ================================ */
         void print_Clauses   ();
         void print_Variables ();
         void print_Blocks    ();

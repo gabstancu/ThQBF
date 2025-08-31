@@ -49,11 +49,16 @@ struct Variable
     int  status;
     char quantifier;
 
-    int assignment        = UNDEFINED;
-    int antecedent        = UNDEFINED;
-    int pos_in_antecedent = UNDEFINED;
-    int level             = UNDEFINED;
-    int available_values  = 2;
+    int assignment               = UNDEFINED;
+    int level                    = UNDEFINED;
+    int available_values         = 2;
+
+    int antecedent_clause        = UNDEFINED;
+    int pos_in_antecedent_clause = UNDEFINED;
+    
+    int antecedent_cube          = UNDEFINED;
+    
+
 
     int blockID;
     int positionInBlock;
@@ -116,8 +121,8 @@ struct Variable
         std::cout << "Level: " << level << '\n';
         std::cout << "Assignment: " << assignment << '\n';
         std::cout << "Variable: " << variable << '\n';
-        std::cout << "Antecedent clause: " << antecedent << '\n';
-        std::cout << "Position in antecedent: " << pos_in_antecedent << '\n';
+        std::cout << "Antecedent clause: " << antecedent_clause << '\n';
+        std::cout << "Position in antecedent: " << pos_in_antecedent_clause << '\n';
         std::cout << "Block: " << blockID << '\n';
         std::cout << "Quantifier: " << qbf::VariableType::to_string(quantifier) << '\n';
         std::cout << "+: " << numPosAppear << " -: " << numNegAppear << '\n';
