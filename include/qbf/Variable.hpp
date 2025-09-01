@@ -49,23 +49,24 @@ struct Variable
     int  status;
     char quantifier;
 
-    int assignment               = UNDEFINED;
-    int level                    = UNDEFINED;
-    int available_values         = 2;
+    int  assignment               = UNDEFINED;
+    int  level                    = UNDEFINED;
+    int  available_values         = 2;
 
 
-    int trail_index              = UNDEFINED;
-    int antecedent_clause        = UNDEFINED;
-    int pos_in_antecedent_clause = UNDEFINED;
+    int  assignment_trail_index   = UNDEFINED;
+    int  implication_trail_index  = UNDEFINED;
+    int  antecedent_clause        = UNDEFINED;
+    int  pos_in_antecedent_clause = UNDEFINED;
     
-    int antecedent_cube          = UNDEFINED;
-    int pos_in_antecedent_cube   = UNDEFINED;
+    int  antecedent_cube          = UNDEFINED;
+    int  pos_in_antecedent_cube   = UNDEFINED;
 
 
-    int blockID;
-    int positionInBlock;
+    int  blockID;
+    int  positionInBlock;
 
-    int numNegAppear = 0, numPosAppear = 0;
+    int  numNegAppear = 0, numPosAppear = 0;
     // { clause : position_in_clause }
     std::unordered_map<int, int> negativeOccurrences;
     std::unordered_map<int, int> positiveOccurrences;

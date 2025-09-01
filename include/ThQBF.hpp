@@ -47,11 +47,12 @@ class ThQBF
         std::stack<std::pair<int, int>>          SStack                     = {}; // { decision_e_var: decision_level }
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
 
+        std::unordered_map<int, std::stack<int>> assignment_trail           = {}; // { level, assigned_variables}: variables are inserted chronologically
         std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
         std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied e variables at level}
-        std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
-    
+        
+        std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
 
         /* ================================ Trailing ================================ */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
@@ -79,7 +80,7 @@ class ThQBF
 
         /* ================================ Inference ================================ */
         void UnitPropagation    ();
-        void UniversalReduction ();
+        void UniversalReduction (int clauseID);
         void PureLiteral        ();
         void deduce             ();
         void imply              (); /* both unit clauses and cubes */
