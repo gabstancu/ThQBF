@@ -813,6 +813,7 @@ std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1,
         {
             continue;
         }
+
         new_clause.insert({literal, ct});
     }
 
@@ -824,8 +825,9 @@ std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1,
             continue;
         }
 
-        int variable = std::abs(literal);
+        int varID = std::abs(literal) - 1;
 
+        /* literal already present in clause */
         if (new_clause.find(literal) != new_clause.end())
         {
             continue;
@@ -833,26 +835,16 @@ std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1,
 
         /* opposite polarity is found */
         if (new_clause.find(-literal) != new_clause.end())
-        {
-            if (Variables[variable-1].is_existential())
-            {
-                new_clause.erase(literal);
-                continue;
-            }
-            else /* if universal */
-            {
-                if (Variables[variable-1].blockID > Variables[pivot_variable-1].blockID)
-                {
-                    new_clause.insert({literal, ct});
-                    continue;
-                }
-            }
+        {   
+            assert(Variables[varID].is_existential() && "Tautological existentila pair: invalid reason or wrong pivot.");
+            assert(Variables[varID].blockID > Variables[pivot_variable-1].blockID && "LD pair left of pivot: invalid reason or wrong pivot.");
+            new_clause.insert({literal, ct});
+            continue;
         }
 
         /* add literal to clause */
         new_clause.insert({literal, ct});
     }
-
 
     return new_clause;
 }
