@@ -11,7 +11,20 @@ namespace qbf::SolverStatus
     constexpr int UNSAT     =  0;
     constexpr int PRESEARCH = -1;
     constexpr int SEARCH    =  2;
-    constexpr int ROOT      = -1; // same value as PRESEARCH in internal.h
+    constexpr int ROOT      = -2;
+
+    inline const char* to_string(int s) 
+    {
+        switch (s) 
+        {
+            case SolverStatus::SAT:       return "SAT";
+            case SolverStatus::UNSAT:     return "UNSAT";
+            case SolverStatus::PRESEARCH: return "PRESEARCH";
+            case SolverStatus::SEARCH:    return "SEARCH";
+            case SolverStatus::ROOT:      return "ROOT";
+        }
+        return "INVALID.";
+    }
 }
 
 class ThQBF
@@ -91,11 +104,11 @@ class ThQBF
         // std::vector<int> conficting_clauses = {};
 
         int                          choose_e_literal       (std::unordered_map<int, int> cc);
-        std::pair<int, int>          clause_asserting_level (std::unordered_map<int, int> learned_clause);
-        std::unordered_map<int, int> resolve                (std::unordered_map<int, int> c1, 
-                                                             std::unordered_map<int, int> c2, 
+        std::pair<int, int>          clause_asserting_level (const std::unordered_map<int, int>& learned_clause);
+        std::unordered_map<int, int> resolve                (const std::unordered_map<int, int>& c1, 
+                                                             const std::unordered_map<int, int>& c2, 
                                                              int pivot_variable);
-        bool                         stop_criteria_met      (std::unordered_map<int, int> resolvent);
+        bool                         stop_criteria_met      (const std::unordered_map<int, int>& resolvent);
         void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause, int asserting_literal);
         std::pair<int, int>          analyse_conflict       ();
 
@@ -128,6 +141,7 @@ class ThQBF
         ThQBF(const QDimacsParser& parser);
 
         void solve ();
+        void test  ();
 
         void print ();
 

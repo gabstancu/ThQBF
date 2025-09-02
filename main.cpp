@@ -21,7 +21,7 @@ int main (int argc, char* argv[])
 
 
     ThQBF solver(parser);
-    solver.solve();
+    solver.test();
     // solver.print();
 
     return 0;

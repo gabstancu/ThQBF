@@ -332,6 +332,8 @@ void ThQBF::restore_variable (int variable)
     // std::cout << "restoring variable: " << variable << "\n";
     int varID = variable - 1;
 
+    Variables[varID].available_values = 2;
+
     if (Variables[varID].antecedent_clause != UNDEFINED)
     {   
         Variables[varID].antecedent_clause        = UNDEFINED;
@@ -628,7 +630,7 @@ std::pair<int, int> ThQBF::analyse_conflict ()
         std::unordered_map<int, int> ante = Clauses[antecedent_clauseID].map_representation();
         cl                                = resolve(cl, ante, variable);
     }
-    // std::cout << "learned clause:\n";
+    std::cout << "learned clause:\n";
     print_hashmap(cl);
     
     p = clause_asserting_level(cl);
@@ -800,8 +802,8 @@ int ThQBF::choose_e_literal (std::unordered_map<int, int> cc)
 
 
 
-std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1, 
-                                             std::unordered_map<int, int> c2, 
+std::unordered_map<int, int> ThQBF::resolve (const std::unordered_map<int, int>& c1, 
+                                             const std::unordered_map<int, int>& c2, 
                                              int pivot_variable)
 {
     std::unordered_map<int, int> new_clause;
@@ -850,7 +852,7 @@ std::unordered_map<int, int> ThQBF::resolve (std::unordered_map<int, int> c1,
 }
 
 
-bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
+bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
 {   
     /*  
                         1st condition
@@ -974,19 +976,17 @@ bool ThQBF::stop_criteria_met(std::unordered_map<int, int> resolvent)
 }
 
 
-std::pair<int, int> ThQBF::clause_asserting_level (std::unordered_map<int, int> learned_clause)
+std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int, int>& learned_clause)
 {
     /* 
         asserting literal      -> existential literal at the maximum decision level
-        clause asserting level -> second highest level among the decision level of the rest of the existentials
+        clause asserting level -> second highest level among the decision levels of the rest of the existentials
     */
     int asserting_literal      = UNDEFINED;
-    int clause_asserting_level = 0;
-    int max_level              = UNDEFINED;
+    int clause_asserting_level =  0;
+    int max_level              = -1;
 
-
-    int conflict_level = level;
-    int diff           = INT_MAX;
+    std::pair<int, int> p;
 
     /* find max_level */
     for (const auto& [literal, ct] : learned_clause)
@@ -1007,6 +1007,8 @@ std::pair<int, int> ThQBF::clause_asserting_level (std::unordered_map<int, int> 
         }
     }
 
+    assert(max_level >= 0 && "No existentials at max_level (Logical error - check stop criteria).\n");
+    
     /* find second highest level: asserting level */
     for (const auto& [literal, ct] : learned_clause)
     {
@@ -1023,14 +1025,10 @@ std::pair<int, int> ThQBF::clause_asserting_level (std::unordered_map<int, int> 
             continue;
         }
 
-        if (diff > max_level - level)
-        {   
-            diff = max_level - level;
-            clause_asserting_level = level;
-        }
+        clause_asserting_level = std::max(clause_asserting_level, level);
     }
 
-    std::pair<int, int> p = std::make_pair(clause_asserting_level, asserting_literal);
+    p = std::make_pair(clause_asserting_level, asserting_literal);
     return p;
 }
 
@@ -1101,6 +1099,30 @@ void ThQBF::print_Prefix ()
 
 
 void ThQBF::solve ()
+{
+    print_Blocks();
+    print_Prefix();
+    print_Clauses();
+    print_Variables();
+
+    /* 
+        preprocess to simplify: if any type of learning is enabled, only use UP and perhaps PL.
+    */
+    solver_status = qbf::SolverStatus::PRESEARCH;
+    level         = PRESEARCH;
+
+    deduce();
+
+    if (solver_status == qbf::SolverStatus::SAT || solver_status == qbf::SolverStatus::UNSAT)
+    {   
+        std::cout << "ThQBF terminated during preprocessing.\n Status: " << qbf::SolverStatus::to_string(solver_status);
+        return;
+    }
+
+
+}
+
+void ThQBF::test ()
 {   
     print_Blocks();
     print_Prefix();
