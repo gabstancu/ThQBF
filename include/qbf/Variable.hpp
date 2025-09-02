@@ -28,6 +28,7 @@ namespace qbf::VariableStatus
     constexpr int ASSIGNED   =  3; 
     constexpr int ELIMINATED =  0; 
     constexpr int IMPLIED    =  2;
+    constexpr int REMOVED    =  4;
 
     inline const char* to_string(int s) 
     {
@@ -37,6 +38,7 @@ namespace qbf::VariableStatus
             case VariableStatus::ASSIGNED:   return "ASSIGNED";
             case VariableStatus::ELIMINATED: return "ELIMINATED";
             case VariableStatus::IMPLIED:    return "IMPLIED";
+            case VariableStatus::REMOVED:    return "REMOVED";
         }
         return "INVALID";
     }

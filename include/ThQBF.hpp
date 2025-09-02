@@ -62,14 +62,15 @@ class ThQBF
 
         std::unordered_map<int, std::stack<int>> assignment_trail           = {}; // { level, assigned_variables}: variables are inserted chronologically
         std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
-        std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied e variables at level}
+        // std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied a variables at level}
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
         
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
 
         /* ================================ Trailing ================================ */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
-        std::unordered_map<int, std::set<int>> Variables_trail = {};  /* variables affected due to a clause removal */ 
+        // std::unordered_map<int, std::set<int>> Variables_trail = {};  /* variables affected due to a clause removal */ 
+        std::set<int>                          varsAffected    = {};
         std::unordered_map<int, int>           PureLiterals    = {}; 
 
 
@@ -101,7 +102,7 @@ class ThQBF
 
         /* ================================ Clause learning ================================ */
         int              conflict_clause;
-        // std::vector<int> conficting_clauses = {};
+        std::vector<int> conficting_clauses = {};
 
         int                          choose_e_literal       (std::unordered_map<int, int> cc);
         std::pair<int, int>          clause_asserting_level (const std::unordered_map<int, int>& learned_clause);
