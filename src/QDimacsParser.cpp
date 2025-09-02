@@ -114,15 +114,13 @@ void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
     }
 
     std::vector<Literal> lits;
-    std::vector<int> state (literals.size(), qbf::LiteralStatus::AVAILABLE);
+    std::vector<int> state  (literals.size(), qbf::LiteralStatus::AVAILABLE);
     std::sort(literals.begin(), literals.end());
 
     Clause clause;
     clause.clauseID              = clauseID;
     clause.size                  = literals.size();
     clause.status                = qbf::ClauseStatus::ACTIVE;
-    clause.num_of_unassigned     = literals.size();
-    clause.num_of_assigned       = 0;
     clause.literals              = literals;
     clause.state                 = state;
     clause.learned               = false;

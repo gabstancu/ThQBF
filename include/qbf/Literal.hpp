@@ -13,6 +13,13 @@ namespace qbf::LiteralStatus
     constexpr int ASSIGNMENT          = -30;
 }
 
+// namespace qbf::LiteralStatus
+// {
+//     constexpr int AVAILABLE           = -2;
+//     constexpr int UNIVERSAL_REDUCTION =  0;
+//     constexpr int PURE_LITERAL        =  1;
+//     constexpr int ASSIGNMENT          =  2;
+// }
 
 struct Literal
 {
