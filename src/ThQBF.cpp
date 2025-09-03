@@ -1,7 +1,7 @@
 #include "ThQBF.hpp"
 #include <assert.h>
 
-ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(qbf::SolverStatus::PRESEARCH)
+ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
 {
     this->Clauses              = parser.matrix;
     this->Blocks               = parser.quantifier_prefix;
@@ -50,11 +50,11 @@ void ThQBF::assign (int variable, int value)
     Variables[varID].assignment_trail_index = assignment_trail.size();
 
     std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n"; 
-    if (solver_status == qbf::SolverStatus::PRESEARCH)
+    if (solver_status == SolverStatus::PRESEARCH)
     {
         Variables[varID].status = qbf::VariableStatus::ELIMINATED;
     }
-    else if (solver_status == qbf::SolverStatus::SEARCH)
+    else if (solver_status == SolverStatus::SEARCH)
     {   
         if (Variables[varID].antecedent_clause == UNDEFINED)
         {
@@ -84,7 +84,7 @@ void ThQBF::assign (int variable, int value)
                     continue;
 
                 remove_clause(clauseID, varID);
-                if (solver_status == qbf::SolverStatus::SAT)
+                if (solver_status == SolverStatus::SAT)
                 {
                     /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
@@ -120,7 +120,7 @@ void ThQBF::assign (int variable, int value)
                     continue;
 
                 remove_clause(clauseID, varID);
-                if (solver_status == qbf::SolverStatus::SAT)
+                if (solver_status == SolverStatus::SAT)
                 {
                     /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
@@ -195,7 +195,7 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     if (Clauses[clauseID].e_num == 0)
     {   
         conflict_clause = clauseID;
-        solver_status   = qbf::SolverStatus::UNSAT;
+        solver_status   = SolverStatus::UNSAT;
         // conficting_clauses.push_back(clauseID);
         return;
     }
@@ -295,7 +295,7 @@ void ThQBF::restore_level (int search_level)
         ++it;
     }
 
-    solver_status = qbf::SolverStatus::SEARCH;
+    solver_status = SolverStatus::SEARCH;
     varsAffected  = {};
 
     assignment_trail.erase(search_level);
@@ -372,12 +372,12 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
     }
     
     remainingClauses--;
-    if (solver_status == qbf::SolverStatus::PRESEARCH)
+    if (solver_status == SolverStatus::PRESEARCH)
     {   
         Clauses[clauseID].status = qbf::ClauseStatus::DELETED;
         // std::cout << "remove_clause -> if clauseID: " << clauseID << " " << qbf::ClauseStatus::to_string(Clauses[clauseID].status) <<"\n";
     }
-    else if (solver_status == qbf::SolverStatus::SEARCH)
+    else if (solver_status == SolverStatus::SEARCH)
     {
         Clauses[clauseID].status = qbf::ClauseStatus::SATISFIED;
     }
@@ -421,7 +421,7 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
     if (!remainingClauses)
     {
         std::cout << "Empty matrix at level " << level << '\n';
-        solver_status = qbf::SolverStatus::SAT;
+        solver_status = SolverStatus::SAT;
         return;
     }
 }
@@ -511,7 +511,7 @@ void ThQBF::imply ()
                 print_Prefix();
                 // print_Blocks();
             }
-            if (solver_status == qbf::SolverStatus::UNSAT)
+            if (solver_status == SolverStatus::UNSAT)
             {   
                 std::cout << "Empty (all universal clause) detected at level " << level << "\n";
                 std::cout << "Conflicting clause: " << conflict_clause << '\n';
@@ -586,7 +586,7 @@ void ThQBF::UnitPropagation ()
 
 void ThQBF::UniversalReduction (int clauseID)
 {
-    if (solver_status == qbf::SolverStatus::PRESEARCH)
+    if (solver_status == SolverStatus::PRESEARCH)
     {
         std::cout << "Solver stage: PRESEARCH\n\n"; 
     }
@@ -599,7 +599,7 @@ void ThQBF::UniversalReduction (int clauseID)
 // TODO: PureLiteral () -> add pure literals 'trail'
 void ThQBF::PureLiteral ()
 {
-    if (solver_status == qbf::SolverStatus::PRESEARCH)
+    if (solver_status == SolverStatus::PRESEARCH)
     {
         std::cout << "Solver stage: PRESEARCH\n\n"; 
     }
@@ -612,7 +612,7 @@ void ThQBF::PureLiteral ()
 // TODO: deduce ()
 void ThQBF::deduce ()
 {   
-    if (solver_status == qbf::SolverStatus::PRESEARCH)
+    if (solver_status == SolverStatus::PRESEARCH)
     {
         std::cout << "Solver stage: PRESEARCH\n\n"; 
         UnitPropagation();
@@ -625,10 +625,10 @@ std::pair<int, int> ThQBF::analyse_conflict ()
     int back_dl;
     std::pair<int, int> p;
 
-    if (level == qbf::SolverStatus::ROOT)
+    if (level == SolverStatus::ROOT)
     {   
-        p.first  = qbf::SolverStatus::ROOT;
-        p.second = qbf::SolverStatus::ROOT;
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT;
         return p;
     }
 
@@ -910,7 +910,7 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
     
     if (L_max <= 0) /* all universal clause, or all existentials at the root level -> ROOT-UNSAT exception */
     {   
-        solver_status = qbf::SolverStatus::ROOT;
+        solver_status = SolverStatus::ROOT;
         return false;
     }
     // check if max level appears more than once
@@ -1125,14 +1125,14 @@ void ThQBF::solve ()
     /* 
         preprocess: if any type of learning is enabled, only use UP and perhaps PL.
     */
-    solver_status = qbf::SolverStatus::PRESEARCH;
+    solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
     deduce();
 
-    if (solver_status == qbf::SolverStatus::SAT || solver_status == qbf::SolverStatus::UNSAT)
+    if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
-        std::cout << "ThQBF terminated during preprocessing.\n Status: " << qbf::SolverStatus::to_string(solver_status);
+        std::cout << "ThQBF terminated during preprocessing.\n Status: " << SolverStatus::to_string(solver_status);
         return;
     }
 
@@ -1152,16 +1152,16 @@ void ThQBF::test ()
 
 
     level = PRESEARCH;
-    solver_status = qbf::SolverStatus::PRESEARCH;
+    solver_status = SolverStatus::PRESEARCH;
     UnitPropagation();
-    if (solver_status == qbf::SolverStatus::UNSAT)
+    if (solver_status == SolverStatus::UNSAT)
     {
         std::cout << "UNSAT at root...\n";
         return;
     }
 
     /* -------------------- test-UNSAT -------------------- */
-    solver_status = qbf::SolverStatus::SEARCH;
+    solver_status = SolverStatus::SEARCH;
     /* assign variables */
     level = 1;
     assign(1, 1);
@@ -1196,10 +1196,10 @@ void ThQBF::test ()
 
     std::cout << "================================================\n";
     std::pair<int, int> p;
-    if (solver_status == qbf::SolverStatus::UNSAT)
+    if (solver_status == SolverStatus::UNSAT)
     {
         p = analyse_conflict();
-        solver_status = qbf::SolverStatus::SEARCH;
+        solver_status = SolverStatus::SEARCH;
     }
 
     // backtrack up to clause asserting level (exclusive)
@@ -1245,9 +1245,9 @@ void ThQBF::test ()
 
     /*  -------------------- test-SAT -------------------- */
     // level = PRESEARCH;
-    // solver_status = qbf::SolverStatus::PRESEARCH;
+    // solver_status = SolverStatus::PRESEARCH;
     // UnitPropagation();
-    // if (solver_status == qbf::SolverStatus::UNSAT)
+    // if (solver_status == SolverStatus::UNSAT)
     // {
     //     std::cout << "UNSAT at root...\n";
     //     return;
@@ -1255,7 +1255,7 @@ void ThQBF::test ()
 
     /* assign variables */
     // level = 1;
-    // solver_status = qbf::SolverStatus::SEARCH;
+    // solver_status = SolverStatus::SEARCH;
     // assign(4, 0);
     // imply();
     // print_Clauses();
@@ -1263,7 +1263,7 @@ void ThQBF::test ()
     // print_Prefix();
 
     // level++;
-    // solver_status = qbf::SolverStatus::SEARCH;
+    // solver_status = SolverStatus::SEARCH;
     // assign(5, 1);
     // imply();
     // print_Clauses();
@@ -1271,7 +1271,7 @@ void ThQBF::test ()
     // print_Prefix();
 
     // level++;
-    // solver_status = qbf::SolverStatus::SEARCH;
+    // solver_status = SolverStatus::SEARCH;
     // assign(7, 0);
     // imply();
     // print_Clauses();

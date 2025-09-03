@@ -5,7 +5,7 @@
 #include "utils/Logger.hpp"
 #include "utils/QDimacsParser.hpp"
 
-namespace qbf::SolverStatus
+namespace SolverStatus
 {
     constexpr int SAT       =  1;
     constexpr int UNSAT     =  0;
