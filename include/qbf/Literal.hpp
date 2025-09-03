@@ -10,7 +10,17 @@ namespace qbf::LiteralStatus
     constexpr int AVAILABLE           = -2;
     constexpr int UNIVERSAL_REDUCTION = -10;
     constexpr int PURE_LITERAL        = -20;
-    constexpr int ASSIGNMENT          = -30;
+
+    inline const char* to_string(int s) 
+    {
+        switch (s) 
+        {
+            case LiteralStatus::AVAILABLE:               return "AVAILABLE";
+            case LiteralStatus::UNIVERSAL_REDUCTION:     return "UR";
+            case LiteralStatus::PURE_LITERAL:            return "PL";
+        }
+        return "INVALID.";
+    }
 }
 
 // namespace qbf::LiteralStatus
