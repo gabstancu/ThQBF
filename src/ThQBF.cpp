@@ -1150,7 +1150,8 @@ void ThQBF::test ()
     print_Variables();
 
 
-    level = PRESEARCH;
+    /*  -------------------- test-SAT -------------------- */
+    // level = PRESEARCH;
     solver_status = SolverStatus::PRESEARCH;
     UnitPropagation();
     if (solver_status == SolverStatus::UNSAT)
@@ -1159,123 +1160,113 @@ void ThQBF::test ()
         return;
     }
 
-    /* -------------------- test-UNSAT -------------------- */
-    solver_status = SolverStatus::SEARCH;
     /* assign variables */
     level = 1;
-    assign(1, 1);
-    print_Clauses();
+    solver_status = SolverStatus::SEARCH;
+    assign(4, 0);
     imply();
+    print_Clauses();
     std::cout << "prefix\n";
     print_Prefix();
-    // print_Blocks();
-    // print_Variables();
+
+    level++;
+    solver_status = SolverStatus::SEARCH;
+    assign(5, 1);
+    imply();
+    print_Clauses();
+    std::cout << "prefix\n";
+    print_Prefix();
+
+    level++;
+    solver_status = SolverStatus::SEARCH;
+    assign(7, 0);
+    imply();
+    print_Clauses();
+    std::cout << "prefix\n";
+    print_Prefix();
+
+
+    // /* -------------------- test-UNSAT -------------------- */
+    // solver_status = SolverStatus::SEARCH;
+    // /* assign variables */
+    // level = 1;
+    // assign(1, 1);
+    // print_Clauses();
+    // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
     
 
-    level++;
-    assign(2, 1);
-    print_Clauses();
-    imply();
-    std::cout << "prefix\n";
-    print_Prefix();
-    // print_Blocks();
-    // print_Variables();
-
-
-    level++;
-    assign(3, 1);
-    print_Clauses();
-    imply();
-    std::cout << "prefix\n";
-    print_Prefix();
-    // print_Blocks();
-    // print_Variables();
-
-
-
-    std::cout << "================================================\n";
-    std::pair<int, int> p;
-    if (solver_status == SolverStatus::UNSAT)
-    {
-        p = analyse_conflict();
-        solver_status = SolverStatus::SEARCH;
-    }
-
-    // backtrack up to clause asserting level (exclusive)
-    int back_dl = p.first;
-    while (level > back_dl)
-    {   
-        restore_level(level);
-        print_Clauses();
-        std::cout << "prefix\n";
-        print_Prefix();
-        // print_Blocks();
-        level--;
-    }
-
-    int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
-    int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
-    unit_clauses.push({Clauses.size()-1, level});
-    imply();
-    print_Clauses();
-    std::cout << "prefix\n";
-    print_Prefix();
-
-    // print_hashmap(Variables[5].positiveOccurrences);
-    // print_hashmap(Variables[5].negativeOccurrences);
-
     // level++;
-    // assign(4, 0);
+    // assign(2, 1);
     // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
-
-    // level++;
-    // assign(5, 1);
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
     // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
+
+
+    // level++;
+    // assign(3, 1);
+    // print_Clauses();
+    // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
+
+
+
+    // std::cout << "================================================\n";
+    // std::pair<int, int> p;
+    // if (solver_status == SolverStatus::UNSAT)
+    // {
+    //     p = analyse_conflict();
+    //     solver_status = SolverStatus::SEARCH;
+    // }
+
+    // // backtrack up to clause asserting level (exclusive)
+    // int back_dl = p.first;
+    // while (level > back_dl)
+    // {   
+    //     restore_level(level);
+    //     print_Clauses();
+    //     std::cout << "prefix\n";
+    //     print_Prefix();
+    //     // print_Blocks();
+    //     level--;
+    // }
+
+    // int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
+    // int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
+    // unit_clauses.push({Clauses.size()-1, level});
+    // imply();
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+
+    // // print_hashmap(Variables[5].positiveOccurrences);
+    // // print_hashmap(Variables[5].negativeOccurrences);
+
+    // // level++;
+    // // assign(4, 0);
+    // // print_Clauses();
+    // // std::cout << "prefix\n";
+    // // print_Prefix();
+
+    // // level++;
+    // // assign(5, 1);
+    // // print_Clauses();
+    // // std::cout << "prefix\n";
+    // // print_Prefix();
+    // // imply();
 
 
 
     // std::cout << "======================================================\n"
-
-
-    /*  -------------------- test-SAT -------------------- */
-    // level = PRESEARCH;
-    // solver_status = SolverStatus::PRESEARCH;
-    // UnitPropagation();
-    // if (solver_status == SolverStatus::UNSAT)
-    // {
-    //     std::cout << "UNSAT at root...\n";
-    //     return;
-    // }
-
-    /* assign variables */
-    // level = 1;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(4, 0);
-    // imply();
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
-
-    // level++;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(5, 1);
-    // imply();
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
-
-    // level++;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(7, 0);
-    // imply();
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
 
 
 

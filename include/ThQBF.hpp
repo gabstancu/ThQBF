@@ -62,14 +62,14 @@ class ThQBF
 
         std::unordered_map<int, std::stack<int>> assignment_trail           = {}; // { level, assigned_variables}: variables are inserted chronologically
         std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
-        // std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied a variables at level}
+        std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied a variables at level}
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
         
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
 
         /* ================================ Trailing ================================ */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
-        // std::unordered_map<int, std::set<int>> Variables_trail = {};  /* variables affected due to a clause removal */ 
+        std::unordered_map<int, std::set<int>> Cubes_trail     = {}; 
         std::set<int>                          varsAffected    = {};
         std::unordered_map<int, int>           PureLiterals    = {}; 
 
@@ -116,18 +116,18 @@ class ThQBF
 
 
         /* ================================ Cube Learning ================================ */
-        // std::vector<Cube>               Cubes;
-        // std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
+        std::vector<Cube>               Cubes;
+        std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
         
-        // std::unordered_map<int, int> find_SAT_cube              ();
-        // std::unordered_map<int, int> construct_SAT_induced_cube (std::unordered_map<int, int> Path);
-        // bool                         cube_stop_criteria_met     (std::unordered_map<int, int> cube);
-        // std::pair<int, int>          cube_asserting_level       (std::unordered_map<int, int> learned_cube);
+        std::unordered_map<int, int> find_SAT_cube              ();
+        std::unordered_map<int, int> construct_SAT_induced_cube (std::unordered_map<int, int> Path);
+        bool                         cube_stop_criteria_met     (std::unordered_map<int, int> cube);
+        std::pair<int, int>          cube_asserting_level       (std::unordered_map<int, int> learned_cube);
         
-        // std::unordered_map<int, int> consensus_gen_cube         (std::unordered_map<int, int> cube);
-        // int                          choose_a_literal           ();
-        // void                         add_cube_to_db             ();
-        // std::pair<int, int>          analyse_SAT                ();
+        std::unordered_map<int, int> consensus_gen_cube         (std::unordered_map<int, int> cube);
+        int                          choose_a_literal           ();
+        void                         add_cube_to_db             ();
+        std::pair<int, int>          analyse_SAT                ();
 
 
         /* ================================ Solver utils ================================ */
