@@ -58,6 +58,7 @@ struct Variable
 
     int  assignment_trail_index   = UNDEFINED;
     int  implication_trail_index  = UNDEFINED;
+    
     int  antecedent_clause        = UNDEFINED;
     int  pos_in_antecedent_clause = UNDEFINED;
     
@@ -68,10 +69,17 @@ struct Variable
     int  blockID;
     int  positionInBlock;
 
+    /* appearances in clauses */
     int  numNegAppear = 0, numPosAppear = 0;
-    // { clause : position_in_clause }
+    // { clauseID : position_in_clause }
     std::unordered_map<int, int> negativeOccurrences;
     std::unordered_map<int, int> positiveOccurrences;
+
+    /* appearances in cubes */
+    // { cubeID : positon_in_cube }
+    int numNegAppearCubes = 0, numPosAppearCubes = 0;
+    std::unordered_map<int, int> negativeOccurrencesCubes;
+    std::unordered_map<int, int> positiveOccurrencesCubes;
 
 
     bool is_existential ()

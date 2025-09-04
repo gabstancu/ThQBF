@@ -11,6 +11,7 @@ namespace qbf::CubeStatus
     constexpr int ACTIVE      =  1;  // participates in propagation
     constexpr int DELETED     = -1;  // removed by garbage collection
     constexpr int SATISFYING  =  2;  // currently satisfied by the assignment (all universals = 1, no existential = 0)
+    constexpr int INACTIVE    =  3;
 
     inline const char* to_string(int s)
     {
@@ -19,21 +20,26 @@ namespace qbf::CubeStatus
             case ACTIVE:     return "ACTIVE";
             case DELETED:    return "DELETED";
             case SATISFYING: return "SATISFYING";
+            case INACTIVE:   return "INACTIVE"; 
         }
         return "INVALID.";
     }
 }
 
-
-
+/*
+    Satisfying cube : every universal literal in S is 1 and every existential in S is not 0
+    Unit cube test  :
+*/
 struct Cube
 {
     int size;
     int status;
+    int level;
     int cubeID;
 
     std::vector<int>     literals;
     std::vector<int>     state;
+
     std::vector<Literal> lits;
 
     // bool learned = false;
@@ -45,6 +51,14 @@ struct Cube
 
     int unit_literal_position = UNDEFINED;
 
+    Cube(int cubeID, std::unordered_map<int, int> cube, int level): cubeID(cubeID), level(level)
+    {
+        for (const auto& [literal, state] : cube)
+        {
+            this->literals.push_back(literal);
+        }
+        
+    }
 
     std::size_t compute_hash() const
     {
@@ -54,10 +68,22 @@ struct Cube
         return h;
     }
 
-    bool is_empty ()
-    {
-        return size == 0;
 
+    bool is_literal_available (int position)
+    {
+        return literals[position] == qbf::LiteralStatus::AVAILABLE;
+    }
+
+
+    // bool is_empty ()
+    // {
+    //     return size == 0;
+
+    // }
+
+    bool is_active ()
+    {
+        return status == qbf::CubeStatus::ACTIVE;
     }
 
     std::unordered_map<int, int> map_representation()

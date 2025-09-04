@@ -7,21 +7,23 @@
 
 namespace SolverStatus
 {
-    constexpr int SAT       =  1;
-    constexpr int UNSAT     =  0;
-    constexpr int PRESEARCH = -1;
-    constexpr int SEARCH    =  2;
-    constexpr int ROOT      = -2;
+    constexpr int SAT               =  1;
+    constexpr int UNSAT             =  0;
+    constexpr int PRESEARCH         = -1;
+    constexpr int SEARCH            =  2;
+    constexpr int ROOT              = -2;
+    constexpr int UNDETERMINED      = -3;
 
     inline const char* to_string(int s) 
     {
         switch (s) 
         {
-            case SolverStatus::SAT:       return "SAT";
-            case SolverStatus::UNSAT:     return "UNSAT";
-            case SolverStatus::PRESEARCH: return "PRESEARCH";
-            case SolverStatus::SEARCH:    return "SEARCH";
-            case SolverStatus::ROOT:      return "ROOT";
+            case SolverStatus::SAT:               return "SAT";
+            case SolverStatus::UNSAT:             return "UNSAT";
+            case SolverStatus::PRESEARCH:         return "PRESEARCH";
+            case SolverStatus::SEARCH:            return "SEARCH";
+            case SolverStatus::ROOT:              return "ROOT";
+            case SolverStatus::UNDETERMINED:      return "UNDETERMINED";
         }
         return "INVALID.";
     }
@@ -44,6 +46,7 @@ class ThQBF
 
         int numVars;
         int numClauses;
+        int numCubes;
         int numBlocks;
         int numOfExistentialVars;
         int numOfUniversalVars;
@@ -54,6 +57,7 @@ class ThQBF
         int level;
         int remainingVars;
         int remainingClauses;
+        int remainingCubes;
         int remainingBlocks;
 
         std::stack<std::pair<int, int>>          PStack                     = {}; // { decision_a_var: decision_level }
@@ -61,11 +65,13 @@ class ThQBF
         std::stack<std::pair<int, int>>          Search_Stack               = {}; // { decision_var: decision_level }
 
         std::unordered_map<int, std::stack<int>> assignment_trail           = {}; // { level, assigned_variables}: variables are inserted chronologically
-        std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
-        std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied a variables at level}
         std::unordered_map<int, int>             decision_variable_at       = {}; // { level: decision_variable }
         
+        std::unordered_map<int, std::stack<int>> implied_e_variables        = {}; // { level, implied e variables at level}
+        std::unordered_map<int, std::stack<int>> implied_a_variables        = {}; // { level, implied a variables at level}
+        
         std::stack<std::pair<int, int>>          unit_clauses               = {}; // { clauseID,   level }
+        std::stack<std::pair<int, int>>          unit_cubes                 = {}; // { cubeID,     level }
 
         /* ================================ Trailing ================================ */
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
@@ -83,13 +89,20 @@ class ThQBF
 
 
         /* ================================ General ================================ */
-        void assign                     (int variable,   int value);
+        void assign                     (int variable,   int value); // TODO: (assign) include assignment propagation to cubes
+        
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
+        void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
+        
+        void remove_clause              (int clauseID, int referenceVarID);
+        void remove_cube                (int cubeID,   int referenceVarID);
+        
+        int  clause_is_unit             (int clauseID, int referenceVariable);
+        int  cube_is_unit               (int cubeID); // TODO: (cube_is_unit) write body
+
         void restore_level              (int search_level);
         void remove_variable            (int variable);
         void restore_variable           (int variable);
-        void remove_clause              (int clauseID, int referenceVarID);
-        int  clause_is_unit             (int clauseID, int referenceVariable);
 
 
         /* ================================ Inference ================================ */
@@ -97,7 +110,7 @@ class ThQBF
         void UniversalReduction (int clauseID);
         void PureLiteral        ();
         void deduce             ();
-        void imply              (); /* both unit clauses and cubes */
+        void imply              (); // TODO: (imply) both unit clauses and cubes
 
 
         /* ================================ Clause learning ================================ */
@@ -120,18 +133,19 @@ class ThQBF
         std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
         
         std::unordered_map<int, int> find_SAT_cube              ();
-        std::unordered_map<int, int> construct_SAT_induced_cube (std::unordered_map<int, int> Path);
-        bool                         cube_stop_criteria_met     (std::unordered_map<int, int> cube);
-        std::pair<int, int>          cube_asserting_level       (std::unordered_map<int, int> learned_cube);
+        std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path);
+        bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& cube);
+        std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube);
         
-        std::unordered_map<int, int> consensus_gen_cube         (std::unordered_map<int, int> cube);
-        int                          choose_a_literal           ();
-        void                         add_cube_to_db             ();
+        std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube);
+        int                          choose_a_literal           (const std::unordered_map<int, int>& sc);
+        void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube);
         std::pair<int, int>          analyse_SAT                ();
 
 
         /* ================================ Solver utils ================================ */
         void print_Clauses   ();
+        void print_Cubes     ();
         void print_Variables ();
         void print_Blocks    ();
         void print_Prefix    ();

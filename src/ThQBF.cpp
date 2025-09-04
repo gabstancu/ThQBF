@@ -8,12 +8,14 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(Sol
     this->Variables            = parser.variables; 
     this->numVars              = parser.numVars;
     this->numClauses           = parser.numClauses;
+    this->numCubes             = 0;
     this->numBlocks            = parser.numBlocks;
     this->numOfExistentialVars = parser.numOfExistentialVars;
     this->numOfUniversalVars   = parser.numOfUniversalVars;
 
     this->remainingVars        = parser.numVars;
     this->remainingClauses     = parser.numClauses;
+    this->remainingCubes       = this->numCubes;
     this->remainingBlocks      = parser.numBlocks;
 
     this->S                    = parser.S;
@@ -56,9 +58,9 @@ void ThQBF::assign (int variable, int value)
     }
     else if (solver_status == SolverStatus::SEARCH)
     {   
-        if (Variables[varID].antecedent_clause == UNDEFINED)
+        if (Variables[varID].antecedent_clause == UNDEFINED && Variables[varID].antecedent_cube == UNDEFINED)
         {
-            Variables[varID].status  = qbf::VariableStatus::ASSIGNED;
+            Variables[varID].status     = qbf::VariableStatus::ASSIGNED;
             decision_variable_at[level] = varID;
         }
         else
@@ -95,7 +97,6 @@ void ThQBF::assign (int variable, int value)
             }
         }
 
-
         // remove negative appearances of varID from everywhere
         if (Variables[varID].numNegAppear)
         {
@@ -108,6 +109,8 @@ void ThQBF::assign (int variable, int value)
                 remove_literal_from_clause(literal, clauseID, positionInClause);
             }
         } 
+
+        // TODO: include propagation in cubes
     }
     else
     {
@@ -143,6 +146,8 @@ void ThQBF::assign (int variable, int value)
                 remove_literal_from_clause(literal, clauseID, positionInClause);
             }
         }
+
+        // TODO: include propagation in cubes
     }
 
     for (auto it=varsAffected.begin(); it!=varsAffected.end();)
@@ -487,7 +492,7 @@ void ThQBF::imply ()
             if (unit_literal > 0)
             {   
                 // std::cout << "implying...\n";
-                // std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
                 unit_clauses.pop();
                 assign(variable, 1);
                 implied_e_variables[level].push(varID);
@@ -501,7 +506,7 @@ void ThQBF::imply ()
             else
             {   
                 // std::cout << "implying...\n";
-                // std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
                 unit_clauses.pop();
                 assign(variable, 0);
                 implied_e_variables[level].push(varID);
@@ -596,7 +601,7 @@ void ThQBF::UniversalReduction (int clauseID)
     }
 }
 
-// TODO: PureLiteral () -> add pure literals 'trail'
+
 void ThQBF::PureLiteral ()
 {
     if (solver_status == SolverStatus::PRESEARCH)
@@ -609,7 +614,7 @@ void ThQBF::PureLiteral ()
     }
 }
 
-// TODO: deduce ()
+// TODO: (deduce) write body
 void ThQBF::deduce ()
 {   
     if (solver_status == SolverStatus::PRESEARCH)
@@ -1071,6 +1076,30 @@ void ThQBF::print_Clauses ()
         std::cout << " a_num.: "     << Clauses[i].a_num << " ";
         std::cout << " status: "     << qbf::ClauseStatus::to_string(Clauses[i].status) << '\n';
     }
+    std::cout << '\n';
+}
+
+
+void ThQBF::print_Cubes ()
+{
+    std::cout << "Remaining/currently active cubes: " << remainingCubes << '\n';
+    for (int i = 0; i < Cubes.size(); i++)
+    {   
+        if (Cubes[i].status != qbf::CubeStatus::ACTIVE)
+        {   
+            continue;
+        }
+        std::cout << i << ": ";
+        for (int j = 0; j < Cubes[i].size; j++)
+        {   
+            if (Cubes[i].state[j] == qbf::LiteralStatus::AVAILABLE)
+            {
+                std::cout << Cubes[i].literals[j] << " ";
+            }
+        }
+        std::cout << '\n';
+    }
+    std::cout << '\n';
 }
 
 
@@ -1144,46 +1173,91 @@ void ThQBF::solve ()
 
 void ThQBF::test ()
 {   
+
+    /* add some dummy cubes to test assignments and appearances updates */
+    // Cube c1, c2, c3;
+    // int cubeID = 0;
+
+    // /* ================= C1 ================= */
+    // c1.literals = {-1, 2, 7, 10};
+    // c1.state.resize(c1.literals.size(), qbf::LiteralStatus::AVAILABLE);
+    // // fill(c1.state.begin(), c1.state.end(), qbf::LiteralStatus::AVAILABLE);
+    
+    // c1.size     = c1.literals.size();
+    // c1.status   = qbf::CubeStatus::ACTIVE;
+    // c1.level    = UNDEFINED;
+    // c1.cubeID   = cubeID;
+
+    // c1.hash                  = c1.compute_hash(); CubeHashes.insert(c1.hash);
+    // c1.unit_literal_position = UNDEFINED;
+
+    // /* ================= C2 ================= */
+    // c2.literals = {4, 5, 9};
+    // c2.state.resize(c2.literals.size(), qbf::LiteralStatus::AVAILABLE);
+    // // fill(c2.state.begin(), c2.state.end(), qbf::LiteralStatus::AVAILABLE);
+    
+    // c2.size     = c2.literals.size();
+    // c2.status   = qbf::CubeStatus::ACTIVE;
+    // c2.level    = UNDEFINED;
+    // c2.cubeID   = cubeID;
+
+    // c2.hash                  = c2.compute_hash(); CubeHashes.insert(c2.hash);
+    // c2.unit_literal_position = UNDEFINED;
+
+    // /* ================= C3 ================= */
+    // c3.literals = {2, 7, 10};
+    // c3.state.resize(c3.literals.size(), qbf::LiteralStatus::AVAILABLE);
+    // // fill(c3.state.begin(), c3.state.end(), qbf::LiteralStatus::AVAILABLE);
+    
+    // c3.size     = c3.literals.size();
+    // c3.status   = qbf::CubeStatus::ACTIVE;
+    // c3.level    = UNDEFINED;
+    // c3.cubeID   = cubeID;
+
+    // c3.hash                  = c3.compute_hash(); CubeHashes.insert(c3.hash);
+    // c3.unit_literal_position = UNDEFINED;
+
+    // Cubes.push_back(c1); numCubes++; remainingCubes++;
+    // Cubes.push_back(c2); numCubes++; remainingCubes++;
+    // Cubes.push_back(c3); numCubes++; remainingCubes++;
+    
+
+
     print_Blocks();
     print_Prefix();
     print_Clauses();
+    print_Cubes();
     print_Variables();
 
 
-    /*  -------------------- test-SAT -------------------- */
+    // /*  -------------------- test-SAT -------------------- */
     // level = PRESEARCH;
-    solver_status = SolverStatus::PRESEARCH;
-    UnitPropagation();
-    if (solver_status == SolverStatus::UNSAT)
-    {
-        std::cout << "UNSAT at root...\n";
-        return;
-    }
+    // solver_status = SolverStatus::PRESEARCH;
+    // UnitPropagation();
+    // if (solver_status == SolverStatus::UNSAT)
+    // {
+    //     std::cout << "UNSAT at root...\n";
+    //     return;
+    // }
 
-    /* assign variables */
-    level = 1;
-    solver_status = SolverStatus::SEARCH;
-    assign(4, 0);
-    imply();
-    print_Clauses();
-    std::cout << "prefix\n";
-    print_Prefix();
+    // /* assign variables */
+    // solver_status = SolverStatus::SEARCH;
+    // level = 1;
+    // assign(4, 0);
+    // Path[4] = 0;
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
 
-    level++;
-    solver_status = SolverStatus::SEARCH;
-    assign(5, 1);
-    imply();
-    print_Clauses();
-    std::cout << "prefix\n";
-    print_Prefix();
+    // level++;
+    // assign(5, 1);
+    // Path[5] = 1;
+    // print_Clauses();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // imply();
 
-    level++;
-    solver_status = SolverStatus::SEARCH;
-    assign(7, 0);
-    imply();
-    print_Clauses();
-    std::cout << "prefix\n";
-    print_Prefix();
+    // print_hashmap(Path);
 
 
     // /* -------------------- test-UNSAT -------------------- */
@@ -1251,18 +1325,6 @@ void ThQBF::test ()
     // // print_hashmap(Variables[5].positiveOccurrences);
     // // print_hashmap(Variables[5].negativeOccurrences);
 
-    // // level++;
-    // // assign(4, 0);
-    // // print_Clauses();
-    // // std::cout << "prefix\n";
-    // // print_Prefix();
-
-    // // level++;
-    // // assign(5, 1);
-    // // print_Clauses();
-    // // std::cout << "prefix\n";
-    // // print_Prefix();
-    // // imply();
 
 
 
