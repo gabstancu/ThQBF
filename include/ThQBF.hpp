@@ -51,6 +51,7 @@ class ThQBF
         int numOfExistentialVars;
         int numOfUniversalVars;
         int last_clause_idx;
+        int cubeID;
 
 
         /* ================================ Search data ================================ */
@@ -92,10 +93,10 @@ class ThQBF
         void assign                     (int variable,   int value); // TODO: (assign) include assignment propagation to cubes
         
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
-        void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
+        void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube); // TODO: (remove_literal_from_cube)
         
         void remove_clause              (int clauseID, int referenceVarID);
-        void remove_cube                (int cubeID,   int referenceVarID);
+        void remove_cube                (int cubeID,   int referenceVarID); // TODO: (remove_cube)
         
         int  clause_is_unit             (int clauseID, int referenceVariable);
         int  cube_is_unit               (int cubeID); // TODO: (cube_is_unit) write body
@@ -123,24 +124,23 @@ class ThQBF
                                                              const std::unordered_map<int, int>& c2, 
                                                              int pivot_variable);
         bool                         stop_criteria_met      (const std::unordered_map<int, int>& resolvent);
-        void                         add_clause_to_db       (std::unordered_map<int, int> learned_clause, int asserting_literal);
+        void                         add_clause_to_db       (const std::unordered_map<int, int>& learned_clause, int asserting_literal);
         std::pair<int, int>          analyse_conflict       ();
-
 
 
         /* ================================ Cube Learning ================================ */
         std::vector<Cube>               Cubes;
         std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
         
-        std::unordered_map<int, int> find_SAT_cube              ();
-        std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path);
-        bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& cube);
-        std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube);
+        std::unordered_map<int, int> find_SAT_cube              (); // TODO: (find_SAT_cube)
+        std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path); // TODO: (construct_SAT_induced_cube)
+        bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& cube); // TODO: (cube_stop_criteria_met)
+        std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube); // TODO: (cube_asserting_level)
         
-        std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube);
-        int                          choose_a_literal           (const std::unordered_map<int, int>& sc);
-        void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube);
-        std::pair<int, int>          analyse_SAT                ();
+        std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube); // TODO: (consensus_gen_cube)
+        int                          choose_a_literal           (const std::unordered_map<int, int>& sc); // TODO: (choose_a_literal)
+        void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal); // TODO: (add_cube_to_db)
+        std::pair<int, int>          analyse_SAT                (); // TODO: (analyse_SAT)
 
 
         /* ================================ Solver utils ================================ */

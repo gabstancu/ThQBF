@@ -51,13 +51,20 @@ struct Cube
 
     int unit_literal_position = UNDEFINED;
 
-    Cube(int cubeID, std::unordered_map<int, int> cube, int level): cubeID(cubeID), level(level)
-    {
-        for (const auto& [literal, state] : cube)
+    Cube (int cubeID, std::unordered_map<int, int> cube, int level): cubeID(cubeID), level(level)
+    {   
+        std::map<int, int> ordered_cube(cube.begin(), cube.end());
+        for (const auto& [literal, state] : ordered_cube)
         {
             this->literals.push_back(literal);
+            this->state.push_back(state);
         }
-        
+
+        this->size                  = this->literals.size();
+        this->status                = qbf::CubeStatus::ACTIVE; 
+        this->hash                  = this->compute_hash(); 
+        this->unit_literal_position = UNDEFINED;
+        // std::cout << "cubeID: " << this->cubeID << '\n';
     }
 
     std::size_t compute_hash() const
@@ -75,12 +82,6 @@ struct Cube
     }
 
 
-    // bool is_empty ()
-    // {
-    //     return size == 0;
-
-    // }
-
     bool is_active ()
     {
         return status == qbf::CubeStatus::ACTIVE;
@@ -92,6 +93,11 @@ struct Cube
         for (int i = 0; i < size; ++i) 
             map.insert({literals[i], state[i]});
         return map;
+    }
+
+    void print ()
+    {
+        
     }
 };
 

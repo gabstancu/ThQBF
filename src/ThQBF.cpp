@@ -22,6 +22,7 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(Sol
     this->P                    = parser.P;
 
     this->last_clause_idx      = parser.numClauses;
+    this->cubeID               = 0;
     
     // construct prefix
     for (QuantifierBlock b : Blocks)
@@ -111,6 +112,10 @@ void ThQBF::assign (int variable, int value)
         } 
 
         // TODO: include propagation in cubes
+        if (1) /* if cube learning is enabled */
+        {
+
+        }
     }
     else
     {
@@ -148,6 +153,10 @@ void ThQBF::assign (int variable, int value)
         }
 
         // TODO: include propagation in cubes
+        if (1) /* if cube learning is enabled */
+        {
+
+        }
     }
 
     for (auto it=varsAffected.begin(); it!=varsAffected.end();)
@@ -298,6 +307,12 @@ void ThQBF::restore_level (int search_level)
             restore_variable(*it + 1);
         }
         ++it;
+    }
+
+    // TODO: restore cubes that were affected at search_level
+    if (1) /* if cube learning is enabled */
+    {
+
     }
 
     solver_status = SolverStatus::SEARCH;
@@ -624,7 +639,7 @@ void ThQBF::deduce ()
     }
 }
 
-
+/* ================================ Conflict-driven Learning ================================ */
 std::pair<int, int> ThQBF::analyse_conflict ()
 {   
     int back_dl;
@@ -660,7 +675,7 @@ std::pair<int, int> ThQBF::analyse_conflict ()
 }
 
 
-void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int asserting_literal)
+void ThQBF::add_clause_to_db (const std::unordered_map<int, int>& learned_clause, int asserting_literal)
 {
     Clause           new_clause;
     std::vector<int> literals;
@@ -702,7 +717,7 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
             if (literal > 0)
             {   
                 // std::cout << "[POSITIVE] variable " << varID+1 << " clause " << last_clause_idx << " index " << index << '\n';
-                Variables[varID].addOccurence(last_clause_idx, index, 1);
+                Variables[varID].addOccurence(last_clause_idx, index, 1, "CLAUSE");
                 if (ct != qbf::LiteralStatus::AVAILABLE)
                 {   
                     // std::cout << literal << " not available\n";
@@ -712,7 +727,7 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
             else
             {   
                 // std::cout << "[NEGATIVE] variable " << varID+1 << " clause " << last_clause_idx << " index " << index << '\n';
-                Variables[varID].addOccurence(last_clause_idx, index, 0);
+                Variables[varID].addOccurence(last_clause_idx, index, 0, "CLAUSE");
                 if (ct != qbf::LiteralStatus::AVAILABLE)
                 {   
                     // std::cout << literal << " not available\n";
@@ -746,7 +761,6 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
 
         Clauses.push_back(new_clause);
         Clauses_trail.at(level).insert(new_clause.clauseID);
-
     }
 }
 
@@ -1054,6 +1068,80 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
     return p;
 }
 
+/* ================================ Satisfiability-directed Learning ================================  */
+std::pair<int, int> ThQBF::analyse_SAT ()
+{
+    int back_dl;
+    std::pair<int, int> p;
+
+
+
+
+    return p;
+}
+
+
+void ThQBF::add_cube_to_db (const std::unordered_map<int, int>& learned_cube, int asserting_literal)
+{
+    Cube new_cube(cubeID, learned_cube, UNDEFINED);
+
+    if (CubeHashes.find(new_cube.hash) == CubeHashes.end())
+    {
+        std::cout << "adding cube to db...\n";
+
+        for (int i = 0; i < new_cube.literals.size(); i++)
+        {
+            int literal = new_cube.literals[i];
+            int varID   = std::abs(literal) - 1;
+
+            /* insert cube appearance */
+            if (literal > 0)
+            {
+                Variables[varID].addOccurence(cubeID, i, 1, "CUBE");
+                if (new_cube.state[i] != qbf::LiteralStatus::AVAILABLE)
+                {
+                    Variables[varID].numPosAppearCubes--;
+                }
+            }
+            else
+            {
+                Variables[varID].addOccurence(cubeID, i, 0, "CUBE");
+                if (new_cube.state[i] != qbf::LiteralStatus::AVAILABLE)
+                {
+                    Variables[varID].numNegAppearCubes--;
+                }
+            }
+
+            /* update existential and universal literals numbers */
+            if (new_cube.state[i] == qbf::LiteralStatus::AVAILABLE)
+            {
+                if (Variables[varID].is_existential())
+                {
+                    new_cube.e_num++;
+                }
+                else
+                {
+                    new_cube.a_num++;
+                }
+            }
+
+            /* unit (universal) literal position */
+            if (literal == asserting_literal)
+            {
+                new_cube.unit_literal_position = i;
+            }
+        }
+
+        Cubes.push_back(new_cube); 
+        CubeHashes.insert(new_cube.hash);
+        Cubes_trail[level].insert(new_cube.cubeID);
+        numCubes++; 
+        remainingCubes++; 
+        cubeID++;
+    }
+}
+
+
 
 void ThQBF::print_Clauses ()
 {   
@@ -1113,6 +1201,7 @@ void ThQBF::print_Variables ()
         }
         std::cout << "variable: " << i + 1 << " pos.: " << Variables[i].numPosAppear << " neg.: " << Variables[i].numNegAppear << '\n';
     }
+    std::cout << '\n';
 }
 
 
@@ -1126,6 +1215,7 @@ void ThQBF::print_Blocks ()
         // }
         Blocks[i].print();
     }
+    std::cout << '\n';
 }
 
 
@@ -1173,55 +1263,32 @@ void ThQBF::solve ()
 
 void ThQBF::test ()
 {   
-
     /* add some dummy cubes to test assignments and appearances updates */
-    // Cube c1, c2, c3;
-    // int cubeID = 0;
+    std::unordered_map<int, int> cube_1 = { {-1, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 2, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 4, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-5, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 9, qbf::LiteralStatus::AVAILABLE} };
+    // Cube c1(cubeID++, cube_1, SolverStatus::PRESEARCH);
 
-    // /* ================= C1 ================= */
-    // c1.literals = {-1, 2, 7, 10};
-    // c1.state.resize(c1.literals.size(), qbf::LiteralStatus::AVAILABLE);
-    // // fill(c1.state.begin(), c1.state.end(), qbf::LiteralStatus::AVAILABLE);
-    
-    // c1.size     = c1.literals.size();
-    // c1.status   = qbf::CubeStatus::ACTIVE;
-    // c1.level    = UNDEFINED;
-    // c1.cubeID   = cubeID;
+    std::unordered_map<int, int> cube_2 = { { 1, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-5, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 7, qbf::LiteralStatus::AVAILABLE} };
+    // Cube c2(cubeID++, cube_2, SolverStatus::PRESEARCH);
 
-    // c1.hash                  = c1.compute_hash(); CubeHashes.insert(c1.hash);
-    // c1.unit_literal_position = UNDEFINED;
+    std::unordered_map<int, int> cube_3 = { { 3, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-4, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 9, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-11,qbf::LiteralStatus::AVAILABLE} };
+    // Cube c3(cubeID++, cube_3, SolverStatus::PRESEARCH);
 
-    // /* ================= C2 ================= */
-    // c2.literals = {4, 5, 9};
-    // c2.state.resize(c2.literals.size(), qbf::LiteralStatus::AVAILABLE);
-    // // fill(c2.state.begin(), c2.state.end(), qbf::LiteralStatus::AVAILABLE);
-    
-    // c2.size     = c2.literals.size();
-    // c2.status   = qbf::CubeStatus::ACTIVE;
-    // c2.level    = UNDEFINED;
-    // c2.cubeID   = cubeID;
+    // Cubes.push_back(c1); CubeHashes.insert(c1.hash); numCubes++; remainingCubes++;
+    // Cubes.push_back(c2); CubeHashes.insert(c2.hash); numCubes++; remainingCubes++;
+    // Cubes.push_back(c3); CubeHashes.insert(c3.hash); numCubes++; remainingCubes++;
 
-    // c2.hash                  = c2.compute_hash(); CubeHashes.insert(c2.hash);
-    // c2.unit_literal_position = UNDEFINED;
-
-    // /* ================= C3 ================= */
-    // c3.literals = {2, 7, 10};
-    // c3.state.resize(c3.literals.size(), qbf::LiteralStatus::AVAILABLE);
-    // // fill(c3.state.begin(), c3.state.end(), qbf::LiteralStatus::AVAILABLE);
-    
-    // c3.size     = c3.literals.size();
-    // c3.status   = qbf::CubeStatus::ACTIVE;
-    // c3.level    = UNDEFINED;
-    // c3.cubeID   = cubeID;
-
-    // c3.hash                  = c3.compute_hash(); CubeHashes.insert(c3.hash);
-    // c3.unit_literal_position = UNDEFINED;
-
-    // Cubes.push_back(c1); numCubes++; remainingCubes++;
-    // Cubes.push_back(c2); numCubes++; remainingCubes++;
-    // Cubes.push_back(c3); numCubes++; remainingCubes++;
-    
-
+    add_cube_to_db(cube_1, UNDEFINED);
+    add_cube_to_db(cube_2, UNDEFINED);
+    add_cube_to_db(cube_3, UNDEFINED);
 
     print_Blocks();
     print_Prefix();
