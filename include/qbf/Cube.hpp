@@ -90,11 +90,14 @@ struct Cube
 
     void print ()
     {
-        
+        printVector(literals, false);
+        std::cout << " ";
+        std::cout << "  level: " << level << "  ";
+        std::cout << "availability: " << qbf::CubeStatus::to_string(status) << "  ";
+        std::cout << "candidate unit literal position: " << unit_literal_position << "   ";
+        std::cout << "\n";
     }
 };
-
-
 
 
 

@@ -82,8 +82,10 @@ class ThQBF
 
 
         /* ================================ Assignments ================================ */
-        std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
-        std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
+        std::vector<int>              Path   = {};
+        std::vector<std::vector<int>> TPaths = {};
+        // std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
+        // std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
 
         std::map<int, int>                        deduceAssignments     = {};  /* deduce assignments */
         std::map<int, int>                        preprocessAssignments = {};  /* forced assignments during preprocessing */
@@ -99,7 +101,7 @@ class ThQBF
         void remove_cube                (int cubeID,   int referenceVarID);
         
         int  clause_is_unit             (int clauseID, int referenceVariable);
-        int  cube_is_unit               (int cubeID,   int referenceVariable); // TODO: (cube_is_unit) write body
+        int  cube_is_unit               (int cubeID,   int referenceVariable);
 
         void restore_level              (int search_level);
         void remove_variable            (int variable);
