@@ -18,12 +18,12 @@ namespace SolverStatus
     {
         switch (s) 
         {
-            case SolverStatus::SAT:               return "SAT";
-            case SolverStatus::UNSAT:             return "UNSAT";
-            case SolverStatus::PRESEARCH:         return "PRESEARCH";
-            case SolverStatus::SEARCH:            return "SEARCH";
-            case SolverStatus::ROOT:              return "ROOT";
-            case SolverStatus::UNDETERMINED:      return "UNDETERMINED";
+            case SolverStatus::SAT:          return "SAT";
+            case SolverStatus::UNSAT:        return "UNSAT";
+            case SolverStatus::PRESEARCH:    return "PRESEARCH";
+            case SolverStatus::SEARCH:       return "SEARCH";
+            case SolverStatus::ROOT:         return "ROOT";
+            case SolverStatus::UNDETERMINED: return "UNDETERMINED";
         }
         return "INVALID.";
     }
@@ -90,13 +90,13 @@ class ThQBF
 
 
         /* ================================ General ================================ */
-        void assign                     (int variable,   int value); // TODO: (assign) include assignment propagation to cubes
+        void assign                     (int variable,   int value); 
         
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
-        void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube); // TODO: (remove_literal_from_cube)
+        void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
         
         void remove_clause              (int clauseID, int referenceVarID);
-        void remove_cube                (int cubeID,   int referenceVarID); // TODO: (remove_cube)
+        void remove_cube                (int cubeID,   int referenceVarID);
         
         int  clause_is_unit             (int clauseID, int referenceVariable);
         int  cube_is_unit               (int cubeID,   int referenceVariable); // TODO: (cube_is_unit) write body

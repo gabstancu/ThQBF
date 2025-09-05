@@ -111,7 +111,7 @@ void ThQBF::assign (int variable, int value)
             }
         } 
 
-        // TODO: include propagation in cubes
+        
         if (1 && level != SolverStatus::PRESEARCH) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
@@ -174,7 +174,6 @@ void ThQBF::assign (int variable, int value)
             }
         }
 
-        // TODO: include propagation in cubes
         if (1 && level != SolverStatus::PRESEARCH) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
@@ -379,7 +378,6 @@ void ThQBF::restore_level (int search_level)
         for (int i = 0; i < Clauses[clauseID].size; i++)
         {   
             // std::cout << "looking at literal " << Clauses[clauseID].literals[i] << " state: " << Clauses[clauseID].state[i] << "\n";
-            
             if (Clauses[clauseID].state[i] == search_level)
             {   
                 int literal = Clauses[clauseID].literals[i];
@@ -421,10 +419,57 @@ void ThQBF::restore_level (int search_level)
         ++it;
     }
 
-    // TODO: restore cubes that were affected at search_level
+
     if (1) /* if cube learning is enabled */
     {
+        for (const auto& cubeID : Cubes_trail.at(search_level))
+        {
+            Cubes[cubeID].level = UNDEFINED;
 
+            if (Cubes[cubeID].a_num == 1)
+            {
+                Cubes[cubeID].unit_literal_position = UNDEFINED;
+            }
+
+            if (Cubes[cubeID].status == qbf::CubeStatus::INACTIVE)
+            {
+                remainingCubes++;
+            }
+
+            Cubes[cubeID].status = qbf::CubeStatus::ACTIVE;
+
+            // restore literals in cube
+            for (int i = 0; i < Cubes[cubeID].size; i++)
+            {
+                if (Cubes[cubeID].state[i] == search_level)
+                {
+                    int literal = Cubes[cubeID].literals[i];
+                    int var     = std::abs(literal) - 1;
+
+                    Cubes[cubeID].state[i] = qbf::LiteralStatus::AVAILABLE;
+
+                    if (literal > 0)
+                    {
+                        Variables[var].numPosAppearCubes++;
+                    }
+                    else
+                    {
+                        Variables[var].numNegAppearCubes++;
+                    }
+
+                    if (Variables[var].is_existential())
+                    {
+                        Cubes[cubeID].e_num++;
+                    }
+                    else
+                    {
+                        Cubes[cubeID].a_num++;
+                    }
+                }
+            }
+        }
+
+        Cubes_trail.erase(search_level);
     }
 
     solver_status = SolverStatus::SEARCH;
@@ -432,6 +477,7 @@ void ThQBF::restore_level (int search_level)
 
     assignment_trail.erase(search_level);
     implied_e_variables.erase(search_level);
+    implied_a_variables.erase(search_level);
     decision_variable_at.erase(search_level);
 }
 
@@ -561,7 +607,55 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
 
 void ThQBF::remove_cube (int cubeID, int referenceVarID)
 {
+    if (Cubes[cubeID].status != qbf::CubeStatus::ACTIVE)
+    {
+        return;
+    }
 
+    remainingCubes--;
+
+    Cubes[cubeID].status = qbf::CubeStatus::INACTIVE;
+    Cubes[cubeID].level  = level;
+
+    Cubes_trail[level].insert(cubeID);
+
+    int literal, varID;
+    for (int i = 0; i < Cubes[cubeID].size; i++)
+    {
+        if (Cubes[cubeID].state[i] != qbf::LiteralStatus::AVAILABLE)
+        {
+            continue;
+        }
+
+        literal = Cubes[cubeID].literals[i];
+        varID   = std::abs(literal) - 1;
+
+        if (literal > 0)
+        {
+            Variables[varID].numPosAppearCubes--;
+        }
+        else
+        {
+            Variables[varID].numNegAppearCubes--;
+        }
+
+        if (Variables[varID].is_existential())
+        {
+            Cubes[cubeID].e_num--;
+        }
+        else
+        {
+            Cubes[cubeID].a_num--;
+        }
+
+        // varsAffected.insert(varID);
+        Cubes[cubeID].state[i] = level;
+    }
+
+    if (!remainingCubes)
+    {
+        std::cout << "No cubes left in cubes db\n";
+    }
 }
 
 
@@ -658,7 +752,7 @@ void ThQBF::imply ()
         }
     }
 
-    if (1) /* if Cube Learning flag is on imply unit cubes */
+    if (1 && level != SolverStatus::PRESEARCH) /* if Cube Learning flag is on imply unit cubes */
     {
 
     }
@@ -673,7 +767,7 @@ void ThQBF::UnitPropagation ()
 
     for (int i = 0; i < S.size(); i++)
     {   
-        std::cout << "Checking " << S[i] << '\n';
+        // std::cout << "Checking " << S[i] << '\n';
         if (Variables[S[i] - 1].status != qbf::VariableStatus::ACTIVE)
         {
             continue;
@@ -682,7 +776,7 @@ void ThQBF::UnitPropagation ()
         // check positive appearances
         for (const auto& [clauseID, position] : Variables[S[i] - 1].positiveOccurrences)
         {   
-            std::cout << "checking clause " << clauseID << "\n";
+            // std::cout << "checking clause " << clauseID << "\n";
             if (Clauses[clauseID].e_num > 1 && Clauses[clauseID].a_num == 0)
             {
                 continue;
