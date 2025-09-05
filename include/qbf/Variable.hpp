@@ -121,12 +121,12 @@ struct Variable
         {
             if (polarity)
             {
-                positiveOccurrencesCubes.insert({targetID, position});
+                positiveOccurrences.insert({targetID, position});
                 numPosAppear++;
             }
             else
             {
-                negativeOccurrencesCubes.insert({targetID, position});
+                negativeOccurrences.insert({targetID, position});
                 numNegAppear++;
             }
         }

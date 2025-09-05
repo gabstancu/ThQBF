@@ -26,10 +26,6 @@ namespace qbf::CubeStatus
     }
 }
 
-/*
-    Satisfying cube : every universal literal in S is 1 and every existential in S is not 0
-    Unit cube test  :
-*/
 struct Cube
 {
     int size;
@@ -39,8 +35,7 @@ struct Cube
 
     std::vector<int>     literals;
     std::vector<int>     state;
-
-    std::vector<Literal> lits;
+    // std::vector<Literal> lits;
 
     // bool learned = false;
 
@@ -75,12 +70,10 @@ struct Cube
         return h;
     }
 
-
     bool is_literal_available (int position)
     {
         return literals[position] == qbf::LiteralStatus::AVAILABLE;
     }
-
 
     bool is_active ()
     {

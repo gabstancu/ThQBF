@@ -99,7 +99,7 @@ class ThQBF
         void remove_cube                (int cubeID,   int referenceVarID); // TODO: (remove_cube)
         
         int  clause_is_unit             (int clauseID, int referenceVariable);
-        int  cube_is_unit               (int cubeID); // TODO: (cube_is_unit) write body
+        int  cube_is_unit               (int cubeID,   int referenceVariable); // TODO: (cube_is_unit) write body
 
         void restore_level              (int search_level);
         void remove_variable            (int variable);
@@ -139,7 +139,7 @@ class ThQBF
         
         std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube); // TODO: (consensus_gen_cube)
         int                          choose_a_literal           (const std::unordered_map<int, int>& sc); // TODO: (choose_a_literal)
-        void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal); // TODO: (add_cube_to_db)
+        void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal);
         std::pair<int, int>          analyse_SAT                (); // TODO: (analyse_SAT)
 
 
