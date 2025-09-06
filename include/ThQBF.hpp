@@ -82,10 +82,10 @@ class ThQBF
 
 
         /* ================================ Assignments ================================ */
-        std::vector<int>              Path   = {};
-        std::vector<std::vector<int>> TPaths = {};
-        // std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
-        // std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
+        // std::vector<int>              Path   = {};
+        // std::vector<std::vector<int>> TPaths = {};
+        std::unordered_map<int, int>              Path                  = {};  /* branch assignments */
+        std::vector<std::unordered_map<int, int>> TPaths                = {};  /* T paths */
 
         std::map<int, int>                        deduceAssignments     = {};  /* deduce assignments */
         std::map<int, int>                        preprocessAssignments = {};  /* forced assignments during preprocessing */
@@ -113,14 +113,14 @@ class ThQBF
         void UniversalReduction (int clauseID);
         void PureLiteral        ();
         void deduce             ();
-        void imply              (); // TODO: (imply) both unit clauses and cubes
+        void imply              ();
 
 
         /* ================================ Clause learning ================================ */
         int              conflict_clause;
         std::vector<int> conficting_clauses = {};
 
-        int                          choose_e_literal       (std::unordered_map<int, int> cc);
+        int                          choose_e_literal       (const std::unordered_map<int, int>& cc);
         std::pair<int, int>          clause_asserting_level (const std::unordered_map<int, int>& learned_clause);
         std::unordered_map<int, int> resolve                (const std::unordered_map<int, int>& c1, 
                                                              const std::unordered_map<int, int>& c2, 
@@ -136,7 +136,7 @@ class ThQBF
         
         std::unordered_map<int, int> find_SAT_cube              (); // TODO: (find_SAT_cube)
         std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path); // TODO: (construct_SAT_induced_cube)
-        bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& cube); // TODO: (cube_stop_criteria_met)
+        bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& resolvent); // TODO: (cube_stop_criteria_met)
         std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube); // TODO: (cube_asserting_level)
         
         std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube); // TODO: (consensus_gen_cube)
