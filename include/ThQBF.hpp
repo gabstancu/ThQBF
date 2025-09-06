@@ -140,7 +140,7 @@ class ThQBF
         std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube); // TODO: (cube_asserting_level)
         
         std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube); // TODO: (consensus_gen_cube)
-        int                          choose_a_literal           (const std::unordered_map<int, int>& sc); // TODO: (choose_a_literal)
+        int                          choose_a_literal           (const std::unordered_map<int, int>& sc); 
         void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal);
         std::pair<int, int>          analyse_SAT                (); // TODO: (analyse_SAT)
 

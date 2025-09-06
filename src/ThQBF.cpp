@@ -1310,7 +1310,7 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
     std::pair<int, int> p;
 
     /* find max_level */
-    for (const auto& [literal, ct] : learned_clause)
+    for (const auto& [literal, _] : learned_clause)
     {
         int variable = std::abs(literal);
         int level    = Variables[variable-1].level; 
@@ -1331,12 +1331,12 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
     assert(max_level >= 0 && "No existentials at max_level (Logical error - check stop criteria).\n");
     
     /* find second highest level: asserting level */
-    for (const auto& [literal, ct] : learned_clause)
+    for (const auto& [literal, _] : learned_clause)
     {
-        int variable = std::abs(literal);
-        int level    = Variables[variable-1].level; 
+        int varID    = std::abs(literal);
+        int level    = Variables[varID].level; 
 
-        if (Variables[variable-1].is_universal())
+        if (Variables[varID].is_universal())
         {
             continue;
         }
@@ -1539,6 +1539,7 @@ int ThQBF::choose_a_literal (const std::unordered_map<int, int>& sc)
     return most_recently_implied;
 }
 
+
 std::unordered_map<int, int> ThQBF::find_SAT_cube ()
 {
     std::unordered_map<int, int> sat_cube = {};
@@ -1546,7 +1547,7 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
     if (Cubes.empty())
     {   
         std::cout << "First SAT path. No cubes in the db: returning a null cube.\n";
-        return sat_cube;
+        return Path;
     }
     else
     {
@@ -1554,6 +1555,64 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
     }
 
     return sat_cube;
+}
+
+
+std::pair<int, int> ThQBF::cube_asserting_level (const std::unordered_map<int, int>& learned_cube)
+{
+     /* 
+        asserting literal      -> universal literal at the maximum decision level
+        cube asserting level   -> second highest level among the decision levels of the rest of the universals
+    */
+    int asserting_literal      =  UNDEFINED;
+    int cube_asserting_level   =  0;
+    int max_level              = -1;
+
+    std::pair<int, int> p;
+
+    /* find max_level */
+    for (const auto& [literal, _] : learned_cube)
+    {
+        int varID    = std::abs(literal);
+        int level    = Variables[varID].level; 
+
+        if (Variables[varID].is_existential())
+        {
+            continue;
+        }
+
+        /* find max level */
+        if (level > max_level)
+        {   
+            asserting_literal = literal;
+            max_level         = level;
+        }
+    }
+
+    assert (max_level >= 0 && "No universals at max_level (Logical error - check stop criteria).\n");
+
+    /* find second highest level: asserting level */
+    for (const auto& [literal, _] : learned_cube)
+    {
+        int varID    = std::abs(literal);
+        int level    = Variables[varID].level; 
+
+        if (Variables[varID].is_existential())
+        {
+            continue;
+        }
+
+        if (literal == asserting_literal)
+        {
+            continue;
+        }
+
+        cube_asserting_level = std::max(cube_asserting_level, level);
+    }
+
+    p = std::make_pair(cube_asserting_level, asserting_literal);
+    // printf("cube asserting level: %d\nasserting literal: %d\n", cube_asserting_level, asserting_literal);
+    return p;
 }
 
 
@@ -1673,7 +1732,6 @@ bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolven
             }
         }
     }
-    std::cout << "nfidnfidubfusbfisu\n";
 
     return true;
 }
@@ -1881,8 +1939,10 @@ void ThQBF::test ()
     
     std::unordered_map<int, int> sat_cube = find_SAT_cube();
 
-    bool criteria_met = cube_stop_criteria_met(Path);
+    bool criteria_met = cube_stop_criteria_met(sat_cube);
     std::cout << "criteria met: " << criteria_met << '\n';
+
+    std::pair<int, int> p = cube_asserting_level(sat_cube);
 
 
 
