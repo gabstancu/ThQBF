@@ -58,6 +58,7 @@ struct Variable
 
     int  assignment_trail_index   = UNDEFINED;
     int  implication_trail_index  = UNDEFINED;
+    
     int  antecedent_clause        = UNDEFINED;
     int  pos_in_antecedent_clause = UNDEFINED;
     
@@ -68,10 +69,17 @@ struct Variable
     int  blockID;
     int  positionInBlock;
 
+    /* appearances in clauses */
     int  numNegAppear = 0, numPosAppear = 0;
-    // { clause : position_in_clause }
+    // { clauseID : position_in_clause }
     std::unordered_map<int, int> negativeOccurrences;
     std::unordered_map<int, int> positiveOccurrences;
+
+    /* appearances in cubes */
+    // { cubeID : positon_in_cube }
+    int numNegAppearCubes = 0, numPosAppearCubes = 0;
+    std::unordered_map<int, int> negativeOccurrencesCubes;
+    std::unordered_map<int, int> positiveOccurrencesCubes;
 
 
     bool is_existential ()
@@ -100,24 +108,55 @@ struct Variable
         return positiveOccurrences.count(clauseID) || negativeOccurrences.count(clauseID);
     }
 
-    void addOccurence (int clauseID, int position, bool polarity)
+
+    bool appears_in_cube (int cubeID)
     {
-        if (polarity)
-        {
-            positiveOccurrences.insert({clauseID, position});
-            numPosAppear++;
-        }
-        else
-        {
-            negativeOccurrences.insert({clauseID, position});
-            numNegAppear++;
-        }
+        return positiveOccurrencesCubes.count(cubeID) || negativeOccurrencesCubes.count(cubeID);
     }
 
+
+    void addOccurence (int targetID, int position, bool polarity, const std::string target)
+    {   
+        if (target == "CLAUSE")
+        {
+            if (polarity)
+            {
+                positiveOccurrences.insert({targetID, position});
+                numPosAppear++;
+            }
+            else
+            {
+                negativeOccurrences.insert({targetID, position});
+                numNegAppear++;
+            }
+        }
+        if (target == "CUBE")
+        {
+            if (polarity)
+            {
+                positiveOccurrencesCubes.insert({targetID, position});
+                numPosAppearCubes++;
+            }
+            else
+            {
+                negativeOccurrencesCubes.insert({targetID, position});
+                numNegAppearCubes++;
+            }
+        }  
+    }
+
+    
     int get_position_in_clause (int clauseID, bool polarity)
     {
         if (polarity) return positiveOccurrences[clauseID];
         return negativeOccurrences[clauseID];
+    }
+
+
+    int get_position_in_cube (int cubeID, bool polarity)
+    {
+        if (polarity) return positiveOccurrencesCubes[cubeID];
+        return negativeOccurrencesCubes[cubeID];
     }
 
     void print ()

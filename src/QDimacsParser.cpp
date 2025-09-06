@@ -140,13 +140,13 @@ void QDimacsParser::parse_clause_line (const std::string line, int clauseID)
         // std::cout << "variable " << var << " literal " << literal << "\n";
         if (literal > 0)
         {
-            variables[var].addOccurence(clauseID, index, 1);
+            variables[var].addOccurence(clauseID, index, 1, "CLAUSE");
             lit.value = literal;
             // variables[var].numPosAppear++;
         }
         else
         {
-            variables[var].addOccurence(clauseID, index, 0);
+            variables[var].addOccurence(clauseID, index, 0, "CLAUSE");
             lit.value = literal;
             // variables[var].numNegAppear++;
         }

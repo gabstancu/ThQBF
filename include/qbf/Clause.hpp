@@ -65,6 +65,11 @@ struct Clause
         // return lits[position].state == qbf::LiteralStatus::AVAILABLE;
     }
 
+    bool is_active ()
+    {
+        return status == qbf::ClauseStatus::ACTIVE;
+    }
+
     std::unordered_map<int, int> map_representation ()
     {
         std::unordered_map<int, int> map;

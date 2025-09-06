@@ -8,18 +8,21 @@ ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(Sol
     this->Variables            = parser.variables; 
     this->numVars              = parser.numVars;
     this->numClauses           = parser.numClauses;
+    this->numCubes             = 0;
     this->numBlocks            = parser.numBlocks;
     this->numOfExistentialVars = parser.numOfExistentialVars;
     this->numOfUniversalVars   = parser.numOfUniversalVars;
 
     this->remainingVars        = parser.numVars;
     this->remainingClauses     = parser.numClauses;
+    this->remainingCubes       = this->numCubes;
     this->remainingBlocks      = parser.numBlocks;
 
     this->S                    = parser.S;
     this->P                    = parser.P;
 
     this->last_clause_idx      = parser.numClauses;
+    this->cubeID               = 0;
     
     // construct prefix
     for (QuantifierBlock b : Blocks)
@@ -49,16 +52,16 @@ void ThQBF::assign (int variable, int value)
     assignment_trail[level].push(varID);
     Variables[varID].assignment_trail_index = assignment_trail.size();
 
-    std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n"; 
+    std::cout << "============================ ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ============================\n"; 
     if (solver_status == SolverStatus::PRESEARCH)
     {
         Variables[varID].status = qbf::VariableStatus::ELIMINATED;
     }
     else if (solver_status == SolverStatus::SEARCH)
     {   
-        if (Variables[varID].antecedent_clause == UNDEFINED)
+        if (Variables[varID].antecedent_clause == UNDEFINED && Variables[varID].antecedent_cube == UNDEFINED)
         {
-            Variables[varID].status  = qbf::VariableStatus::ASSIGNED;
+            Variables[varID].status     = qbf::VariableStatus::ASSIGNED;
             decision_variable_at[level] = varID;
         }
         else
@@ -70,6 +73,17 @@ void ThQBF::assign (int variable, int value)
     Variables[varID].level      = level;
     Variables[varID].assignment = value;
     Variables[varID].available_values--;
+
+    if (value == 1)
+    {
+        Path.push_back(variable);
+    }
+    else
+    {
+        Path.push_back(-variable);
+    }
+    std::cout << "Current assignment: ";
+    printVector(Path, true);
 
     int literal;
 
@@ -89,12 +103,11 @@ void ThQBF::assign (int variable, int value)
                     /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
                     /* ??? restore ??? */
-                    return;
+                    // return;
                 }
                 
             }
         }
-
 
         // remove negative appearances of varID from everywhere
         if (Variables[varID].numNegAppear)
@@ -106,8 +119,41 @@ void ThQBF::assign (int variable, int value)
                 
                 literal = -(variable);
                 remove_literal_from_clause(literal, clauseID, positionInClause);
+                if (solver_status == SolverStatus::UNSAT)
+                {
+                    std::cout << "empty clause " << clauseID << " at level " << level << '\n';
+                    // return;
+                }
             }
         } 
+
+        
+        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
+        {
+            if (Cubes.size() != 0)
+            {
+                // remove positive occurences of varID from everywhere
+                for (const auto& [cubeID, positionInCube] : Variables[varID].positiveOccurrencesCubes)
+                {
+                    if (!Cubes[cubeID].is_active())
+                        continue;
+                    
+                    literal = variable;
+                    remove_literal_from_cube(literal, cubeID, positionInCube);
+                }
+
+
+                // remove cubes where varID appears negative
+                for (const auto& [cubeID, positionInCube] : Variables[varID].negativeOccurrencesCubes)
+                {
+                    if (!Cubes[cubeID].is_active())
+                        continue;
+                    
+                    // literal = -(variable);
+                    remove_cube(cubeID, varID);
+                }
+            }
+        }
     }
     else
     {
@@ -125,7 +171,7 @@ void ThQBF::assign (int variable, int value)
                     /* IN SEARCH LOOP */
                     /* ??? analyze_SAT ??? */
                     /* ??? restore ??? */
-                    return;
+                    // return;
                 }
                 
             }
@@ -141,15 +187,55 @@ void ThQBF::assign (int variable, int value)
                 
                 literal = variable;    
                 remove_literal_from_clause(literal, clauseID, positionInClause);
+                if (solver_status == SolverStatus::UNSAT)
+                {
+                    std::cout << "empty clause " << clauseID << " at level " << level << '\n';
+                    // return;
+                }
+            }
+        }
+
+        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
+        {
+            if (Cubes.size() != 0)
+            {   
+                // remove cubes where varID appears positive
+                if (Variables[varID].numPosAppearCubes)
+                {
+                    for (const auto& [cubeID, positionInCube] : Variables[varID].positiveOccurrencesCubes)
+                    {
+                        if (!Cubes[cubeID].is_active())
+                            continue;
+                        
+                        // literal = variable;
+                        remove_cube(cubeID, varID);
+                    }
+                }
+                
+                // remove negative occurences of varID from everywhere
+                if (Variables[varID].numNegAppearCubes)
+                {
+                    for (const auto& [cubeID, positionInCube] : Variables[varID].negativeOccurrencesCubes)
+                    {
+                        if (!Cubes[cubeID].is_active())
+                            continue;
+                        
+                        literal = -(variable);
+                        remove_literal_from_cube(literal, cubeID, positionInCube);
+                    }   
+                }  
             }
         }
     }
 
     for (auto it=varsAffected.begin(); it!=varsAffected.end();)
     {   
-        if (Variables[*it].numNegAppear == 0 && Variables[*it].numPosAppear == 0)
+        if (Variables[*it].numNegAppear == 0 && 
+            Variables[*it].numPosAppear == 0 &&
+            Variables[*it].numPosAppearCubes == 0 &&
+            Variables[*it].numNegAppearCubes == 0)
         {    
-            // std::cout << "zero appear: " << varID + 1 << '\n';
+            std::cout << "zero appear: " << varID + 1 << '\n';
             remove_variable(*it + 1);
             Variables[*it].status = qbf::VariableStatus::REMOVED;
         }
@@ -228,6 +314,69 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
 }
 
 
+void ThQBF::remove_literal_from_cube (int literal, int cubeID, int positionInCube)
+{
+    int varID = std::abs(literal) - 1;
+
+    if (Cubes[cubeID].state[positionInCube] != qbf::LiteralStatus::AVAILABLE)
+    {   
+        std::cout << "---------- in ---------\n";
+        printf("cube: %d | literal: %d | position in cube: %d\n", cubeID, literal, positionInCube);
+        return;
+    }
+
+
+    Cubes[cubeID].state[positionInCube] = level;
+
+    Cubes_trail[level].insert(cubeID);
+    varsAffected.insert(varID);
+
+    if (literal > 0)
+    {
+        Variables[varID].numPosAppearCubes--;
+    }
+    else
+    {
+        Variables[varID].numNegAppearCubes--;
+    }
+
+    if (Variables[varID].is_existential())
+    {
+        Cubes[cubeID].e_num--;
+    }
+    else
+    {
+        Cubes[cubeID].a_num--;
+    }
+
+    // if a_num == 1 find the position of the only universal in the clause
+    if (Cubes[cubeID].a_num == 1)
+    {
+        for (int i = 0; i < Cubes[cubeID].size; i++)
+        {
+            if (Cubes[cubeID].state[i] != qbf::LiteralStatus::AVAILABLE)
+            {
+                continue;
+            }
+
+            varID = std::abs(Cubes[cubeID].literals[i]) - 1;
+
+            if (Variables[varID].is_universal())
+            {
+                int literal_position = i;
+
+                if (cube_is_unit(cubeID, varID + 1))
+                {
+                    unit_cubes.push({cubeID, level});
+                    Cubes[cubeID].unit_literal_position = literal_position;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+
 void ThQBF::restore_level (int search_level)
 {   
     std::cout << "restoring level " << search_level << "\n";
@@ -253,7 +402,6 @@ void ThQBF::restore_level (int search_level)
         for (int i = 0; i < Clauses[clauseID].size; i++)
         {   
             // std::cout << "looking at literal " << Clauses[clauseID].literals[i] << " state: " << Clauses[clauseID].state[i] << "\n";
-            
             if (Clauses[clauseID].state[i] == search_level)
             {   
                 int literal = Clauses[clauseID].literals[i];
@@ -288,11 +436,65 @@ void ThQBF::restore_level (int search_level)
 
     for (auto it=varsAffected.begin(); it!=varsAffected.end();)
     {   
-        if (Variables[*it].numNegAppear + Variables[*it].numPosAppear != 0)
+        if (Variables[*it].numNegAppear      + Variables[*it].numPosAppear      != 0 ||
+            Variables[*it].numNegAppearCubes + Variables[*it].numPosAppearCubes != 0)
         {   
             restore_variable(*it + 1);
         }
         ++it;
+    }
+
+
+    if (1) /* if cube learning is enabled */
+    {
+        for (const auto& cubeID : Cubes_trail.at(search_level))
+        {
+            Cubes[cubeID].level = UNDEFINED;
+
+            if (Cubes[cubeID].a_num == 1)
+            {
+                Cubes[cubeID].unit_literal_position = UNDEFINED;
+            }
+
+            if (Cubes[cubeID].status == qbf::CubeStatus::INACTIVE)
+            {
+                remainingCubes++;
+            }
+
+            Cubes[cubeID].status = qbf::CubeStatus::ACTIVE;
+
+            // restore literals in cube
+            for (int i = 0; i < Cubes[cubeID].size; i++)
+            {
+                if (Cubes[cubeID].state[i] == search_level)
+                {
+                    int literal = Cubes[cubeID].literals[i];
+                    int var     = std::abs(literal) - 1;
+
+                    Cubes[cubeID].state[i] = qbf::LiteralStatus::AVAILABLE;
+
+                    if (literal > 0)
+                    {
+                        Variables[var].numPosAppearCubes++;
+                    }
+                    else
+                    {
+                        Variables[var].numNegAppearCubes++;
+                    }
+
+                    if (Variables[var].is_existential())
+                    {
+                        Cubes[cubeID].e_num++;
+                    }
+                    else
+                    {
+                        Cubes[cubeID].a_num++;
+                    }
+                }
+            }
+        }
+
+        Cubes_trail.erase(search_level);
     }
 
     solver_status = SolverStatus::SEARCH;
@@ -300,6 +502,7 @@ void ThQBF::restore_level (int search_level)
 
     assignment_trail.erase(search_level);
     implied_e_variables.erase(search_level);
+    implied_a_variables.erase(search_level);
     decision_variable_at.erase(search_level);
 }
 
@@ -381,6 +584,7 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
     {
         Clauses[clauseID].status = qbf::ClauseStatus::SATISFIED;
     }
+    Clauses[clauseID].status = qbf::ClauseStatus::SATISFIED; // TODO: keep temporary
         
     Clauses[clauseID].level = level; 
     Clauses_trail[level].insert(clauseID);
@@ -423,6 +627,60 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
         std::cout << "Empty matrix at level " << level << '\n';
         solver_status = SolverStatus::SAT;
         return;
+    }
+}
+
+
+void ThQBF::remove_cube (int cubeID, int referenceVarID)
+{
+    if (Cubes[cubeID].status != qbf::CubeStatus::ACTIVE)
+    {
+        return;
+    }
+
+    remainingCubes--;
+
+    Cubes[cubeID].status = qbf::CubeStatus::INACTIVE;
+    Cubes[cubeID].level  = level;
+
+    Cubes_trail[level].insert(cubeID);
+
+    int literal, varID;
+    for (int i = 0; i < Cubes[cubeID].size; i++)
+    {
+        if (Cubes[cubeID].state[i] != qbf::LiteralStatus::AVAILABLE)
+        {
+            continue;
+        }
+
+        literal = Cubes[cubeID].literals[i];
+        varID   = std::abs(literal) - 1;
+
+        if (literal > 0)
+        {
+            Variables[varID].numPosAppearCubes--;
+        }
+        else
+        {
+            Variables[varID].numNegAppearCubes--;
+        }
+
+        if (Variables[varID].is_existential())
+        {
+            Cubes[cubeID].e_num--;
+        }
+        else
+        {
+            Cubes[cubeID].a_num--;
+        }
+
+        varsAffected.insert(varID);
+        Cubes[cubeID].state[i] = level;
+    }
+
+    if (!remainingCubes)
+    {
+        std::cout << "No cubes left in cubes db\n";
     }
 }
 
@@ -487,12 +745,13 @@ void ThQBF::imply ()
             if (unit_literal > 0)
             {   
                 // std::cout << "implying...\n";
-                // std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
                 unit_clauses.pop();
                 assign(variable, 1);
                 implied_e_variables[level].push(varID);
                 Variables[varID].implication_trail_index = implied_e_variables[level].size();
                 print_Clauses();
+                print_Cubes();
                 std::cout << "prefix:\n";
                 print_Prefix();
                 // print_Blocks();
@@ -501,12 +760,13 @@ void ThQBF::imply ()
             else
             {   
                 // std::cout << "implying...\n";
-                // std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
                 unit_clauses.pop();
                 assign(variable, 0);
                 implied_e_variables[level].push(varID);
                 Variables[varID].implication_trail_index = implied_e_variables[level].size();
                 print_Clauses();
+                print_Cubes();
                 std::cout << "prefix:\n";
                 print_Prefix();
                 // print_Blocks();
@@ -520,9 +780,12 @@ void ThQBF::imply ()
         }
     }
 
-    if (1) /* if Cube Learning flag is on imply unit cubes */
+    if (1 && level != SolverStatus::PRESEARCH) /* if Cube Learning flag is on imply unit cubes */
     {
-
+        while(!unit_cubes.empty())
+        {
+            
+        }
     }
        
     // print_Clauses();
@@ -544,6 +807,7 @@ void ThQBF::UnitPropagation ()
         // check positive appearances
         for (const auto& [clauseID, position] : Variables[S[i] - 1].positiveOccurrences)
         {   
+            // std::cout << "checking clause " << clauseID << "\n";
             if (Clauses[clauseID].e_num > 1 && Clauses[clauseID].a_num == 0)
             {
                 continue;
@@ -566,6 +830,7 @@ void ThQBF::UnitPropagation ()
         // check negative appearances
         for (const auto& [clauseID, position] : Variables[S[i] - 1].negativeOccurrences)
         {   
+            std::cout << "checking clause " << clauseID << "\n";
             if (Clauses[clauseID].e_num > 1 && Clauses[clauseID].a_num == 0)
             {
                 continue;
@@ -596,7 +861,7 @@ void ThQBF::UniversalReduction (int clauseID)
     }
 }
 
-// TODO: PureLiteral () -> add pure literals 'trail'
+
 void ThQBF::PureLiteral ()
 {
     if (solver_status == SolverStatus::PRESEARCH)
@@ -609,7 +874,7 @@ void ThQBF::PureLiteral ()
     }
 }
 
-// TODO: deduce ()
+// TODO: (deduce) write body
 void ThQBF::deduce ()
 {   
     if (solver_status == SolverStatus::PRESEARCH)
@@ -619,7 +884,7 @@ void ThQBF::deduce ()
     }
 }
 
-
+/* ================================ Conflict-driven Learning ================================ */
 std::pair<int, int> ThQBF::analyse_conflict ()
 {   
     int back_dl;
@@ -655,7 +920,7 @@ std::pair<int, int> ThQBF::analyse_conflict ()
 }
 
 
-void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int asserting_literal)
+void ThQBF::add_clause_to_db (const std::unordered_map<int, int>& learned_clause, int asserting_literal)
 {
     Clause           new_clause;
     std::vector<int> literals;
@@ -697,7 +962,7 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
             if (literal > 0)
             {   
                 // std::cout << "[POSITIVE] variable " << varID+1 << " clause " << last_clause_idx << " index " << index << '\n';
-                Variables[varID].addOccurence(last_clause_idx, index, 1);
+                Variables[varID].addOccurence(last_clause_idx, index, 1, "CLAUSE");
                 if (ct != qbf::LiteralStatus::AVAILABLE)
                 {   
                     // std::cout << literal << " not available\n";
@@ -707,7 +972,7 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
             else
             {   
                 // std::cout << "[NEGATIVE] variable " << varID+1 << " clause " << last_clause_idx << " index " << index << '\n';
-                Variables[varID].addOccurence(last_clause_idx, index, 0);
+                Variables[varID].addOccurence(last_clause_idx, index, 0, "CLAUSE");
                 if (ct != qbf::LiteralStatus::AVAILABLE)
                 {   
                     // std::cout << literal << " not available\n";
@@ -741,7 +1006,6 @@ void ThQBF::add_clause_to_db (std::unordered_map<int, int> learned_clause, int a
 
         Clauses.push_back(new_clause);
         Clauses_trail.at(level).insert(new_clause.clauseID);
-
     }
 }
 
@@ -1049,28 +1313,167 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
     return p;
 }
 
+/* ================================ Satisfiability-directed Learning ================================  */
+std::pair<int, int> ThQBF::analyse_SAT ()
+{
+    int back_dl;
+    std::pair<int, int> p;
+
+
+
+
+    return p;
+}
+
+
+void ThQBF::add_cube_to_db (const std::unordered_map<int, int>& learned_cube, int asserting_literal)
+{
+    Cube new_cube(cubeID, learned_cube, UNDEFINED);
+
+    if (CubeHashes.find(new_cube.hash) == CubeHashes.end())
+    {
+        std::cout << "adding cube to db...\n";
+
+        for (int i = 0; i < new_cube.literals.size(); i++)
+        {
+            int literal = new_cube.literals[i];
+            int varID   = std::abs(literal) - 1;
+
+            /* insert cube appearance */
+            if (literal > 0)
+            {
+                Variables[varID].addOccurence(cubeID, i, 1, "CUBE");
+                if (new_cube.state[i] != qbf::LiteralStatus::AVAILABLE)
+                {
+                    Variables[varID].numPosAppearCubes--;
+                }
+            }
+            else
+            {
+                Variables[varID].addOccurence(cubeID, i, 0, "CUBE");
+                if (new_cube.state[i] != qbf::LiteralStatus::AVAILABLE)
+                {
+                    Variables[varID].numNegAppearCubes--;
+                }
+            }
+
+            /* update existential and universal literals numbers */
+            if (new_cube.state[i] == qbf::LiteralStatus::AVAILABLE)
+            {
+                if (Variables[varID].is_existential())
+                {
+                    new_cube.e_num++;
+                }
+                else
+                {
+                    new_cube.a_num++;
+                }
+            }
+
+            /* unit (universal) literal position */
+            if (literal == asserting_literal)
+            {
+                new_cube.unit_literal_position = i;
+            }
+        }
+
+        Cubes.push_back(new_cube); 
+        CubeHashes.insert(new_cube.hash);
+        Cubes_trail[level].insert(new_cube.cubeID);
+        numCubes++; 
+        remainingCubes++; 
+        cubeID++;
+    }
+}
+
+
+int ThQBF::cube_is_unit (int cubeID, int referenceVariable)
+{   
+    int referenceVarID  = referenceVariable - 1;
+    int reference_level = Variables[referenceVarID].level;
+    int unit_flag       = 1;
+
+    for (int i = 0;  i < Cubes[cubeID].size; i++)
+    {
+        if (Cubes[cubeID].state[i] != qbf::LiteralStatus::AVAILABLE)
+        {
+            continue;
+        }
+
+        int literal = Cubes[cubeID].literals[i];
+        int var     = std::abs(literal) - 1;
+
+        if (var == referenceVarID)
+        {
+            continue;
+        }
+
+        int existential_level = Variables[var].blockID;
+
+        if (existential_level < reference_level)
+        {
+            unit_flag = 0;
+            break;
+        }
+    }
+
+    if (!unit_flag)
+    {   
+        std::cout << "cube " << cubeID << " is not unit on current branch\n";
+        return 0;
+    }
+
+    std::cout << "cube " << cubeID << " is unit on current branch\n";
+    return unit_flag;
+}
+
 
 void ThQBF::print_Clauses ()
 {   
     std::cout << "Remaining clauses: " << remainingClauses << '\n';
     for (int i = 0; i < Clauses.size(); i++)
     {   
-        if (Clauses[i].status != qbf::ClauseStatus::ACTIVE)
+        if (Clauses[i].status == qbf::ClauseStatus::ACTIVE)
         {
+            std::cout << i << ": "; 
+            for (int j = 0; j < Clauses[i].size; j++)
+            {
+                if (Clauses[i].state[j] == qbf::LiteralStatus::AVAILABLE)
+                {
+                    std::cout << Clauses[i].literals[j] << " ";
+                }
+            }
+            std::cout << " e_num.: "     << Clauses[i].e_num << " ";
+            std::cout << " a_num.: "     << Clauses[i].a_num << " ";
+            std::cout << " status: "     << qbf::ClauseStatus::to_string(Clauses[i].status) << '\n';
+        }
+    }
+    std::cout << '\n';
+}
+
+
+void ThQBF::print_Cubes ()
+{
+    std::cout << "Remaining/currently active cubes: " << remainingCubes << '\n';
+    for (int i = 0; i < Cubes.size(); i++)
+    {   
+        if (Cubes[i].status != qbf::CubeStatus::ACTIVE)
+        {   
             continue;
         }
-        std::cout << i << ": "; 
-        for (int j = 0; j < Clauses[i].size; j++)
-        {
-            if (Clauses[i].state[j] == qbf::LiteralStatus::AVAILABLE)
+        std::cout << i << ": ";
+        for (int j = 0; j < Cubes[i].size; j++)
+        {   
+            if (Cubes[i].state[j] == qbf::LiteralStatus::AVAILABLE)
             {
-                std::cout << Clauses[i].literals[j] << " ";
+                std::cout << Cubes[i].literals[j] << " ";
             }
         }
-        std::cout << " e_num.: "     << Clauses[i].e_num << " ";
-        std::cout << " a_num.: "     << Clauses[i].a_num << " ";
-        std::cout << " status: "     << qbf::ClauseStatus::to_string(Clauses[i].status) << '\n';
+        std::cout << " e_num.: "     << Cubes[i].e_num << " ";
+        std::cout << " a_num.: "     << Cubes[i].a_num << " ";
+        std::cout << " status: "     << qbf::ClauseStatus::to_string(Cubes[i].status) << '\n';
     }
+    std::cout << '\n';
 }
 
 
@@ -1084,6 +1487,7 @@ void ThQBF::print_Variables ()
         }
         std::cout << "variable: " << i + 1 << " pos.: " << Variables[i].numPosAppear << " neg.: " << Variables[i].numNegAppear << '\n';
     }
+    std::cout << '\n';
 }
 
 
@@ -1097,6 +1501,7 @@ void ThQBF::print_Blocks ()
         // }
         Blocks[i].print();
     }
+    std::cout << '\n';
 }
 
 
@@ -1144,102 +1549,46 @@ void ThQBF::solve ()
 
 void ThQBF::test ()
 {   
-    print_Blocks();
-    print_Prefix();
-    print_Clauses();
-    print_Variables();
+    /* add some dummy cubes to test assignments and appearances updates */
+    std::unordered_map<int, int> cube_1 = { {-1, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 2, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 4, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-5, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 9, qbf::LiteralStatus::AVAILABLE} };
 
+    std::unordered_map<int, int> cube_2 = { { 1, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-5, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 7, qbf::LiteralStatus::AVAILABLE} };
 
-    level = PRESEARCH;
-    solver_status = SolverStatus::PRESEARCH;
-    UnitPropagation();
-    if (solver_status == SolverStatus::UNSAT)
-    {
-        std::cout << "UNSAT at root...\n";
-        return;
-    }
+    std::unordered_map<int, int> cube_3 = { { 3, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-4, qbf::LiteralStatus::AVAILABLE}, 
+                                            { 9, qbf::LiteralStatus::AVAILABLE}, 
+                                            {-11,qbf::LiteralStatus::AVAILABLE} };
 
-    /* -------------------- test-UNSAT -------------------- */
-    solver_status = SolverStatus::SEARCH;
-    /* assign variables */
-    level = 1;
-    assign(1, 1);
-    print_Clauses();
-    imply();
-    std::cout << "prefix\n";
-    print_Prefix();
+    add_cube_to_db(cube_1, UNDEFINED);
+    add_cube_to_db(cube_2, UNDEFINED);
+    add_cube_to_db(cube_3, UNDEFINED);
+
     // print_Blocks();
-    // print_Variables();
-    
-
-    level++;
-    assign(2, 1);
-    print_Clauses();
-    imply();
-    std::cout << "prefix\n";
-    print_Prefix();
-    // print_Blocks();
-    // print_Variables();
-
-
-    level++;
-    assign(3, 1);
-    print_Clauses();
-    imply();
-    std::cout << "prefix\n";
-    print_Prefix();
-    // print_Blocks();
-    // print_Variables();
-
-
-
-    std::cout << "================================================\n";
-    std::pair<int, int> p;
-    if (solver_status == SolverStatus::UNSAT)
-    {
-        p = analyse_conflict();
-        solver_status = SolverStatus::SEARCH;
-    }
-
-    // backtrack up to clause asserting level (exclusive)
-    int back_dl = p.first;
-    while (level > back_dl)
-    {   
-        restore_level(level);
-        print_Clauses();
-        std::cout << "prefix\n";
-        print_Prefix();
-        // print_Blocks();
-        level--;
-    }
-
-    int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
-    int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
-    unit_clauses.push({Clauses.size()-1, level});
-    imply();
-    print_Clauses();
-    std::cout << "prefix\n";
-    print_Prefix();
-
-    // print_hashmap(Variables[5].positiveOccurrences);
-    // print_hashmap(Variables[5].negativeOccurrences);
-
-    // level++;
-    // assign(4, 0);
-    // print_Clauses();
-    // std::cout << "prefix\n";
     // print_Prefix();
-
-    // level++;
-    // assign(5, 1);
     // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
-    // imply();
+    // print_Cubes();
+    // print_Variables();
 
+    // for (Variable v : Variables)
+    // {
+    //     std::cout << "=============== Variable "  << v.variable << " =============== \n";
 
+    //     std::cout << "Positive occurences (clauses):\n";
+    //     print_hashmap(v.positiveOccurrences);
+    //     std::cout << "Negative occurences (clauses):\n";
+    //     print_hashmap(v.negativeOccurrences);
 
-    // std::cout << "======================================================\n"
+    //     std::cout << "Positive occurences (cubes):\n";
+    //     print_hashmap(v.positiveOccurrencesCubes);
+    //     std::cout << "Negative occurences (cubes):\n";
+    //     print_hashmap(v.negativeOccurrencesCubes);
+    // }
 
 
     /*  -------------------- test-SAT -------------------- */
@@ -1253,29 +1602,117 @@ void ThQBF::test ()
     // }
 
     /* assign variables */
+    solver_status = SolverStatus::SEARCH;
+    level = 1;
+    assign(1, 0);
+    // print_Clauses();
+    print_Cubes();
+    std::cout << "prefix\n";
+    print_Prefix();
+    printVector(Path, true);
+
+    level++;
+    assign(2, 1);
+    // print_Clauses();
+    print_Cubes();
+    std::cout << "prefix\n";
+    print_Prefix();
+    printVector(Path, true);
+
+    level++;
+    assign(3, 1);
+    // print_Clauses();
+    print_Cubes();
+    std::cout << "prefix\n";
+    print_Prefix();
+    printVector(Path, true);
+
+    level++;
+    assign(4, 1);
+    // print_Clauses();
+    print_Cubes();
+    std::cout << "prefix\n";
+    print_Prefix();
+    printVector(Path, true);
+
+    level++;
+    assign(5, 0);
+    // print_Clauses();
+    print_Cubes();
+    std::cout << "prefix\n";
+    print_Prefix();
+    printVector(Path, true);
+
+
+    // /* -------------------- test-UNSAT -------------------- */
+    // solver_status = SolverStatus::SEARCH;
+    // /* assign variables */
     // level = 1;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(4, 0);
+    // assign(1, 1);
+    // print_Clauses();
+    // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
+    
+
+    // level++;
+    // assign(2, 1);
+    // print_Clauses();
+    // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
+
+
+    // level++;
+    // assign(3, 1);
+    // print_Clauses();
+    // imply();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // // print_Blocks();
+    // // print_Variables();
+
+
+
+    // std::cout << "================================================\n";
+    // std::pair<int, int> p;
+    // if (solver_status == SolverStatus::UNSAT)
+    // {
+    //     p = analyse_conflict();
+    //     solver_status = SolverStatus::SEARCH;
+    // }
+
+    // // backtrack up to clause asserting level (exclusive)
+    // int back_dl = p.first;
+    // while (level > back_dl)
+    // {   
+    //     restore_level(level);
+    //     print_Clauses();
+    //     std::cout << "prefix\n";
+    //     print_Prefix();
+    //     // print_Blocks();
+    //     level--;
+    // }
+
+    // int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
+    // int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
+    // unit_clauses.push({Clauses.size()-1, level});
     // imply();
     // print_Clauses();
     // std::cout << "prefix\n";
     // print_Prefix();
 
-    // level++;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(5, 1);
-    // imply();
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
+    // // print_hashmap(Variables[5].positiveOccurrences);
+    // // print_hashmap(Variables[5].negativeOccurrences);
 
-    // level++;
-    // solver_status = SolverStatus::SEARCH;
-    // assign(7, 0);
-    // imply();
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
+
+
+
+    // std::cout << "======================================================\n"
 
 
 
