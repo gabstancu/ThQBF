@@ -1547,7 +1547,7 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
     if (Cubes.empty())
     {   
         std::cout << "First SAT path. No cubes in the db: returning a null cube.\n";
-        return Path;
+        return {};
     }
     else
     {
@@ -1605,6 +1605,22 @@ std::unordered_map<int, int> ThQBF::consensus (const std::unordered_map<int, int
     }
 
     return new_cube;
+}
+
+
+std::unordered_map<int, int> ThQBF::construct_SAT_induced_cube ()
+{
+    std::cout << "------------------------ Constructing SAT induced cube... ------------------------\n";
+    std::unordered_map<int, int> sat_induced_cube = {};
+
+
+
+    for (const auto& [literal, level] : Path)
+    {
+        std::cout << "literal: " << literal << " level: " << level << '\n';
+    }
+
+    return sat_induced_cube;
 }
 
 
@@ -1987,12 +2003,18 @@ void ThQBF::test ()
         // printVector(Path, true);
     }
     
-    std::unordered_map<int, int> sat_cube = find_SAT_cube();
+    std::unordered_map<int, int> cube = find_SAT_cube();
 
-    bool criteria_met = cube_stop_criteria_met(sat_cube);
-    std::cout << "criteria met: " << criteria_met << '\n';
+    if (cube.empty())
+    {
+        cube = construct_SAT_induced_cube();
+    }
+    
 
-    std::pair<int, int> p = cube_asserting_level(sat_cube);
+    // bool criteria_met = cube_stop_criteria_met(sat_cube);
+    // std::cout << "criteria met: " << criteria_met << '\n';
+
+    // std::pair<int, int> p = cube_asserting_level(sat_cube);
 
 
 

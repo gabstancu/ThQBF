@@ -135,10 +135,10 @@ class ThQBF
         std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
         
         std::unordered_map<int, int> find_SAT_cube              (); // TODO: (find_SAT_cube)
-        std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path); // TODO: (construct_SAT_induced_cube)
+        std::unordered_map<int, int> construct_SAT_induced_cube (); // TODO: (construct_SAT_induced_cube)
         bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& resolvent);
         std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube);
-        std::unordered_map<int, int> consensus                  (const std::unordered_map<int, int>& c1, // TODO: (consensus)
+        std::unordered_map<int, int> consensus                  (const std::unordered_map<int, int>& c1, 
                                                                  const std::unordered_map<int, int>& c2, 
                                                                  int pivot_variable);
         int                          choose_a_literal           (const std::unordered_map<int, int>& sc); 
