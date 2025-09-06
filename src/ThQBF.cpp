@@ -1161,7 +1161,7 @@ std::unordered_map<int, int> ThQBF::resolve (const std::unordered_map<int, int>&
         /* opposite polarity is found */
         if (new_clause.find(-literal) != new_clause.end())
         {   
-            assert(Variables[varID].is_existential() && "Tautological existentila pair: invalid reason or wrong pivot.");
+            assert(Variables[varID].is_existential() && "Tautological existential pair: invalid reason or wrong pivot.");
             assert(Variables[varID].blockID > Variables[pivot_variable-1].blockID && "LD pair left of pivot: invalid reason or wrong pivot.");
             new_clause.insert({literal, ct});
             continue;
@@ -1558,6 +1558,56 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
 }
 
 
+std::unordered_map<int, int> ThQBF::consensus (const std::unordered_map<int, int>& c1, 
+                                               const std::unordered_map<int, int>& c2, 
+                                               int pivot_variable)
+{
+    std::unordered_map<int, int> new_cube;
+
+    /* add all literals of c1 to new_cube  */
+    for (const auto& [literal, ct] : c1)
+    {
+        if (std::abs(literal) == pivot_variable)
+        {
+            continue;
+        }
+
+        new_cube.insert({literal, ct});
+    }
+
+        /* add all literals of c2 to new_cube (omit opposite universals) */
+    for (const auto& [literal, ct] : c2)
+    {
+        if (std::abs(literal) == pivot_variable)
+        {
+            continue;
+        }
+
+        int varID = std::abs(literal) - 1;
+
+        /* literal already present in cube */
+        if (new_cube.find(literal) != new_cube.end())
+        {
+            continue;
+        }
+
+        /* opposite polarity is found */
+        if (new_cube.find(-literal) != new_cube.end())
+        {   
+            assert(Variables[varID].is_universal() && "Tautological universal pair: invalid reason or wrong pivot.");
+            assert(Variables[varID].blockID > Variables[pivot_variable-1].blockID && "LD pair left of pivot: invalid reason or wrong pivot.");
+            new_cube.insert({literal, ct});
+            continue;
+        }
+
+        /* add literal to clause */
+        new_cube.insert({literal, ct});
+    }
+
+    return new_cube;
+}
+
+
 std::pair<int, int> ThQBF::cube_asserting_level (const std::unordered_map<int, int>& learned_cube)
 {
      /* 
@@ -1858,7 +1908,7 @@ void ThQBF::solve ()
 
 void ThQBF::test ()
 {   
-    /* add some dummy cubes to test assignments and appearances updates */
+    // /* add some dummy cubes to test assignments and appearances updates */
     // std::unordered_map<int, int> cube_1 = { {-1, qbf::LiteralStatus::AVAILABLE}, 
     //                                         { 2, qbf::LiteralStatus::AVAILABLE}, 
     //                                         { 4, qbf::LiteralStatus::AVAILABLE}, 
@@ -1943,7 +1993,6 @@ void ThQBF::test ()
     std::cout << "criteria met: " << criteria_met << '\n';
 
     std::pair<int, int> p = cube_asserting_level(sat_cube);
-
 
 
 

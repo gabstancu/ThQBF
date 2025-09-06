@@ -137,9 +137,10 @@ class ThQBF
         std::unordered_map<int, int> find_SAT_cube              (); // TODO: (find_SAT_cube)
         std::unordered_map<int, int> construct_SAT_induced_cube (const std::unordered_map<int, int>& Path); // TODO: (construct_SAT_induced_cube)
         bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& resolvent);
-        std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube); // TODO: (cube_asserting_level)
-        
-        std::unordered_map<int, int> consensus_gen_cube         (const std::unordered_map<int, int>& cube); // TODO: (consensus_gen_cube)
+        std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube);
+        std::unordered_map<int, int> consensus                  (const std::unordered_map<int, int>& c1, // TODO: (consensus)
+                                                                 const std::unordered_map<int, int>& c2, 
+                                                                 int pivot_variable);
         int                          choose_a_literal           (const std::unordered_map<int, int>& sc); 
         void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal);
         std::pair<int, int>          analyse_SAT                (); // TODO: (analyse_SAT)
