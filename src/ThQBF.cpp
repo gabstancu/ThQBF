@@ -809,7 +809,7 @@ void ThQBF::imply ()
                 unit_cubes.pop();
                 assign(variable, 0);
                 implied_a_variables[level].push(varID);
-                Variables[varID].implication_trail_index = implied_e_variables[level].size();
+                Variables[varID].implication_trail_index = implied_a_variables[level].size();
                 print_Clauses();
                 print_Cubes();
                 std::cout << "prefix:\n";
@@ -821,7 +821,7 @@ void ThQBF::imply ()
                 unit_cubes.pop();
                 assign(variable, 1);
                 implied_a_variables[level].push(varID);
-                Variables[varID].implication_trail_index = implied_e_variables[level].size();
+                Variables[varID].implication_trail_index = implied_a_variables[level].size();
                 print_Clauses();
                 print_Cubes();
                 std::cout << "prefix:\n";
@@ -1059,7 +1059,7 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
     int top_level             = UNDEFINED;
 
     // find highest decision level among implied existential variables
-    for (const auto& [literal, ct] : cc)
+    for (const auto& [literal, _] : cc)
     {
         int variable = std::abs(literal); 
         int varID    = variable - 1;
@@ -1080,7 +1080,7 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
     assert(top_level>=0 && "No implied ∃ in clause (should be asserting or UNSAT-root).");
 
     // pick latest implied existential literal at top level by trail index
-    for (const auto& [literal, ct] : cc)
+    for (const auto& [literal, _] : cc)
     {
         int variable = std::abs(literal); 
         int varID    = variable - 1;
@@ -1116,10 +1116,10 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
 
     assert(Variables[var].appears_in_clause(antecedent) && "neg(literal) does not appear in antecedent!");
     
-    bool polarity = (-most_recently_implied > 0);
+    bool polarity        = (-most_recently_implied > 0);
     int position_in_ante = Variables[var].get_position_in_clause(antecedent, polarity);
 
-    assert(Clauses[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent!");
+    assert(Clauses[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent clause!");
     
     return most_recently_implied;
 }
@@ -1468,6 +1468,77 @@ int ThQBF::cube_is_unit (int cubeID, int referenceVariable)
 }
 
 
+int ThQBF::choose_a_literal (const std::unordered_map<int, int>& sc)
+{
+    int most_recently_implied = UNDEFINED;
+    int best_trail_index      = UNDEFINED;
+    int top_level             = UNDEFINED;
+
+    for (const auto& [literal, _] : sc)
+    {
+        int variable = std::abs(literal); 
+        int varID    = variable - 1;
+
+        if (Variables[varID].is_existential())
+        {
+            continue;
+        }
+
+        if (Variables[varID].antecedent_cube == UNDEFINED)
+        {
+            continue;
+        }
+
+        top_level = std::max(top_level, Variables[varID].level);
+    }
+
+    assert(top_level>=0 && "No implied FORALL in cube (should be asserting or UNSAT-root).");
+
+    // pick most recently implied universal literal at top level by trail index
+    for (const auto& [literal, _] : sc)
+    {
+        int variable = std::abs(literal); 
+        int varID    = variable - 1;
+
+        if (Variables[varID].is_existential())
+        {
+            continue;
+        }
+
+        if (Variables[varID].antecedent_cube == UNDEFINED)
+        {
+            continue;
+        }
+
+        if (Variables[varID].level != top_level)
+        {
+            continue;
+        }
+
+        int trail_index = Variables[varID].implication_trail_index;
+        if (trail_index > best_trail_index)
+        {
+            most_recently_implied = literal;
+            best_trail_index      = trail_index;
+        }
+    }
+
+    assert(most_recently_implied != UNDEFINED && "No implied FORALL at top level (reason: bookkeeping bug?)");
+
+    // assert that antecedent contains -most_recently_implied
+    int var = std::abs(most_recently_implied) - 1;
+    int antecedent = Variables[var].antecedent_cube;
+
+    assert(Variables[var].appears_in_cube(antecedent) && "neg(literal) does not appear in antecedent!");
+
+    bool polarity        = (-most_recently_implied > 0);
+    int position_in_ante = Variables[var].get_position_in_cube(antecedent, polarity);
+
+    assert(Cubes[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent cube!");
+
+    return most_recently_implied;
+}
+
 std::unordered_map<int, int> ThQBF::find_SAT_cube ()
 {
     std::unordered_map<int, int> sat_cube = {};
@@ -1813,7 +1884,7 @@ void ThQBF::test ()
     bool criteria_met = cube_stop_criteria_met(Path);
     std::cout << "criteria met: " << criteria_met << '\n';
 
-    
+
 
 
     // level++;
