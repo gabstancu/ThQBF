@@ -52,7 +52,7 @@ void ThQBF::assign (int variable, int value)
     assignment_trail[level].push(varID);
     Variables[varID].assignment_trail_index = assignment_trail.size();
 
-    std::cout << "--------------------- ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ---------------------\n"; 
+    std::cout << "============================ ASSIGNMENT " << varID + 1 << ": " << value << " (LEVEL " << level << ") ============================\n"; 
     if (solver_status == SolverStatus::PRESEARCH)
     {
         Variables[varID].status = qbf::VariableStatus::ELIMINATED;
@@ -73,6 +73,17 @@ void ThQBF::assign (int variable, int value)
     Variables[varID].level      = level;
     Variables[varID].assignment = value;
     Variables[varID].available_values--;
+
+    if (value == 1)
+    {
+        Path.push_back(variable);
+    }
+    else
+    {
+        Path.push_back(-variable);
+    }
+    std::cout << "Current assignment: ";
+    printVector(Path, true);
 
     int literal;
 
@@ -117,7 +128,7 @@ void ThQBF::assign (int variable, int value)
         } 
 
         
-        if (1 && level != SolverStatus::PRESEARCH) /* if cube learning is enabled */
+        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
             {
@@ -184,7 +195,7 @@ void ThQBF::assign (int variable, int value)
             }
         }
 
-        if (1 && level != SolverStatus::PRESEARCH) /* if cube learning is enabled */
+        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
             {   
@@ -224,7 +235,7 @@ void ThQBF::assign (int variable, int value)
             Variables[*it].numPosAppearCubes == 0 &&
             Variables[*it].numNegAppearCubes == 0)
         {    
-            // std::cout << "zero appear: " << varID + 1 << '\n';
+            std::cout << "zero appear: " << varID + 1 << '\n';
             remove_variable(*it + 1);
             Variables[*it].status = qbf::VariableStatus::REMOVED;
         }
@@ -740,6 +751,7 @@ void ThQBF::imply ()
                 implied_e_variables[level].push(varID);
                 Variables[varID].implication_trail_index = implied_e_variables[level].size();
                 print_Clauses();
+                print_Cubes();
                 std::cout << "prefix:\n";
                 print_Prefix();
                 // print_Blocks();
@@ -754,6 +766,7 @@ void ThQBF::imply ()
                 implied_e_variables[level].push(varID);
                 Variables[varID].implication_trail_index = implied_e_variables[level].size();
                 print_Clauses();
+                print_Cubes();
                 std::cout << "prefix:\n";
                 print_Prefix();
                 // print_Blocks();
@@ -769,7 +782,10 @@ void ThQBF::imply ()
 
     if (1 && level != SolverStatus::PRESEARCH) /* if Cube Learning flag is on imply unit cubes */
     {
-
+        while(!unit_cubes.empty())
+        {
+            
+        }
     }
        
     // print_Clauses();
@@ -1589,48 +1605,43 @@ void ThQBF::test ()
     solver_status = SolverStatus::SEARCH;
     level = 1;
     assign(1, 0);
-    print_Clauses();
+    // print_Clauses();
     print_Cubes();
     std::cout << "prefix\n";
     print_Prefix();
+    printVector(Path, true);
 
     level++;
     assign(2, 1);
-    print_Clauses();
+    // print_Clauses();
     print_Cubes();
     std::cout << "prefix\n";
     print_Prefix();
+    printVector(Path, true);
 
     level++;
     assign(3, 1);
-    print_Clauses();
+    // print_Clauses();
     print_Cubes();
     std::cout << "prefix\n";
     print_Prefix();
+    printVector(Path, true);
 
     level++;
     assign(4, 1);
-    print_Clauses();
+    // print_Clauses();
     print_Cubes();
     std::cout << "prefix\n";
     print_Prefix();
+    printVector(Path, true);
 
     level++;
     assign(5, 0);
-    print_Clauses();
+    // print_Clauses();
     print_Cubes();
     std::cout << "prefix\n";
     print_Prefix();
-
-    // level++;
-    // assign(5, 1);
-    // Path[5] = 1;
-    // print_Clauses();
-    // std::cout << "prefix\n";
-    // print_Prefix();
-    // imply();
-
-    // print_hashmap(Path);
+    printVector(Path, true);
 
 
     // /* -------------------- test-UNSAT -------------------- */
