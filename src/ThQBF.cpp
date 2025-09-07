@@ -97,7 +97,6 @@ void ThQBF::assign (int variable, int value)
         {
             for (const auto& [clauseID, positionInClause] : Variables[varID].positiveOccurrences)
             {   
-                Clauses[clauseID].SAT_literals.insert(variable);
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
 
@@ -166,7 +165,6 @@ void ThQBF::assign (int variable, int value)
         {
             for (const auto& [clauseID, positionInClause] : Variables[varID].negativeOccurrences)
             {   
-                Clauses[clauseID].SAT_literals.insert(-variable);
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
 
@@ -1611,25 +1609,19 @@ std::unordered_map<int, int> ThQBF::consensus (const std::unordered_map<int, int
 
 std::unordered_map<int, int> ThQBF::construct_SAT_induced_cube ()
 {
-    std::cout << "------------------------ Constructing SAT induced cube... ------------------------\n";
+    // std::cout << "------------------------ Constructing SAT induced cube... ------------------------\n";
     std::unordered_map<int, int> sat_induced_cube = {};
 
     std::unordered_map<int, int>                     num_clauses_per_lit  = {}; // (1)   :   number of clauses each literals makes an appearance
     std::unordered_map<int, std::unordered_set<int>> clauses_per_lit      = {}; // (2)   :   clauses IDs each literal satisfies
-    std::unordered_map<int, std::unordered_set<int>> exists               = {}; // (3.1) :   clauses IDs existential assignments satisfy
-    std::unordered_map<int, std::unordered_set<int>> forall               = {}; // (3.2) :   clauses IDs universal assignments satisfy
-    std::priority_queue<std::pair<int, std::unordered_set<int>>, 
-                        std::vector<std::pair<int, std::unordered_set<int>>>, 
-                        Compare> EXISTS;                                        // (3.1) :   clauses IDs existential assignments satisfy
-    std::priority_queue<std::pair<int, std::unordered_set<int>>, 
-                        std::vector<std::pair<int, std::unordered_set<int>>>, 
-                        Compare> FORALL;                                        // (3.2) :   clauses IDs universal assignments satisfy
+    std::unordered_map<int, std::unordered_set<int>> EXISTS               = {}; // (3.1) :   clauses IDs existential assignments satisfy
+    std::unordered_map<int, std::unordered_set<int>> FORALL               = {}; // (3.2) :   clauses IDs universal assignments satisfy                                  // (3.2) :   clauses IDs universal assignments satisfy
     std::unordered_map<int, std::unordered_set<int>> SAT_PER_CLAUSE       = {}; // (4)   :   satisfied literals per clause
 
     /* preprocessing... */
     for (const auto& [literal, _] : Path)
     {
-        std::cout << "literal: " << literal << " level: " << _ << '\n';
+        // std::cout << "literal: " << literal << " level: " << _ << '\n';
         int varID = std::abs(literal) - 1;
         if (literal > 0)
         {   
@@ -1656,29 +1648,100 @@ std::unordered_map<int, int> ThQBF::construct_SAT_induced_cube ()
 
         if (Variables[varID].is_existential())
         {
-            exists[literal] = clauses_per_lit[literal];
-            EXISTS.push({literal, clauses_per_lit[literal]});
+            EXISTS[literal] = clauses_per_lit[literal];
         }
         else
         {
-            forall[literal] = clauses_per_lit[literal];
-            FORALL.push({literal, clauses_per_lit[literal]});
+            FORALL[literal] = clauses_per_lit[literal];
         }
     }
 
-    // print_hashmap(num_clauses_per_lit);
-    // print_map_of_sets(SAT_PER_CLAUSE);
-    print_map_of_sets(exists);
-    print_map_of_sets(forall);
-    print_heap(EXISTS);
-    print_heap(FORALL);
+    /* ====================== greedy literal selection ====================== */
+    
+    int uncovered_clauses = SAT_PER_CLAUSE.size();
+    std::vector<bool> covered(uncovered_clauses, false);
 
-    /* greedy literal selection */
-    // for (const auto& [])
+    auto adds_coverage = [&](int lit) -> int
     {
+            int coverage_gain = 0;
+            for (int clauseID : clauses_per_lit[lit])
+            {
+                if (!covered[clauseID])
+                {   
+                    coverage_gain++;
+                }
+            }
+            return coverage_gain;
+    };
 
+    while (uncovered_clauses > 0)
+    {
+        int best_E    = 0;
+        int best_A    = 0;
+        int best_gain = -INT_MAX;
+
+        /* first scan existentials that add coverage */
+        for (const auto& [lit, cids] : EXISTS)
+        {   
+            int gain = adds_coverage(lit);
+            // printf("literal: %d | coverage gain: %d\n", lit, gain);
+            if (gain <= 0)
+            {
+                continue;
+            }
+            if (gain > best_gain)
+            {
+                best_gain = gain;
+                best_E    = lit;
+            }
+        }
+        
+        int chosen = 0;
+        if (best_E != 0)
+        {
+            chosen = best_E;
+        }
+        else /* if no existential helps scan universals */
+        {   
+            best_gain = -INT_MAX;
+            for (const auto& [lit, cids] : FORALL)
+            {
+                int gain = adds_coverage(lit);
+                // printf("literal: %d | coverage gain: %d\n", lit, gain);
+                if (gain <= 0)
+                {
+                    continue;
+                }
+                if (gain > best_gain)
+                {
+                    best_gain = gain;
+                    best_A    = lit;
+                }
+            }
+            if (best_A != 0)
+            {
+                chosen = best_A;
+            }
+        }
+
+        if (chosen == 0)
+        {
+            break;
+        }
+
+        // std::cout << "chosen: " << chosen << '\n';
+
+        sat_induced_cube[chosen] = Path[chosen];
+        
+        for (int clauseID : clauses_per_lit[chosen])
+        {
+            if (!covered[clauseID])
+            {
+                covered[clauseID] = true;
+                uncovered_clauses--;
+            }
+        }
     }
-
 
     return sat_induced_cube;
 }
@@ -2068,7 +2131,9 @@ void ThQBF::test ()
     if (cube.empty())
     {
         cube = construct_SAT_induced_cube();
+        print_hashmap(cube);
     }
+
     
 
     // bool criteria_met = cube_stop_criteria_met(sat_cube);

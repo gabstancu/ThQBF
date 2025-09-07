@@ -32,7 +32,6 @@ struct Clause
 
     std::vector<int>        literals;
     std::vector<int>        state;
-    std::unordered_set<int> SAT_literals          = {};
     int                     unit_literal_position = UNDEFINED;
     int                     e_num                 = 0;
     int                     a_num                 = 0;
