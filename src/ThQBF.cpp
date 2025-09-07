@@ -352,6 +352,13 @@ void ThQBF::remove_literal_from_cube (int literal, int cubeID, int positionInCub
         Cubes[cubeID].a_num--;
     }
 
+    if (Cubes[cubeID].a_num == 0 && Cubes[cubeID].e_num == 0)
+    {
+        solver_status   = SolverStatus::SAT;
+        satisfying_cube = cubeID;
+        return;
+    }
+
     // if a_num == 1 find the position of the only universal in the clause
     if (Cubes[cubeID].a_num == 1)
     {
@@ -1539,6 +1546,46 @@ int ThQBF::choose_a_literal (const std::unordered_map<int, int>& sc)
 }
 
 
+std::pair<int, int> ThQBF::analyse_SAT ()
+{
+    int back_dl;
+    std::pair<int, int> p;
+
+    if (level == SolverStatus::ROOT)
+    {   
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT;
+        return p;
+    }
+
+    std::unordered_map sat_cube = find_SAT_cube();
+
+    if (sat_cube.empty())
+    {
+        sat_cube = construct_SAT_induced_cube();
+    }
+
+    while (!cube_stop_criteria_met(sat_cube))
+    {
+        int literal                       = choose_a_literal(sat_cube);
+        int variable                      = std::abs(literal);
+        int varID                         = variable - 1;
+        int antecedent_cubeID             = Variables[varID].antecedent_cube; 
+        std::unordered_map<int, int> ante = Cubes[antecedent_cubeID].map_representation();
+        sat_cube                          = consensus(sat_cube, ante, variable); 
+    }
+
+    std::cout << "learned cube:\n";
+    print_hashmap(sat_cube);
+
+    p = cube_asserting_level(sat_cube);
+    add_cube_to_db(sat_cube, p.second);
+    std::cout << "cube asserting level: " << p.first << " asserting literal: " << p.second << '\n';
+
+    return p;
+}
+
+
 std::unordered_map<int, int> ThQBF::find_SAT_cube ()
 {
     std::unordered_map<int, int> sat_cube = {};
@@ -1550,7 +1597,7 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
     }
     else
     {
-
+        std::cout << "Ask ChatGPT :)\n";
     }
 
     return sat_cube;
