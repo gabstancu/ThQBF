@@ -158,7 +158,7 @@ class ThQBF
     public:
         ThQBF(const QDimacsParser& parser);
 
-        void solve ();
+        void solve (); // TODO: (solve)
         void test  ();
 
         void print ();

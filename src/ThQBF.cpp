@@ -97,6 +97,7 @@ void ThQBF::assign (int variable, int value)
         {
             for (const auto& [clauseID, positionInClause] : Variables[varID].positiveOccurrences)
             {   
+                Clauses[clauseID].SAT_literals.insert(variable);
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
 
@@ -137,7 +138,7 @@ void ThQBF::assign (int variable, int value)
             {
                 // remove positive occurences of varID from everywhere
                 for (const auto& [cubeID, positionInCube] : Variables[varID].positiveOccurrencesCubes)
-                {
+                {   
                     if (!Cubes[cubeID].is_active())
                         continue;
                     
@@ -164,7 +165,8 @@ void ThQBF::assign (int variable, int value)
         if (Variables[varID].numNegAppear)
         {
             for (const auto& [clauseID, positionInClause] : Variables[varID].negativeOccurrences)
-            {
+            {   
+                Clauses[clauseID].SAT_literals.insert(-variable);
                 if (Clauses[clauseID].status != qbf::ClauseStatus::ACTIVE)
                     continue;
 
@@ -954,7 +956,6 @@ std::pair<int, int> ThQBF::analyse_conflict ()
     print_hashmap(cl);
     
     p = clause_asserting_level(cl);
-    // maybe add learned clause to Clauses_trail[level] to mark it as changed at this level
     add_clause_to_db(cl, p.second);
     std::cout << "clause asserting level: " << p.first << " asserting literal: " << p.second << '\n';
 
@@ -1613,12 +1614,71 @@ std::unordered_map<int, int> ThQBF::construct_SAT_induced_cube ()
     std::cout << "------------------------ Constructing SAT induced cube... ------------------------\n";
     std::unordered_map<int, int> sat_induced_cube = {};
 
+    std::unordered_map<int, int>                     num_clauses_per_lit  = {}; // (1)   :   number of clauses each literals makes an appearance
+    std::unordered_map<int, std::unordered_set<int>> clauses_per_lit      = {}; // (2)   :   clauses IDs each literal satisfies
+    std::unordered_map<int, std::unordered_set<int>> exists               = {}; // (3.1) :   clauses IDs existential assignments satisfy
+    std::unordered_map<int, std::unordered_set<int>> forall               = {}; // (3.2) :   clauses IDs universal assignments satisfy
+    std::priority_queue<std::pair<int, std::unordered_set<int>>, 
+                        std::vector<std::pair<int, std::unordered_set<int>>>, 
+                        Compare> EXISTS;                                        // (3.1) :   clauses IDs existential assignments satisfy
+    std::priority_queue<std::pair<int, std::unordered_set<int>>, 
+                        std::vector<std::pair<int, std::unordered_set<int>>>, 
+                        Compare> FORALL;                                        // (3.2) :   clauses IDs universal assignments satisfy
+    std::unordered_map<int, std::unordered_set<int>> SAT_PER_CLAUSE       = {}; // (4)   :   satisfied literals per clause
 
-
-    for (const auto& [literal, level] : Path)
+    /* preprocessing... */
+    for (const auto& [literal, _] : Path)
     {
-        std::cout << "literal: " << literal << " level: " << level << '\n';
+        std::cout << "literal: " << literal << " level: " << _ << '\n';
+        int varID = std::abs(literal) - 1;
+        if (literal > 0)
+        {   
+            // std::cout << "SAT clauses:\n";
+            // print_hashmap(Variables[varID].positiveOccurrences);
+            num_clauses_per_lit[literal] = Variables[varID].positiveOccurrences.size();
+            for (const auto& [clauseID, _] : Variables[varID].positiveOccurrences)
+            {
+                clauses_per_lit[literal].insert(clauseID);
+                SAT_PER_CLAUSE[clauseID].insert(literal);
+            }
+        }
+        else
+        {   
+            // std::cout << "SAT clauses:\n";
+            // print_hashmap(Variables[varID].negativeOccurrences);
+            num_clauses_per_lit[literal] = Variables[varID].negativeOccurrences.size();
+            for (const auto& [clauseID, _] : Variables[varID].negativeOccurrences)
+            {
+                clauses_per_lit[literal].insert(clauseID);
+                SAT_PER_CLAUSE[clauseID].insert(literal);
+            }
+        }
+
+        if (Variables[varID].is_existential())
+        {
+            exists[literal] = clauses_per_lit[literal];
+            EXISTS.push({literal, clauses_per_lit[literal]});
+        }
+        else
+        {
+            forall[literal] = clauses_per_lit[literal];
+            FORALL.push({literal, clauses_per_lit[literal]});
+        }
     }
+
+    // print_hashmap(num_clauses_per_lit);
+    // print_map_of_sets(SAT_PER_CLAUSE);
+    print_map_of_sets(exists);
+    print_map_of_sets(forall);
+    print_heap(EXISTS);
+    print_heap(FORALL);
+
+    /* greedy literal selection */
+    // for (const auto& [])
+    {
+
+    }
+
 
     return sat_induced_cube;
 }
@@ -1724,7 +1784,7 @@ bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolven
 
     if (!a_num) /* all existential cube (asserting at level 0)*/
     {   
-        solver_status = SolverStatus::SAT;
+        solver_status = SolverStatus::SAT; // TODO: handle this outside
         return true;
     }
 
@@ -2015,6 +2075,23 @@ void ThQBF::test ()
     // std::cout << "criteria met: " << criteria_met << '\n';
 
     // std::pair<int, int> p = cube_asserting_level(sat_cube);
+
+
+    // for (Variable v : Variables)
+    // {
+    //     std::cout << "=============== Variable "  << v.variable << " =============== \n";
+
+    //     std::cout << "Positive occurences (clauses):\n";
+    //     print_hashmap(v.positiveOccurrences);
+    //     std::cout << "Negative occurences (clauses):\n";
+    //     print_hashmap(v.negativeOccurrences);
+
+    //     std::cout << "Positive occurences (cubes):\n";
+    //     print_hashmap(v.positiveOccurrencesCubes);
+    //     std::cout << "Negative occurences (cubes):\n";
+    //     print_hashmap(v.negativeOccurrencesCubes);
+    // }
+
 
 
 

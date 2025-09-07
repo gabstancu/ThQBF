@@ -30,15 +30,17 @@ struct Clause
     int level;
     int clauseID;
 
-    std::vector<int> literals, state;
-    int              unit_literal_position = UNDEFINED;
-    int              e_num = 0, a_num = 0;
-    bool             learned;
+    std::vector<int>        literals;
+    std::vector<int>        state;
+    std::unordered_set<int> SAT_literals          = {};
+    int                     unit_literal_position = UNDEFINED;
+    int                     e_num                 = 0;
+    int                     a_num                 = 0;
+    bool                    learned;
+    size_t                  hash;
+    std::vector<Literal>    lits;
 
-    std::vector<Literal> lits;
-
-    size_t hash;
-
+    
     std::size_t compute_hash() const 
     {
         std::size_t h = 0;
