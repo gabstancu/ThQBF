@@ -459,7 +459,6 @@ void ThQBF::restore_level (int search_level)
     {
         for (const auto& cubeID : Cubes_trail.at(search_level))
         {   
-            std::cout << "nfdufd\n";
             Cubes[cubeID].level = UNDEFINED;
 
             if (Cubes[cubeID].a_num == 1)
@@ -898,7 +897,7 @@ void ThQBF::UnitPropagation ()
 }
 
 
-void ThQBF::UniversalReduction (int clauseID)
+void ThQBF::UniversalReduction (int clauseID, int a)
 {
     if (solver_status == SolverStatus::PRESEARCH)
     {
@@ -1360,17 +1359,6 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
 }
 
 /* ================================ Satisfiability-directed Learning ================================  */
-std::pair<int, int> ThQBF::analyse_SAT ()
-{
-    int back_dl;
-    std::pair<int, int> p;
-
-
-
-
-    return p;
-}
-
 
 void ThQBF::add_cube_to_db (const std::unordered_map<int, int>& learned_cube, int asserting_literal)
 {
@@ -1588,19 +1576,22 @@ std::pair<int, int> ThQBF::analyse_SAT ()
 
 std::unordered_map<int, int> ThQBF::find_SAT_cube ()
 {
-    std::unordered_map<int, int> sat_cube = {};
-    
     if (Cubes.empty())
     {   
         std::cout << "First SAT path. No cubes in the db: returning a null cube.\n";
         return {};
     }
-    else
-    {
-        std::cout << "Ask ChatGPT :)\n";
+    else if (solver_status == SolverStatus::SAT && !remainingClauses) /* clause db is satisfied by a new partial assignment */
+    {   
+        std::cout << "Clauses are satisfied by a new partial assignment: returning a null cube\n";
+        return {};
     }
-
-    return sat_cube;
+    else /* if a satisfying cube is found before all clauses are satisfied */
+    {   
+        std::cout << "Concluded SAT by satisfying cube " << satisfying_cube << " at level " << level << '\n';
+        std::cout << "Returning cube " << satisfying_cube << '\n';
+        return Cubes[satisfying_cube].map_representation();
+    }
 }
 
 
@@ -1809,7 +1800,7 @@ std::pair<int, int> ThQBF::cube_asserting_level (const std::unordered_map<int, i
     /* find max_level */
     for (const auto& [literal, _] : learned_cube)
     {
-        int varID    = std::abs(literal);
+        int varID    = std::abs(literal) - 1;
         int level    = Variables[varID].level; 
 
         if (Variables[varID].is_existential())
@@ -2137,12 +2128,13 @@ void ThQBF::test ()
 
 
     /*  -------------------- test-SAT -------------------- */
-    level = PRESEARCH;
+    level         = PRESEARCH;
     solver_status = SolverStatus::PRESEARCH;
     UnitPropagation();
-    if (solver_status == SolverStatus::UNSAT)
+    if (solver_status == SolverStatus::UNSAT || solver_status == SolverStatus::SAT)
     {
-        std::cout << "UNSAT at root...\n";
+        std::cout << SolverStatus::to_string(solver_status) << " at root...\n";
+        print_hashmap(Path);
         return;
     }
 
@@ -2166,28 +2158,27 @@ void ThQBF::test ()
     print_Prefix();
     // printVector(Path, true);
 
+    std::pair<int, int> p;
     if (solver_status == SolverStatus::SAT)
     {
         std::cout << "SAT at level " << level << '\n';
-        std::cout << "Satisfying path: ";
-        // printVector(Path, true);
-    }
-    
-    std::unordered_map<int, int> cube = find_SAT_cube();
-
-    if (cube.empty())
-    {
-        cube = construct_SAT_induced_cube();
-        print_hashmap(cube);
+        p = analyse_SAT();
     }
 
+    int back_dl = p.first;
+    std::cout<< "backjumping level: " << back_dl << '\n';
+    while (level > back_dl)
+    {   
+        restore_level(level);
+        print_Clauses();
+        print_Cubes(); 
+        std::cout << "prefix\n";
+        print_Prefix();
+        print_Blocks();
+        level--;
+    }
     
-
-    // bool criteria_met = cube_stop_criteria_met(sat_cube);
-    // std::cout << "criteria met: " << criteria_met << '\n';
-
-    // std::pair<int, int> p = cube_asserting_level(sat_cube);
-
+    
 
     // for (Variable v : Variables)
     // {

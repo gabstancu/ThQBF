@@ -110,7 +110,7 @@ class ThQBF
 
         /* ================================ Inference ================================ */
         void UnitPropagation    ();
-        void UniversalReduction (int clauseID);
+        void UniversalReduction (int clauseID, int a);
         void PureLiteral        ();
         void deduce             ();
         void imply              ();
@@ -135,7 +135,7 @@ class ThQBF
         std::unordered_set<std::size_t> CubeHashes; /* avoid duplicate cubes */
         int                             satisfying_cube;
         
-        std::unordered_map<int, int> find_SAT_cube              (); // TODO: (find_SAT_cube)
+        std::unordered_map<int, int> find_SAT_cube              ();
         std::unordered_map<int, int> construct_SAT_induced_cube ();
         bool                         cube_stop_criteria_met     (const std::unordered_map<int, int>& resolvent);
         std::pair<int, int>          cube_asserting_level       (const std::unordered_map<int, int>& learned_cube);
@@ -144,7 +144,7 @@ class ThQBF
                                                                  int pivot_variable);
         int                          choose_a_literal           (const std::unordered_map<int, int>& sc); 
         void                         add_cube_to_db             (const std::unordered_map<int, int>& learned_cube, int asserting_literal);
-        std::pair<int, int>          analyse_SAT                (); // TODO: (analyse_SAT)
+        std::pair<int, int>          analyse_SAT                (); 
 
 
         /* ================================ Solver utils ================================ */
