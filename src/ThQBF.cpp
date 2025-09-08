@@ -103,10 +103,7 @@ void ThQBF::assign (int variable, int value)
                 remove_clause(clauseID, varID);
                 if (solver_status == SolverStatus::SAT)
                 {
-                    /* IN SEARCH LOOP */
-                    /* ??? analyze_SAT ??? */
-                    /* ??? restore ??? */
-                    // return;
+                    return;
                 }
                 
             }
@@ -143,8 +140,11 @@ void ThQBF::assign (int variable, int value)
                     
                     literal = variable;
                     remove_literal_from_cube(literal, cubeID, positionInCube);
+                    if (solver_status == SolverStatus::SAT)
+                    {
+                        return;
+                    }
                 }
-
 
                 // remove cubes where varID appears negative
                 for (const auto& [cubeID, positionInCube] : Variables[varID].negativeOccurrencesCubes)
@@ -171,10 +171,7 @@ void ThQBF::assign (int variable, int value)
                 remove_clause(clauseID, varID);
                 if (solver_status == SolverStatus::SAT)
                 {
-                    /* IN SEARCH LOOP */
-                    /* ??? analyze_SAT ??? */
-                    /* ??? restore ??? */
-                    // return;
+                    return;
                 }
                 
             }
@@ -225,6 +222,10 @@ void ThQBF::assign (int variable, int value)
                         
                         literal = -(variable);
                         remove_literal_from_cube(literal, cubeID, positionInCube);
+                        if (solver_status == SolverStatus::SAT)
+                        {
+                            return;
+                        }
                     }   
                 }  
             }
@@ -887,7 +888,7 @@ void ThQBF::UnitPropagation ()
             }
         }
 
-        if (lit_is_unit) /* don't check negative appearances */
+        if (lit_is_unit) /* ignore check negative appearances if lit is unit */
         {   
             lit_is_unit = 0;
             continue;
@@ -940,10 +941,129 @@ void ThQBF::PureLiteral ()
     }
 }
 
-// TODO: (deduce) 
-void ThQBF::deduce ()
+
+int ThQBF::deduce ()
 {   
-    
+    while (solver_status != SolverStatus::SAT && solver_status != SolverStatus::UNSAT)
+    {   
+        if (1) /* if UP or CDCL enabled */
+        {
+            while (!unit_clauses.empty())
+            {
+                // std::cout << "num of unit clauses: " << unit_clauses.size() << '\n';
+                int unit_clauseID         = unit_clauses.top().first;
+                int unit_literal_position = Clauses[unit_clauseID].unit_literal_position;
+                int unit_literal          = Clauses[unit_clauseID].literals[unit_literal_position];
+                int varID                 = std::abs(unit_literal) - 1; 
+                int variable              = std::abs(unit_literal); 
+                
+                if (Variables[varID].antecedent_clause != UNDEFINED) /* literal has already been implied */
+                {   
+                    unit_clauses.pop();
+                    continue;
+                }
+
+                Variables[varID].antecedent_clause        = unit_clauseID;
+                Variables[varID].pos_in_antecedent_clause = unit_literal_position;
+
+                if (unit_literal > 0)
+                {   
+                    // std::cout << "implying...\n";
+                    std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                    unit_clauses.pop();
+                    assign(variable, 1);
+                    implied_e_variables[level].push(varID);
+                    Variables[varID].implication_trail_index = implied_e_variables[level].size();
+                    print_Clauses();
+                    print_Cubes();
+                    std::cout << "prefix:\n";
+                    print_Prefix();
+                    // print_Blocks();
+                    // print_Variables();
+                }
+                else
+                {   
+                    // std::cout << "implying...\n";
+                    std::cout << "unit clause: " << unit_clauseID << " unit literal: " << unit_literal << "\n";
+                    unit_clauses.pop();
+                    assign(variable, 0);
+                    implied_e_variables[level].push(varID);
+                    Variables[varID].implication_trail_index = implied_e_variables[level].size();
+                    print_Clauses();
+                    print_Cubes();
+                    std::cout << "prefix:\n";
+                    print_Prefix();
+                    // print_Blocks();
+                }
+            }
+        }
+
+        if (1 /* && level != PRESEARCH */) /* if Cube Learning flag is on imply unit cubes */
+        {
+            while(!unit_cubes.empty())
+            {
+                int unit_cubeID           = unit_cubes.top().first;
+                int unit_literal_position = Cubes[unit_cubeID].unit_literal_position;
+                int unit_literal          = Cubes[unit_cubeID].literals[unit_literal_position];
+                int varID                 = std::abs(unit_literal) - 1;
+                int variable              = std::abs(unit_literal);
+
+                if (Variables[varID].antecedent_cube != UNDEFINED) /* literal has already been implied */
+                {
+                    unit_cubes.pop();
+                    continue;
+                }
+
+                Variables[varID].antecedent_cube        = unit_cubeID;
+                Variables[varID].pos_in_antecedent_cube = unit_literal_position;
+
+                if (unit_literal > 0)
+                {
+                    std::cout << "unit cube: " << unit_cubeID << " unit literal: " << unit_literal << '\n';
+                    unit_cubes.pop();
+                    assign(variable, 0);
+                    implied_a_variables[level].push(varID);
+                    Variables[varID].implication_trail_index = implied_a_variables[level].size();
+                    print_Clauses();
+                    print_Cubes();
+                    std::cout << "prefix:\n";
+                    print_Prefix();
+                }
+                else
+                {
+                    std::cout << "unit cube: " << unit_cubeID << " unit literal: " << unit_literal << '\n';
+                    unit_cubes.pop();
+                    assign(variable, 1);
+                    implied_a_variables[level].push(varID);
+                    Variables[varID].implication_trail_index = implied_a_variables[level].size();
+                    print_Clauses();
+                    print_Cubes();
+                    std::cout << "prefix:\n";
+                    print_Prefix();
+                }
+            }
+        }
+
+        if (unit_clauses.empty()) /* no new unit clauses */
+        {
+            if (solver_status != SolverStatus::SAT && solver_status != SolverStatus::UNSAT)
+            {   
+                std::cout << "Solver status after deducing at level " << level << ": " << SolverStatus::to_string(solver_status) << '\n';
+                return SolverStatus::UNDETERMINED;
+            }
+        }
+    }
+
+    if (solver_status == SolverStatus::SAT)
+    {   
+        std::cout << "SAT after deducing at level " << level << '\n';
+        return SolverStatus::SAT;
+    }
+    else
+    {   
+        std::cout << "UNSAT after deducing at level " << level << '\n';
+        return SolverStatus::UNSAT;
+    }
 }
 
 /* ================================ Conflict-driven Learning ================================ */

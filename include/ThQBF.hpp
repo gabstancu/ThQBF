@@ -112,7 +112,7 @@ class ThQBF
         void UnitPropagation    ();
         void UniversalReduction (int clauseID, int a);
         void PureLiteral        ();
-        void deduce             ();
+        int  deduce             ();
         void imply              ();
 
 
