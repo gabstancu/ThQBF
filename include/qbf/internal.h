@@ -1,9 +1,6 @@
 #ifndef INTERNAL_HPP
 #define INTERNAL_HPP
 
-// TODO: set timeouts, restarts etc. 
-
-
 // RUNTIME FLAGS
 constexpr const char* DEBUG         = "DEBUG";
 
