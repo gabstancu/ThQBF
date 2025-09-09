@@ -110,10 +110,11 @@ class ThQBF
 
         /* ================================ Inference ================================ */
         void UnitPropagation    ();
-        void UniversalReduction (int clauseID, int a);
-        void PureLiteral        ();
-        int  deduce             ();
-        void imply              ();
+        void UniversalReduction (); 
+        bool can_perform_UR     (int u, int clauseID);
+        void PureLiteral        (); // TODO: Pure Literal
+        int  deduce             (); /* used in BJ */
+        int  infer              (); /* TODO: infer (used in BT) */
 
 
         /* ================================ Clause learning ================================ */
@@ -159,7 +160,8 @@ class ThQBF
     public:
         ThQBF(const QDimacsParser& parser);
 
-        void solve (); // TODO: (solve)
+        void solve_BT (); // TODO: solve_BT
+        void solve_BJ (); // TODO: solve_BJ
         void test  ();
 
         void print ();
