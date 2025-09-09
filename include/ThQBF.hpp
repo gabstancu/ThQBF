@@ -106,15 +106,16 @@ class ThQBF
         void restore_level              (int search_level);
         void remove_variable            (int variable);
         void restore_variable           (int variable);
+        void check_affectedVars         ();
 
 
         /* ================================ Inference ================================ */
         void UnitPropagation    ();
         void UniversalReduction (); 
         bool can_perform_UR     (int u, int clauseID);
-        void PureLiteral        (); // TODO: Pure Literal
+        void PureLiteral        ();
         int  deduce             (); /* used in BJ */
-        int  infer              (); /* TODO: infer (used in BT) */
+        int  infer              (); /* used in BT */
 
 
         /* ================================ Clause learning ================================ */

@@ -102,7 +102,8 @@ void ThQBF::assign (int variable, int value)
 
                 remove_clause(clauseID, varID);
                 if (solver_status == SolverStatus::SAT)
-                {
+                {   
+                    check_affectedVars();
                     return;
                 }
                 
@@ -170,7 +171,8 @@ void ThQBF::assign (int variable, int value)
 
                 remove_clause(clauseID, varID);
                 if (solver_status == SolverStatus::SAT)
-                {
+                {   
+                    check_affectedVars();
                     return;
                 }
                 
@@ -231,15 +233,20 @@ void ThQBF::assign (int variable, int value)
             }
         }
     }
+    check_affectedVars();
+}
 
+
+void ThQBF::check_affectedVars ()
+{
     for (auto it=varsAffected.begin(); it!=varsAffected.end();)
     {   
         if (Variables[*it].numNegAppear == 0 && 
             Variables[*it].numPosAppear == 0 &&
             Variables[*it].numPosAppearCubes == 0 &&
             Variables[*it].numNegAppearCubes == 0)
-        {    
-            // std::cout << "zero appear: " << varID + 1 << '\n';
+        {   
+            // std::cout << "zero appear: " << *it + 1 << '\n';
             remove_variable(*it + 1);
             Variables[*it].status = qbf::VariableStatus::REMOVED;
         }
@@ -334,8 +341,8 @@ void ThQBF::remove_literal_from_cube (int literal, int cubeID, int positionInCub
 
     if (Cubes[cubeID].state[positionInCube] != qbf::LiteralStatus::AVAILABLE)
     {   
-        std::cout << "---------- in ---------\n";
-        printf("cube: %d | literal: %d | position in cube: %d\n", cubeID, literal, positionInCube);
+        // std::cout << "---------- in ---------\n";
+        // printf("cube: %d | literal: %d | position in cube: %d\n", cubeID, literal, positionInCube);
         return;
     }
 
@@ -543,6 +550,7 @@ void ThQBF::remove_variable (int variable)
 
     if (Blocks[blockID].size == 0)
     {   
+        // std::cout << "block " << blockID << " removed!\n";
         Blocks[blockID].status = qbf::QuantifierBlockStatus::UNAVAILABLE;
         remainingBlocks--;
         PREFIX.erase(blockID);
@@ -763,24 +771,25 @@ int ThQBF::clause_is_unit (int clauseID, int referenceVariable)
 
 int ThQBF::infer ()
 {  
-    std::unordered_map<int, int> assignments = {};
+    std::unordered_map<int, int> assignments;
     while (1)
     {   
         assignments = Path;
-        // UniversalReduction();
-        if (solver_status != SolverStatus::SEARCH)
+        std::cout << "===================== UR =====================\n";
+        UniversalReduction();
+        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
         {
             return solver_status;
         }
-
+        std::cout << "===================== UP =====================\n";
         UnitPropagation();
-        if (solver_status != SolverStatus::SEARCH)
+        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
         {
             return solver_status;
         }
-
+        std::cout << "===================== PL =====================\n";
         PureLiteral();
-        if (solver_status != SolverStatus::SEARCH)
+        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
         {
             return solver_status;
         }
@@ -894,17 +903,6 @@ bool ThQBF::can_perform_UR (int u, int clauseID)
 
 void ThQBF::UniversalReduction ()
 {
-    if (solver_status == SolverStatus::PRESEARCH)
-    {
-        std::cout << "Solver stage: PRESEARCH\n\n"; 
-    }
-    else
-    {
-        std::cout << "Solver stage: SEARCH\n\n";
-    }
-
-    std::vector<int> tailing = {};
-
     for (int u : P)
     {
         if (Variables[u-1].blockID == 0)
@@ -930,7 +928,6 @@ void ThQBF::UniversalReduction ()
                 if (can_perform_UR(u, clauseID))
                 {
                     remove_literal_from_clause(u, clauseID, position);
-                    tailing.push_back(u);
                 }
             }
         }
@@ -947,44 +944,17 @@ void ThQBF::UniversalReduction ()
                 if (can_perform_UR(u, clauseID))
                 {
                     remove_literal_from_clause(-u, clauseID, position);
-                    if (tailing.empty())
-                    {
-                        tailing.push_back(u);
-                    }
-                    else if (tailing[tailing.size()-1] != u)
-                    {
-                        tailing.push_back(u);
-                    }
                 }
             }
         }
     }
 
-    for (int u : tailing)
-    {
-        if (Variables[u-1].numNegAppear == 0 && 
-            Variables[u-1].numPosAppear == 0 &&
-            Variables[u-1].numPosAppearCubes == 0 &&
-            Variables[u-1].numNegAppearCubes == 0)
-        {
-            remove_variable(u);
-            Variables[u-1].status = qbf::VariableStatus::REMOVED;
-        }
-    }
+    check_affectedVars();
 }
 
 
 void ThQBF::PureLiteral ()
 {
-    if (solver_status == SolverStatus::PRESEARCH)
-    {
-        std::cout << "Solver stage: PRESEARCH\n\n"; 
-    }
-    else
-    {
-        std::cout << "Solver stage: SEARCH\n\n";
-    }
-
     if (PureLiterals.size() == 0)
     {
         for (Variable v : Variables)
@@ -1018,18 +988,37 @@ void ThQBF::PureLiteral ()
             }
         }
     }
-    
-    // for (auto it = varsAffected.begin(); it!=varsAffected.end();)
-    // {
-    //     if (Variables[*it].numNegAppear == 0 && 
-    //         Variables[*it].numPosAppear == 0 &&
-    //         Variables[*it].numPosAppearCubes == 0 &&
-    //         Variables[*it].numNegAppearCubes == 0)
-    //     {
+    else
+    {
+        for (const auto& [literal, polarity] : PureLiterals)
+        {
+            int varID = std::abs(literal) - 1;
 
-    //     }
-    // }
-    // varsAffected = {};
+            if (polarity == 1) /* pure positive */
+            {
+                if (Variables[varID].is_existential())
+                {
+                    assign(varID+1, 1);
+                }
+                else
+                {
+                    assign(varID+1, 0);
+                }
+            }
+            else if (polarity == 0) /* pure negative */
+            {
+                if (Variables[varID].is_existential())
+                {
+                    assign(varID+1, 0);
+                }
+                else
+                {
+                    assign(varID+1, 1);
+                }
+            }
+        }
+        PureLiterals.clear();
+    }
 }
 
 
@@ -2444,7 +2433,8 @@ void ThQBF::test ()
 
     // UniversalReduction();
     level = PRESEARCH;
-    PureLiteral();
+    // printSet(varsAffected);
+    // infer();
 
     print_Blocks();
     print_Prefix();
