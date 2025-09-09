@@ -78,7 +78,7 @@ class ThQBF
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
         std::unordered_map<int, std::set<int>> Cubes_trail     = {}; 
         std::set<int>                          varsAffected    = {};
-        std::unordered_map<int, int>           PureLiterals    = {}; 
+        std::unordered_map<int, int>           PureLiterals    = {};  /* varID : polarity */
 
 
         /* ================================ Assignments ================================ */

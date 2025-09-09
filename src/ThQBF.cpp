@@ -266,11 +266,21 @@ void ThQBF::remove_literal_from_clause (int literal, int clauseID, int positionI
     if (literal > 0)
     {   
         Variables[varID].numPosAppear--;
+
+        if (!Variables[varID].numPosAppear)
+        {
+            PureLiterals[varID] = 1;
+        }
     }
     else
     {   
         Variables[varID].numNegAppear--;
+        if (!Variables[varID].numNegAppear)
+        {
+            PureLiterals[varID] = 0;
+        }
     }
+
 
     if (Variables[varID].is_existential())
     {   
@@ -625,10 +635,19 @@ void ThQBF::remove_clause (int clauseID, int referenceVarID)
         if (literal > 0)
         {   
             Variables[varID].numPosAppear--;
+
+            if (!Variables[varID].numPosAppear)
+            {
+                PureLiterals[varID] = 1;
+            }
         }
         else
         {   
             Variables[varID].numNegAppear--;
+            if (!Variables[varID].numNegAppear)
+            {
+                PureLiterals[varID] = 0;
+            }
         }
 
         if (Variables[varID].is_existential())
@@ -965,6 +984,52 @@ void ThQBF::PureLiteral ()
     {
         std::cout << "Solver stage: SEARCH\n\n";
     }
+
+    if (PureLiterals.size() == 0)
+    {
+        for (Variable v : Variables)
+        {
+            int varID = v.varID;
+
+            /* pure positive */
+            if (Variables[varID].numPosAppear && !Variables[varID].numNegAppear)
+            {
+                if (Variables[varID].is_existential())
+                {
+                    assign(v.variable, 1);
+                }
+                else
+                {
+                    assign(v.variable, 0);
+                }
+            }
+
+            /* pure negative */
+            if (!Variables[varID].numPosAppear && Variables[varID].numNegAppear)
+            {
+                if (Variables[varID].is_existential())
+                {
+                    assign(v.variable, 0);
+                }
+                else
+                {
+                    assign(v.variable, 1);
+                }
+            }
+        }
+    }
+    
+    // for (auto it = varsAffected.begin(); it!=varsAffected.end();)
+    // {
+    //     if (Variables[*it].numNegAppear == 0 && 
+    //         Variables[*it].numPosAppear == 0 &&
+    //         Variables[*it].numPosAppearCubes == 0 &&
+    //         Variables[*it].numNegAppearCubes == 0)
+    //     {
+
+    //     }
+    // }
+    // varsAffected = {};
 }
 
 
@@ -2301,7 +2366,7 @@ void ThQBF::test ()
     print_Prefix();
     print_Clauses();
     print_Cubes();
-    // print_Variables();
+    print_Variables();
 
     // level         = PRESEARCH;
     // solver_status = SolverStatus::PRESEARCH;
@@ -2378,6 +2443,7 @@ void ThQBF::test ()
     // }
 
     // UniversalReduction();
+    level = PRESEARCH;
     PureLiteral();
 
     print_Blocks();
