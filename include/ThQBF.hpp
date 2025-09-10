@@ -92,7 +92,7 @@ class ThQBF
 
 
         /* ================================ General ================================ */
-        void assign                     (int variable,   int value); 
+        void assign                     (int variable,   int value); // TODO: return int
         
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
         void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
@@ -161,9 +161,9 @@ class ThQBF
     public:
         ThQBF(const QDimacsParser& parser);
 
-        void solve_BT (); // TODO: solve_BT
-        void solve_BJ (); // TODO: solve_BJ
-        void test  ();
+        int  solve_BT ();
+        int  solve_BJ (); // TODO: solve_BJ
+        void test     ();
 
         void print ();
 
