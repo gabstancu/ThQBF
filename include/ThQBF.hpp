@@ -78,7 +78,7 @@ class ThQBF
         std::unordered_map<int, std::set<int>> Clauses_trail   = {};  /* level: clauses changed/ removed */
         std::unordered_map<int, std::set<int>> Cubes_trail     = {}; 
         std::set<int>                          varsAffected    = {};
-        std::unordered_map<int, int>           PureLiterals    = {}; 
+        std::unordered_map<int, int>           PureLiterals    = {};  /* varID : polarity */
 
 
         /* ================================ Assignments ================================ */
@@ -92,7 +92,7 @@ class ThQBF
 
 
         /* ================================ General ================================ */
-        void assign                     (int variable,   int value); 
+        void assign                     (int variable,   int value); // TODO: return int
         
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
         void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
@@ -106,14 +106,16 @@ class ThQBF
         void restore_level              (int search_level);
         void remove_variable            (int variable);
         void restore_variable           (int variable);
+        void check_affectedVars         ();
 
 
         /* ================================ Inference ================================ */
         void UnitPropagation    ();
-        void UniversalReduction (int clauseID, int a);
+        void UniversalReduction (); 
+        bool can_perform_UR     (int u, int clauseID);
         void PureLiteral        ();
-        int  deduce             ();
-        void imply              ();
+        int  deduce             (); /* used in BJ */
+        int  infer              (); /* used in BT */
 
 
         /* ================================ Clause learning ================================ */
@@ -159,8 +161,9 @@ class ThQBF
     public:
         ThQBF(const QDimacsParser& parser);
 
-        void solve (); // TODO: (solve)
-        void test  ();
+        int  solve_BT ();
+        int  solve_BJ (); // TODO: solve_BJ
+        void test     ();
 
         void print ();
 

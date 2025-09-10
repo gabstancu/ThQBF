@@ -129,7 +129,7 @@ void printStackOfPairsSafe(const std::stack<std::pair<T1, T2>>& original)
     // std::cout << "Stack contents (bottom to top):\n";
     for (auto it = elements.rbegin(); it != elements.rend(); ++it) 
     {
-        std::cout << "(" << it->first << ", " << it->second << ")\n";
+        std::cout << "(" << it->first + 1 << ", " << it->second << ")\n";
     }
     std::cout<<'\n';
 }
