@@ -1155,6 +1155,13 @@ int ThQBF::deduce ()
     }
 }
 
+
+void ThQBF::decide_next_branch (int& blevel, int& varID)
+{
+    blevel = PREFIX.begin()->first;
+    varID  = *PREFIX[blevel].begin();
+}
+
 /* ================================ Conflict-driven Learning ================================ */
 std::pair<int, int> ThQBF::analyse_conflict ()
 {   
@@ -2301,54 +2308,154 @@ int ThQBF::solve_BJ ()
     level = 1;
 
     /* determine first variable to branch on */
-    int blevel  = PREFIX.begin()->first;
-    int varID   = *PREFIX[blevel].begin();
-    int blockID = Variables[varID].blockID;
+    int blevel, varID; 
+    decide_next_branch(blevel, varID);
+
     int value;
     int top_level;
 
     while (1)
-    {
-        Search_Stack.push({varID, level});
-        /* assign value to variable */
-        if (Variables[varID].available_values == 2)
+    {   
+        while (1)
         {
-            value = 1;
-        }
-        else if (Variables[varID].available_values == 1)
-        {
-            value = 0;
-        }
-
-        if (Variables[varID].available_values != 1)
-        {
-            if (Variables[varID].is_existential())
+            Search_Stack.push({varID, level});
+            /* assign value to variable */
+            if (Variables[varID].available_values == 2)
             {
-                SStack.push({varID, level});
+                value = 1;
+            }
+            else if (Variables[varID].available_values == 1)
+            {
+                value = 0;
+            }
+
+            if (Variables[varID].available_values != 1)
+            {
+                if (Variables[varID].is_existential())
+                {
+                    SStack.push({varID, level});
+                }
+                else
+                {
+                    PStack.push({varID, level});
+                }
+            }
+
+            std::cout << "***************************** LEVEL " << level << "  branching on: "<<  varID + 1 <<" value: "<< value <<" ***************************** \n";
+            
+            assign(varID+1, value); // branch
+            if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
+            {
+                solver_status = deduce();
+            }
+
+            std::cout << "solver status: " << SolverStatus::to_string(solver_status) << '\n';
+
+            if (solver_status != SolverStatus::SAT && solver_status != SolverStatus::UNSAT)
+            {
+                decide_next_branch(blevel, varID);
+                level++;
             }
             else
             {
-                PStack.push({varID, level});
+                if (solver_status == SolverStatus::SAT)
+                {
+                    if (1) /* if cube learning is enabled */
+                    {
+                        
+                    }
+                    else /* backtrack to the last universal */
+                    {
+                        if (PStack.empty())
+                        {
+                            std::cout << "SAT: PStack\n";
+                            break;
+                        }
+                        varID     = PStack.top().first;
+                        top_level = PStack.top().second;
+                        PStack.pop();
+
+                        while (level >= top_level)
+                        {
+                            restore_level(level);
+                            if (level > top_level)
+                            {
+                                Variables[Search_Stack.top().first].available_values = 2;
+                            }
+                            level--;
+                            Search_Stack.pop();
+
+                            if (!SStack.empty())
+                            {
+                                if (SStack.top().second > top_level)
+                                {   
+                                    SStack.pop();
+                                }
+                            }
+                        }
+                        level++;
+                        solver_status = SolverStatus::SEARCH;
+                    }
+                }
+                else if (solver_status == SolverStatus::UNSAT)
+                {
+                    if (1) /* if conflict learning is enabled */
+                    {
+
+                    }
+                    else /* backtrack to the last existential */
+                    {
+                        if (SStack.empty())
+                        {
+                            std::cout << "UNSAT: SStack empty\n";
+                            break;
+                        }
+                        varID     = SStack.top().first;
+                        top_level = SStack.top().second;
+                        SStack.pop();
+
+                        while (level >= top_level)
+                        {
+                            restore_level(level);
+                            if (level > top_level)
+                            {
+                                Variables[Search_Stack.top().first].available_values = 2;
+                            }
+                            level--;
+                            Search_Stack.pop();
+
+                            if (!PStack.empty())
+                            {
+                                if (PStack.top().second > top_level)
+                                {   
+                                    PStack.pop();
+                                }                           
+                            }
+                        }
+                        level++;
+                        solver_status = SolverStatus::SEARCH;
+                    }
+                }
             }
         }
     }
+
+    return solver_status;
 }
 
 
 int ThQBF::solve_BT ()
 {
-    // print_Blocks();
-    // print_Prefix();
-    // print_Clauses();
-    // print_Variables();
-
     /* 
         preprocess: if any type of learning is enabled, only use UP and perhaps PL.
     */
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-    // solver_status = infer();
+    if (1) /* if QBCP is enabled */
+    {
+        solver_status = infer();
+    }
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2361,9 +2468,9 @@ int ThQBF::solve_BT ()
     solver_status = SolverStatus::SEARCH;
     level = 1;
     /* determine first var to assign */
-    int blevel  = PREFIX.begin()->first;
-    int varID   = *PREFIX[blevel].begin();
-    int blockID = Variables[varID].blockID;
+    int blevel, varID;
+    decide_next_branch(blevel, varID);
+
     int value;
     int top_level;
     // std::cout << "Selected variable: " << varID + 1 << " | Block: " << blockID << '\n';
@@ -2419,8 +2526,7 @@ int ThQBF::solve_BT ()
 
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
             {   
-                blevel = PREFIX.begin()->first;
-                varID  = *PREFIX[blevel].begin();
+                decide_next_branch(blevel, varID);
                 level++;
                 // std::cout << "selected var: " << varID + 1 << " level: " << level << '\n';
             }
@@ -2468,7 +2574,7 @@ int ThQBF::solve_BT ()
                     level++;
                     solver_status = SolverStatus::SEARCH;
                 }
-                else /* UNSAT */
+                else if (solver_status == SolverStatus::UNSAT)
                 {
                     if (SStack.empty())
                     {   
@@ -2527,7 +2633,7 @@ int ThQBF::solve_BT ()
 
 void ThQBF::test ()
 {       
-    // print_Clauses();
+    print_Clauses();
     // int s = solve_BJ();
     // std::cout << "return status: " << s << '\n';
     UnitPropagation();

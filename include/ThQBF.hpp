@@ -107,6 +107,7 @@ class ThQBF
         void remove_variable            (int variable);
         void restore_variable           (int variable);
         void check_affectedVars         ();
+        void decide_next_branch         (int& blevel, int& varID);
 
 
         /* ================================ Inference ================================ */
