@@ -1,5 +1,6 @@
 #include "ThQBF.hpp"
 #include <assert.h>
+#include <climits>
 
 ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
 {
@@ -1155,13 +1156,20 @@ int ThQBF::deduce ()
     }
 }
 
+
+void ThQBF::decide_next_branch (int& blevel, int& varID)
+{
+    blevel = PREFIX.begin()->first;
+    varID  = *PREFIX[blevel].begin();
+}
+
 /* ================================ Conflict-driven Learning ================================ */
 std::pair<int, int> ThQBF::analyse_conflict ()
 {   
     int back_dl;
     std::pair<int, int> p;
 
-    if (level == SolverStatus::ROOT)
+    if (level == SolverStatus::PRESEARCH)
     {   
         p.first  = SolverStatus::ROOT;
         p.second = SolverStatus::ROOT;
@@ -1178,6 +1186,13 @@ std::pair<int, int> ThQBF::analyse_conflict ()
         int antecedent_clauseID           = Variables[varID].antecedent_clause;
         std::unordered_map<int, int> ante = Clauses[antecedent_clauseID].map_representation();
         cl                                = resolve(cl, ante, variable);
+    }
+
+    if (solver_status == SolverStatus::UNSAT)
+    {
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT;
+        return p;
     }
     std::cout << "learned clause:\n";
     print_hashmap(cl);
@@ -1444,8 +1459,8 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
     
     if (L_max <= 0) /* all universal clause, or all existentials at the root level -> ROOT-UNSAT exception */
     {   
-        solver_status = SolverStatus::ROOT;
-        return false;
+        solver_status = SolverStatus::UNSAT;
+        return true;
     }
     // check if max level appears more than once
     if (decision_levels[L_max].first > 1)
@@ -1763,7 +1778,7 @@ std::pair<int, int> ThQBF::analyse_SAT ()
     int back_dl;
     std::pair<int, int> p;
 
-    if (level == SolverStatus::ROOT)
+    if (level == SolverStatus::PRESEARCH)
     {   
         p.first  = SolverStatus::ROOT;
         p.second = SolverStatus::ROOT;
@@ -1789,6 +1804,13 @@ std::pair<int, int> ThQBF::analyse_SAT ()
 
     // std::cout << "learned cube:\n";
     // print_hashmap(sat_cube);
+
+    if (solver_status == SolverStatus::SAT) /* all existential cube case */
+    {
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT; 
+        return p;
+    }
 
     p = cube_asserting_level(sat_cube);
     add_cube_to_db(sat_cube, p.second);
@@ -2109,7 +2131,7 @@ bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolven
 
     if (!a_num) /* all existential cube (asserting at level 0)*/
     {   
-        solver_status = SolverStatus::SAT; // TODO: handle this outside
+        solver_status = SolverStatus::SAT;
         return true;
     }
 
@@ -2282,35 +2304,45 @@ void ThQBF::print_Prefix ()
 
 int ThQBF::solve_BJ ()
 {
-    /* 
-        preprocess: if any type of learning is enabled, only use UP and perhaps PL.
-    */
+
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-    // solver_status = infer();
+    if (!1)
+    {
+        UnitPropagation();
+    }
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
-        std::cout << "ThQBF terminated during preprocessing.\n Status: " << SolverStatus::to_string(solver_status);
+        std::cout << "ThQBF terminated during preprocessing.\n";
+        std::cout << "Status: " << SolverStatus::to_string(solver_status) << '\n';
         return solver_status;
     }
 
-    /* ===================== search loop ===================== */
-    solver_status = SolverStatus::SEARCH;
-    level = 1;
 
-    /* determine first variable to branch on */
-    int blevel  = PREFIX.begin()->first;
-    int varID   = *PREFIX[blevel].begin();
-    int blockID = Variables[varID].blockID;
-    int value;
-    int top_level;
+    /* ================== search loop ================== */
+    solver_status = SolverStatus::SEARCH;
+    level         = 1;
+
+    int blevel, varID;
+    int value , top_level;
+    std::pair<int, int> p = {};
 
     while (1)
-    {
+    {   
+        decide_next_branch(blevel, varID);
+
+        if (Variables[varID].available_values == 0)
+        {
+            return solver_status;
+        }
+
+        solver_status = SolverStatus::SEARCH;
+
         Search_Stack.push({varID, level});
-        /* assign value to variable */
+
+        /* choose a value for varID (first branch on 1) */
         if (Variables[varID].available_values == 2)
         {
             value = 1;
@@ -2331,24 +2363,166 @@ int ThQBF::solve_BJ ()
                 PStack.push({varID, level});
             }
         }
+
+        std::cout << "***************************** LEVEL " << level << "  branching on: "<<  varID + 1 <<" value: "<< value <<" ***************************** \n";
+
+        assign(varID+1, value);
+
+        while (1)
+        {
+            if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
+            {
+                if (!1) /* if inference is enabled */
+                {
+                    solver_status = deduce();
+                }
+            }
+            std::cout << "solver status: " << SolverStatus::to_string(solver_status) << '\n';
+
+            if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
+            {   
+                level++;
+                break;
+            }
+            else
+            {
+                if (solver_status == SolverStatus::SAT)
+                {
+                    if (!1) /* if cube learning is enabled */
+                    {
+                        p      = analyse_SAT();
+                        blevel = p.first;
+
+                        if (blevel == SolverStatus::ROOT)
+                        {
+                            return SolverStatus::SAT;
+                        }
+
+                        while (level > blevel)
+                        {
+                            restore_level(level);
+                            level--;
+                        }
+                        /* push unit cube to unit cubes stack */
+                        int unit_pos = Cubes[Cubes.size()-1].unit_literal_position;
+                        int refVar   = std::abs(Cubes[Cubes.size()-1].literals[unit_pos]);
+                        unit_cubes.push({Cubes.size()-1, level});
+                    }
+                    else /* backtrack to the last universal */
+                    {
+                        if (PStack.empty())
+                        {   
+                            printf("SAT: PStack empty\n");
+                            return solver_status;
+                        }
+                        varID     = PStack.top().first;
+                        top_level = PStack.top().second;
+
+                        PStack.pop();
+
+
+                        while (level >= top_level)
+                        {
+                            restore_level(level);
+                            if (level > top_level)
+                            {
+                                Variables[Search_Stack.top().first].available_values = 2;
+                            }
+                            level--;
+                            // std::cout << "popping from SearchStack: " << Search_Stack.top().first + 1 << '\n';
+                            Search_Stack.pop();
+
+                            if (!SStack.empty())
+                            {
+                                if (SStack.top().second > top_level)
+                                {   
+                                    SStack.pop();
+                                }
+                            }
+                        }
+                        level++;
+                        break;
+                    }
+                }
+                else if (solver_status == SolverStatus::UNSAT)
+                {
+                    if (!1) /* if conflict learning is enabled */
+                    {
+                        p      = analyse_conflict();
+                        blevel = p.first;
+
+                        if (blevel == SolverStatus::PRESEARCH)
+                        {
+                            return SolverStatus::UNSAT;
+                        }
+
+                        while (level > blevel)
+                        {
+                            restore_level(level);
+                            level--;
+                        }
+
+                        int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
+                        int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
+                        unit_clauses.push({Clauses.size()-1, level});
+                    }
+                    else /* backtrack to the last existential */
+                    {
+                        if (SStack.empty())
+                        {   
+                            printf("UNSAT: SStack empty\n");
+                            return solver_status;
+                        }
+                        varID     = SStack.top().first;
+                        top_level = SStack.top().second;
+                        SStack.pop();
+
+                        while (level >= top_level)
+                        {
+                            restore_level(level);
+                            if (level > top_level)
+                            {
+                                Variables[Search_Stack.top().first].available_values = 2;
+                            }
+                            level--;
+                            Search_Stack.pop();
+
+
+                            if (!PStack.empty())
+                            {
+                                if (PStack.top().second > top_level)
+                                {   
+                                    PStack.pop();
+                                }
+                            }
+
+                        }
+                        level++;
+                        break;
+                    }
+                }
+            }
+        }
     }
+
+
+
+    return solver_status;
 }
 
 
 int ThQBF::solve_BT ()
 {
-    // print_Blocks();
-    // print_Prefix();
-    // print_Clauses();
-    // print_Variables();
-
     /* 
         preprocess: if any type of learning is enabled, only use UP and perhaps PL.
     */
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-    // solver_status = infer();
+    if (!1) /* if QBCP is enabled */
+    {
+        solver_status = infer();
+    }
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2361,9 +2535,9 @@ int ThQBF::solve_BT ()
     solver_status = SolverStatus::SEARCH;
     level = 1;
     /* determine first var to assign */
-    int blevel  = PREFIX.begin()->first;
-    int varID   = *PREFIX[blevel].begin();
-    int blockID = Variables[varID].blockID;
+    int blevel, varID;
+    decide_next_branch(blevel, varID);
+
     int value;
     int top_level;
     // std::cout << "Selected variable: " << varID + 1 << " | Block: " << blockID << '\n';
@@ -2419,8 +2593,7 @@ int ThQBF::solve_BT ()
 
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
             {   
-                blevel = PREFIX.begin()->first;
-                varID  = *PREFIX[blevel].begin();
+                decide_next_branch(blevel, varID);
                 level++;
                 // std::cout << "selected var: " << varID + 1 << " level: " << level << '\n';
             }
@@ -2468,7 +2641,7 @@ int ThQBF::solve_BT ()
                     level++;
                     solver_status = SolverStatus::SEARCH;
                 }
-                else /* UNSAT */
+                else if (solver_status == SolverStatus::UNSAT)
                 {
                     if (SStack.empty())
                     {   
@@ -2528,10 +2701,10 @@ int ThQBF::solve_BT ()
 void ThQBF::test ()
 {       
     // print_Clauses();
-    // int s = solve_BJ();
-    // std::cout << "return status: " << s << '\n';
-    UnitPropagation();
-    print_hashmap(Path);
+    int s = solve_BJ();
+    std::cout << "return status: " << s << '\n';
+    // UnitPropagation();
+    // print_hashmap(Path);
 
     // /* add some dummy cubes to test assignments and appearances updates */
     // std::unordered_map<int, int> cube_1 = { {-1, qbf::LiteralStatus::AVAILABLE}, 

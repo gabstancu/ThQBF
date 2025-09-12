@@ -6,6 +6,7 @@
 #include <sstream>
 #include <map>
 #include <set>
+#include <algorithm>
 #include "qbf/qbf.hpp"
 class QDimacsParser
 {

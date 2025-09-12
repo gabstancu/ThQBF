@@ -92,7 +92,7 @@ class ThQBF
 
 
         /* ================================ General ================================ */
-        void assign                     (int variable,   int value); // TODO: return int
+        void assign                     (int variable,   int value);
         
         void remove_literal_from_clause (int literal, int clauseID, int positionInClause);
         void remove_literal_from_cube   (int literal, int cubeID,   int positionInCube);
@@ -107,6 +107,7 @@ class ThQBF
         void remove_variable            (int variable);
         void restore_variable           (int variable);
         void check_affectedVars         ();
+        void decide_next_branch         (int& blevel, int& varID);
 
 
         /* ================================ Inference ================================ */
