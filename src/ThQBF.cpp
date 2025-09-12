@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <climits>
 
-ThQBF::ThQBF (const QDimacsParser& parser) : level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
+ThQBF::ThQBF (const QDimacsParser& parser, const Options& options) : opts(options), level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
 {
     this->Clauses              = parser.matrix;
     this->Blocks               = parser.quantifier_prefix;
@@ -798,25 +798,37 @@ int ThQBF::infer ()
     while (1)
     {   
         assignments = Path;
-        // std::cout << "===================== UR =====================\n";
-        UniversalReduction();
-        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
-        {
-            return solver_status;
+
+        if (opts.ur)
+        {   
+            // std::cout << "===================== UR =====================\n";
+            UniversalReduction();
+            if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
+            {
+                return solver_status;
+            }
         }
-        // std::cout << "===================== UP =====================\n";
-        UnitPropagation();
-        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
+        
+        if (opts.up)
         {
-            return solver_status;
-        }
-        // std::cout << "===================== PL =====================\n";
-        PureLiteral();
-        if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
-        {
-            return solver_status;
+            // std::cout << "===================== UP =====================\n";
+            UnitPropagation();
+            if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
+            {
+                return solver_status;
+            }
         }
 
+        if (opts.pl)
+        {
+            // std::cout << "===================== PL =====================\n";
+            PureLiteral();
+            if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
+            {
+                return solver_status;
+            }
+        }
+        
         if (assignments == Path)
         {
             return qbf::FormulaStatus::SIMPLIFIED;
@@ -875,8 +887,8 @@ void ThQBF::UnitPropagation ()
             }
         }
     }
-    return;
     deduce();
+    return;
 }
 
 
@@ -1034,9 +1046,15 @@ void ThQBF::PureLiteral ()
 
 int ThQBF::deduce ()
 {   
+    if (!opts.up)
+    {
+        std::cout << "Deducing is not enabled\n";
+        return solver_status;
+    }
+
     while (solver_status != SolverStatus::SAT && solver_status != SolverStatus::UNSAT)
-    {   
-        if (1) /* if UP or CDCL enabled */
+    {    
+        if (opts.up || opts.qcdcl) /* if UP or CDCL enabled */
         {
             while (!unit_clauses.empty())
             {
@@ -1088,7 +1106,7 @@ int ThQBF::deduce ()
             }
         }
 
-        if (1 /* && level != PRESEARCH */) /* if Cube Learning flag is on imply unit cubes */
+        if (opts.cube_learning /* && level != PRESEARCH */) /* if Cube Learning flag is on imply unit cubes */
         {
             while(!unit_cubes.empty())
             {
@@ -1135,11 +1153,11 @@ int ThQBF::deduce ()
         }
 
         if (unit_clauses.empty()) /* no new unit clauses */
-        {
+        {   
             if (solver_status != SolverStatus::SAT && solver_status != SolverStatus::UNSAT)
             {   
                 std::cout << "Solver status after deducing at level " << level << ": " << SolverStatus::to_string(solver_status) << '\n';
-                return SolverStatus::UNDETERMINED;
+                return SolverStatus::SEARCH;
             }
         }
     }
@@ -1175,9 +1193,9 @@ std::pair<int, int> ThQBF::analyse_conflict ()
         p.second = SolverStatus::ROOT;
         return p;
     }
-
+    
     std::unordered_map<int, int> cl = Clauses[conflict_clause].map_representation();
-
+    
     while (!stop_criteria_met(cl))
     {   
         int literal                       = choose_e_literal(cl);
@@ -1187,9 +1205,9 @@ std::pair<int, int> ThQBF::analyse_conflict ()
         std::unordered_map<int, int> ante = Clauses[antecedent_clauseID].map_representation();
         cl                                = resolve(cl, ante, variable);
     }
-
-    if (solver_status == SolverStatus::UNSAT)
-    {
+    
+    if (solver_status == SolverStatus::UNSAT_EXCEPTION)
+    {   
         p.first  = SolverStatus::ROOT;
         p.second = SolverStatus::ROOT;
         return p;
@@ -1459,7 +1477,7 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
     
     if (L_max <= 0) /* all universal clause, or all existentials at the root level -> ROOT-UNSAT exception */
     {   
-        solver_status = SolverStatus::UNSAT;
+        solver_status = SolverStatus::UNSAT_EXCEPTION;
         return true;
     }
     // check if max level appears more than once
@@ -1474,7 +1492,7 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
     */
     int decision_variable_at_V = decision_variable_at[L_max];
     if (!Variables[decision_variable_at_V-1].is_existential())
-    {
+    {   
         return false;
     }
 
@@ -1724,6 +1742,7 @@ int ThQBF::choose_a_literal (const std::unordered_map<int, int>& sc)
 
         top_level = std::max(top_level, Variables[varID].level);
     }
+    std::cout << "top level: " << top_level << "\n";
 
     assert(top_level>=0 && "No implied FORALL in cube (should be asserting or UNSAT-root).");
 
@@ -1805,8 +1824,8 @@ std::pair<int, int> ThQBF::analyse_SAT ()
     // std::cout << "learned cube:\n";
     // print_hashmap(sat_cube);
 
-    if (solver_status == SolverStatus::SAT) /* all existential cube case */
-    {
+    if (solver_status == SolverStatus::SAT_EXCEPTION) /* all existential cube case */
+    {   
         p.first  = SolverStatus::ROOT;
         p.second = SolverStatus::ROOT; 
         return p;
@@ -2091,6 +2110,7 @@ std::pair<int, int> ThQBF::cube_asserting_level (const std::unordered_map<int, i
 
 bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolvent)
 {   
+
     /*                  1st criterion
         Among the universal varibles in cube, one and only one has the
         higheset decision level (which may not be the current decision 
@@ -2131,7 +2151,7 @@ bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolven
 
     if (!a_num) /* all existential cube (asserting at level 0)*/
     {   
-        solver_status = SolverStatus::SAT;
+        solver_status = SolverStatus::SAT_EXCEPTION; 
         return true;
     }
 
@@ -2308,10 +2328,13 @@ int ThQBF::solve_BJ ()
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-    if (!1)
+
+    if (opts.up)
     {
         UnitPropagation();
     }
+    // print_Prefix();
+    // print_Clauses();
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2319,7 +2342,6 @@ int ThQBF::solve_BJ ()
         std::cout << "Status: " << SolverStatus::to_string(solver_status) << '\n';
         return solver_status;
     }
-
 
     /* ================== search loop ================== */
     solver_status = SolverStatus::SEARCH;
@@ -2339,7 +2361,6 @@ int ThQBF::solve_BJ ()
         }
 
         solver_status = SolverStatus::SEARCH;
-
         Search_Stack.push({varID, level});
 
         /* choose a value for varID (first branch on 1) */
@@ -2369,13 +2390,10 @@ int ThQBF::solve_BJ ()
         assign(varID+1, value);
 
         while (1)
-        {
+        {   
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
-            {
-                if (!1) /* if inference is enabled */
-                {
-                    solver_status = deduce();
-                }
+            {   
+                solver_status = deduce();
             }
             std::cout << "solver status: " << SolverStatus::to_string(solver_status) << '\n';
 
@@ -2387,9 +2405,9 @@ int ThQBF::solve_BJ ()
             else
             {
                 if (solver_status == SolverStatus::SAT)
-                {
-                    if (!1) /* if cube learning is enabled */
-                    {
+                {   
+                    if (opts.cube_learning) /* if cube learning is enabled */
+                    {   
                         p      = analyse_SAT();
                         blevel = p.first;
 
@@ -2445,19 +2463,21 @@ int ThQBF::solve_BJ ()
                     }
                 }
                 else if (solver_status == SolverStatus::UNSAT)
-                {
-                    if (!1) /* if conflict learning is enabled */
-                    {
+                {   
+                    if (opts.qcdcl) /* if conflict learning is enabled */
+                    {   
+                        
                         p      = analyse_conflict();
                         blevel = p.first;
 
-                        if (blevel == SolverStatus::PRESEARCH)
-                        {
+                        if (blevel == SolverStatus::ROOT)
+                        {   
                             return SolverStatus::UNSAT;
                         }
-
+                        // printf("current level: %d\nasserting level: %d", level, blevel);
                         while (level > blevel)
-                        {
+                        {   
+                            // std::cout << "fdfdfdfdfd\n";
                             restore_level(level);
                             level--;
                         }
@@ -2504,9 +2524,6 @@ int ThQBF::solve_BJ ()
             }
         }
     }
-
-
-
     return solver_status;
 }
 
@@ -2519,10 +2536,8 @@ int ThQBF::solve_BT ()
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-    if (!1) /* if QBCP is enabled */
-    {
-        solver_status = infer();
-    }
+
+    solver_status = infer();
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2576,10 +2591,7 @@ int ThQBF::solve_BT ()
             assign(varID+1, value);
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
             {
-                if (!1) /* if inference is enabled */
-                {
-                    solver_status = infer();
-                }
+                solver_status = infer();
             }
 
             // std::cout << "Search stack:\n";
@@ -2700,9 +2712,10 @@ int ThQBF::solve_BT ()
 
 void ThQBF::test ()
 {       
-    // print_Clauses();
+    print_Clauses();
     int s = solve_BJ();
     std::cout << "return status: " << s << '\n';
+    // return;
     // UnitPropagation();
     // print_hashmap(Path);
 
@@ -2819,7 +2832,7 @@ void ThQBF::test ()
     // /* assign variables */
     // solver_status = SolverStatus::SEARCH;
     // level = 1;
-    // assign(4, 0);
+    // assign(4, 1);
     // deduce();
     // print_Clauses();
     // print_Cubes();
@@ -2835,6 +2848,16 @@ void ThQBF::test ()
     // std::cout << "prefix\n";
     // print_Prefix();
     // // printVector(Path, true);
+
+
+    // level++;
+    // assign(7, 1);
+    // deduce();
+    // print_Clauses();
+    // print_Cubes();
+    // std::cout << "prefix\n";
+    // print_Prefix();
+    // print_hashmap(Path);
 
     // std::pair<int, int> p;
     // if (solver_status == SolverStatus::SAT)
