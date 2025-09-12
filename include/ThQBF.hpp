@@ -7,23 +7,27 @@
 
 namespace SolverStatus
 {
-    constexpr int SAT               =  1;
-    constexpr int UNSAT             =  0;
-    constexpr int PRESEARCH         = -1;
-    constexpr int SEARCH            =  2;
-    constexpr int ROOT              = -2;
-    constexpr int UNDETERMINED      = -3;
+    constexpr int SAT                 =  1;
+    constexpr int UNSAT               =  0;
+    constexpr int PRESEARCH           = -1;
+    constexpr int SEARCH              =  2;
+    constexpr int ROOT                = -2;
+    constexpr int UNDETERMINED        = -3;
+    constexpr int SAT_EXCEPTION       = -4;
+    constexpr int UNSAT_EXCEPTION     = -5;
 
     inline const char* to_string(int s) 
     {
         switch (s) 
         {
-            case SolverStatus::SAT:          return "SAT";
-            case SolverStatus::UNSAT:        return "UNSAT";
-            case SolverStatus::PRESEARCH:    return "PRESEARCH";
-            case SolverStatus::SEARCH:       return "SEARCH";
-            case SolverStatus::ROOT:         return "ROOT";
-            case SolverStatus::UNDETERMINED: return "UNDETERMINED";
+            case SolverStatus::SAT:             return "SAT";
+            case SolverStatus::UNSAT:           return "UNSAT";
+            case SolverStatus::PRESEARCH:       return "PRESEARCH";
+            case SolverStatus::SEARCH:          return "SEARCH";
+            case SolverStatus::ROOT:            return "ROOT";
+            case SolverStatus::UNDETERMINED:    return "UNDETERMINED";
+            case SolverStatus::SAT_EXCEPTION:   return "SAT EXCEPTION";
+            case SolverStatus::UNSAT_EXCEPTION: return "UNSAT EXCEPTION";
         }
         return "INVALID.";
     }
@@ -32,6 +36,8 @@ namespace SolverStatus
 class ThQBF
 {   
     private:
+
+        Options opts;
 
         int solver_status;
 
@@ -160,13 +166,23 @@ class ThQBF
 
 
     public:
-        ThQBF(const QDimacsParser& parser);
+        ThQBF(const QDimacsParser& parser, const Options& options);
 
         int  solve_BT ();
         int  solve_BJ (); // TODO: solve_BJ
         void test     ();
 
-        void print ();
+        void print_options() const 
+        {
+            std::cout << "Options:"
+                    << " debug=" << opts.debug
+                    << " qcdcl=" << opts.qcdcl
+                    << " cube="  << opts.cube_learning
+                    << " ur="    << opts.ur
+                    << " up="    << opts.up
+                    << " pl="    << opts.pl << "\n";
+        }
+        void print_status  ();
 
 };
 
