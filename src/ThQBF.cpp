@@ -1187,6 +1187,13 @@ std::pair<int, int> ThQBF::analyse_conflict ()
         std::unordered_map<int, int> ante = Clauses[antecedent_clauseID].map_representation();
         cl                                = resolve(cl, ante, variable);
     }
+
+    if (solver_status == SolverStatus::UNSAT)
+    {
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT;
+        return p;
+    }
     std::cout << "learned clause:\n";
     print_hashmap(cl);
     
@@ -1452,8 +1459,8 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
     
     if (L_max <= 0) /* all universal clause, or all existentials at the root level -> ROOT-UNSAT exception */
     {   
-        solver_status = SolverStatus::ROOT;
-        return false;
+        solver_status = SolverStatus::UNSAT;
+        return true;
     }
     // check if max level appears more than once
     if (decision_levels[L_max].first > 1)
@@ -1798,6 +1805,13 @@ std::pair<int, int> ThQBF::analyse_SAT ()
     // std::cout << "learned cube:\n";
     // print_hashmap(sat_cube);
 
+    if (solver_status == SolverStatus::SAT) /* all existential cube case */
+    {
+        p.first  = SolverStatus::ROOT;
+        p.second = SolverStatus::ROOT; 
+        return p;
+    }
+
     p = cube_asserting_level(sat_cube);
     add_cube_to_db(sat_cube, p.second);
     // std::cout << "cube asserting level: " << p.first << " asserting literal: " << p.second << '\n';
@@ -2117,7 +2131,7 @@ bool ThQBF::cube_stop_criteria_met (const std::unordered_map<int, int>& resolven
 
     if (!a_num) /* all existential cube (asserting at level 0)*/
     {   
-        solver_status = SolverStatus::SAT; // TODO: handle this outside
+        solver_status = SolverStatus::SAT;
         return true;
     }
 
@@ -2379,7 +2393,7 @@ int ThQBF::solve_BJ ()
                         p      = analyse_SAT();
                         blevel = p.first;
 
-                        if (blevel == SolverStatus::PRESEARCH)
+                        if (blevel == SolverStatus::ROOT)
                         {
                             return SolverStatus::SAT;
                         }
