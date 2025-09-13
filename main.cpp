@@ -8,14 +8,14 @@
 static void print_usage (const char* prog) 
 {
     std::cerr <<
-    "Usage:\n  " << prog << " <file.qdimacs> [flags]\n\n"
-    "Flags (enable/disable):\n"
-    "  --debug\n"
-    "  --qcdcl      | --no-qcdcl\n"
-    "  --cube       | --no-cube\n"
-    "  --ur         | --no-ur\n"
-    "  --up         | --no-up\n"
-    "  --pl         | --no-pl\n";
+                "Usage:\n  " << prog << " <file.qdimacs> [flags]\n\n"
+                "Flags (enable/disable):\n"
+                "  --debug\n"
+                "  --qcdcl      | --no-qcdcl\n"
+                "  --cube       | --no-cube\n"
+                "  --ur         | --no-ur\n"
+                "  --up         | --no-up\n"
+                "  --pl         | --no-pl\n";
 }
 
 
