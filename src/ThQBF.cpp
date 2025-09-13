@@ -57,6 +57,7 @@ void ThQBF::assign (int variable, int value)
     if (solver_status == SolverStatus::PRESEARCH)
     {
         Variables[varID].status = qbf::VariableStatus::ELIMINATED;
+        Variables[varID].available_values = 0;
     }
     else if (solver_status == SolverStatus::SEARCH)
     {   
@@ -64,16 +65,16 @@ void ThQBF::assign (int variable, int value)
         {
             Variables[varID].status     = qbf::VariableStatus::ASSIGNED;
             decision_variable_at[level] = varID;
+            Variables[varID].available_values--;
         }
         else
-        {   //std::cout << "implying...\n";
+        {   
             Variables[varID].status = qbf::VariableStatus::IMPLIED;
         }
     }
 
     Variables[varID].level      = level;
     Variables[varID].assignment = value;
-    Variables[varID].available_values--;
 
     if (value == 1)
     {
@@ -132,7 +133,7 @@ void ThQBF::assign (int variable, int value)
         } 
 
         
-        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
+        if (opts.cube_learning /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
             {
@@ -203,7 +204,7 @@ void ThQBF::assign (int variable, int value)
             }
         }
 
-        if (1 /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
+        if (opts.cube_learning /* && level != SolverStatus::PRESEARCH */) /* if cube learning is enabled */
         {
             if (Cubes.size() != 0)
             {   
@@ -255,7 +256,10 @@ void ThQBF::check_affectedVars ()
         {   
             // std::cout << "zero appear: " << *it + 1 << '\n';
             remove_variable(*it + 1);
-            Variables[*it].status = qbf::VariableStatus::REMOVED;
+            if (Variables[*it].status == qbf::VariableStatus::ACTIVE)
+            {
+                Variables[*it].status = qbf::VariableStatus::REMOVED;
+            }
         }
         ++it;
     }
@@ -590,6 +594,7 @@ void ThQBF::restore_variable (int variable)
     {   
         Variables[varID].antecedent_clause        = UNDEFINED;
         Variables[varID].pos_in_antecedent_clause = UNDEFINED;
+        // Variables[varID].available_values         = 2;
     }
 
     if (Variables[varID].assignment != UNDEFINED)
@@ -831,7 +836,7 @@ int ThQBF::infer ()
         
         if (assignments == Path)
         {
-            return qbf::FormulaStatus::SIMPLIFIED;
+            return SolverStatus::SEARCH;
         }
     }
 }
@@ -887,6 +892,56 @@ void ThQBF::UnitPropagation ()
             }
         }
     }
+
+    lit_is_unit = 0;
+
+    for (int i = 0; i < P.size(); i++)
+    {   
+        if (Variables[P[i] - 1].status != qbf::VariableStatus::ACTIVE)
+        {
+            continue;
+        }
+    
+        // check positive appearances
+        for (const auto& [cubeID, position] : Variables[P[i] - 1].positiveOccurrencesCubes)
+        {   
+            if (Cubes[cubeID].status != qbf::CubeStatus::ACTIVE)
+            {
+                continue;
+            }
+
+            if (cube_is_unit(cubeID, P[i]))
+            {
+                unit_cubes.push({cubeID, level});
+                Cubes[cubeID].unit_literal_position = position;
+                lit_is_unit = 1;
+                break;
+            }
+        }
+
+        if (lit_is_unit) /* ignore check negative appearances if lit is unit */
+        {   
+            lit_is_unit = 0;
+            continue;
+        }
+
+        // check negative appearances
+        for (const auto& [cubeID, position] : Variables[P[i] - 1].negativeOccurrencesCubes)
+        {   
+            if (Cubes[cubeID].status != qbf::CubeStatus::ACTIVE)
+            {
+                continue;
+            }
+
+            if (cube_is_unit(cubeID, P[i]))
+            {   
+                unit_cubes.push({cubeID, level});
+                Cubes[cubeID].unit_literal_position = position;
+                break;
+            }
+        }
+    }
+
     deduce();
     return;
 }
@@ -1158,6 +1213,10 @@ int ThQBF::deduce ()
             {   
                 std::cout << "Solver status after deducing at level " << level << ": " << SolverStatus::to_string(solver_status) << '\n';
                 return SolverStatus::SEARCH;
+            }
+            else
+            {
+                break;
             }
         }
     }
@@ -2329,9 +2388,9 @@ int ThQBF::solve_BJ ()
     level         = PRESEARCH;
 
 
-    if (opts.up)
+    if (opts.up || opts.pl || opts.ur)
     {
-        UnitPropagation();
+        solver_status = infer();
     }
     // print_Prefix();
     // print_Clauses();
@@ -2354,14 +2413,12 @@ int ThQBF::solve_BJ ()
     while (1)
     {   
         decide_next_branch(blevel, varID);
+        solver_status = SolverStatus::SEARCH;
 
         if (Variables[varID].available_values == 0)
         {
             return solver_status;
         }
-
-        solver_status = SolverStatus::SEARCH;
-        Search_Stack.push({varID, level});
 
         /* choose a value for varID (first branch on 1) */
         if (Variables[varID].available_values == 2)
@@ -2388,6 +2445,8 @@ int ThQBF::solve_BJ ()
         std::cout << "***************************** LEVEL " << level << "  branching on: "<<  varID + 1 <<" value: "<< value <<" ***************************** \n";
 
         assign(varID+1, value);
+
+        Search_Stack.push({varID, level});
 
         while (1)
         {   
@@ -2419,6 +2478,7 @@ int ThQBF::solve_BJ ()
                         while (level > blevel)
                         {
                             restore_level(level);
+                            Search_Stack.pop();
                             level--;
                         }
                         /* push unit cube to unit cubes stack */
@@ -2479,6 +2539,7 @@ int ThQBF::solve_BJ ()
                         {   
                             // std::cout << "fdfdfdfdfd\n";
                             restore_level(level);
+                            Search_Stack.pop();
                             level--;
                         }
 
@@ -2555,14 +2616,11 @@ int ThQBF::solve_BT ()
 
     int value;
     int top_level;
-    // std::cout << "Selected variable: " << varID + 1 << " | Block: " << blockID << '\n';
 
     while (1)
-    {
+    {   
         if (Variables[varID].available_values != 0)
         {   
-            Search_Stack.push({varID, level});
-           
             /* assign value to variable */
             if (Variables[varID].available_values == 2)
             {
@@ -2587,27 +2645,21 @@ int ThQBF::solve_BT ()
 
             /* simplify and (optionally) deduce formula */
             std::cout << "***************************** LEVEL " << level << "  branching on: "<<  varID + 1 <<" value: "<< value <<" ***************************** \n";
-            // std::cout << "solver status (prior to assigning): " << SolverStatus::to_string(solver_status) << '\n';
             assign(varID+1, value);
+            Search_Stack.push({varID, level});
+
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
-            {
+            {  
                 solver_status = infer();
+                
             }
 
-            // std::cout << "Search stack:\n";
-            // printStackOfPairsSafe(Search_Stack);
-            // std::cout << "P stack:\n";
-            // printStackOfPairsSafe(PStack);
-            // std::cout << "S stack:\n";
-            // printStackOfPairsSafe(SStack);
-            // print_Prefix();
             std::cout << "solver status: " << SolverStatus::to_string(solver_status) << '\n';
 
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
             {   
                 decide_next_branch(blevel, varID);
                 level++;
-                // std::cout << "selected var: " << varID + 1 << " level: " << level << '\n';
             }
             else
             {
@@ -2620,15 +2672,7 @@ int ThQBF::solve_BT ()
                     }
                     varID     = PStack.top().first;
                     top_level = PStack.top().second;
-                    // std::cout << "popping from PStack: " << PStack.top().first + 1 << '\n';
-                    // std::cout << "top level: " << top_level << '\n';
                     PStack.pop(); 
-
-                    // printStackOfPairsSafe(Search_Stack);
-                    // std::cout << "P stack:\n";
-                    // printStackOfPairsSafe(PStack);
-                    // std::cout << "S stack:\n";
-                    // printStackOfPairsSafe(SStack);
 
                     /* restore formula up to top_level */
                     while (level >= top_level)
@@ -2639,11 +2683,11 @@ int ThQBF::solve_BT ()
                             Variables[Search_Stack.top().first].available_values = 2;
                         }
                         level--;
-                        // std::cout << "popping from SearchStack: " << Search_Stack.top().first + 1 << '\n';
+                        
                         Search_Stack.pop();
 
                         if (!SStack.empty())
-                        {
+                        {   
                             if (SStack.top().second > top_level)
                             {   
                                 SStack.pop();
@@ -2662,8 +2706,6 @@ int ThQBF::solve_BT ()
                     }
                     varID     = SStack.top().first;
                     top_level = SStack.top().second;
-                    // std::cout << "popping from SStack: " << SStack.top().first + 1 << '\n';
-                    // std::cout << "top level: " << top_level << '\n';
                     SStack.pop();
 
                     /* restore formula up to top_level */
@@ -2675,14 +2717,8 @@ int ThQBF::solve_BT ()
                             Variables[Search_Stack.top().first].available_values = 2;
                         }
                         level--;
-                        // std::cout << "popping from SearchStack: " << Search_Stack.top().first + 1 << '\n';
+                        
                         Search_Stack.pop();
-
-                        // printStackOfPairsSafe(Search_Stack);
-                        // std::cout << "P stack:\n";
-                        // printStackOfPairsSafe(PStack);
-                        // std::cout << "S stack:\n";
-                        // printStackOfPairsSafe(SStack);
 
                         if (!PStack.empty())
                         {
@@ -2697,9 +2733,6 @@ int ThQBF::solve_BT ()
                     solver_status = SolverStatus::SEARCH;
                 }
             }
-            // std::cout << "************************************************************\n\n";
-            // std::cout << "selected var: " << varID + 1 << " level: " << level << '\n';
-            // std::cout << "available vals: " << Variables[varID].available_values << '\n';
         }
         else
         {
@@ -2712,12 +2745,14 @@ int ThQBF::solve_BT ()
 
 void ThQBF::test ()
 {       
-    print_Clauses();
+    // print_Clauses();
     int s = solve_BJ();
     std::cout << "return status: " << s << '\n';
-    // return;
-    // UnitPropagation();
-    // print_hashmap(Path);
+    if (s == SolverStatus::SAT)
+    {
+        print_hashmap(Path);
+    }   
+
 
     // /* add some dummy cubes to test assignments and appearances updates */
     // std::unordered_map<int, int> cube_1 = { {-1, qbf::LiteralStatus::AVAILABLE}, 
