@@ -482,7 +482,7 @@ void ThQBF::restore_level (int search_level)
 
     Clauses_trail.erase(search_level);
 
-    if (1 && !Cubes.empty()) /* if cube learning is enabled */
+    if (opts.cube_learning && !Cubes.empty()) /* if cube learning is enabled */
     {
         for (const auto& cubeID : Cubes_trail.at(search_level))
         {   
@@ -604,6 +604,13 @@ void ThQBF::restore_variable (int variable)
     {   
         Variables[varID].antecedent_clause        = UNDEFINED;
         Variables[varID].pos_in_antecedent_clause = UNDEFINED;
+        // Variables[varID].available_values         = 2;
+    }
+
+    if (Variables[varID].antecedent_cube != UNDEFINED)
+    {
+        Variables[varID].antecedent_cube        = UNDEFINED;
+        Variables[varID].pos_in_antecedent_cube = UNDEFINED;
         // Variables[varID].available_values         = 2;
     }
 
