@@ -3,232 +3,222 @@
 
 #include <chrono>
 #include <cstdint>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
-
-#if defined(__APPLE__) || defined(__MACH__) || defined(__linux__)
-  #include <sys/resource.h>
-  #include <sys/time.h>
-#endif
+#include <vector>
 
 namespace tqbf {
 
-    // ---------- tiny time/mem helpers ----------
-    inline uint64_t now_ms() 
-    {
-        using namespace std::chrono;
-        return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-    }
-
-    inline uint64_t cpu_now_ms() 
-    {
-        return static_cast<uint64_t>((1000.0 * std::clock()) / CLOCKS_PER_SEC);
-    }
-
-    inline uint64_t peak_rss_mb() 
-    {
-        #if defined(__APPLE__) || defined(__MACH__)
-            struct rusage ru{};
-            if (getrusage(RUSAGE_SELF, &ru) == 0) 
-                return static_cast<uint64_t>(ru.ru_maxrss) / (1024ULL * 1024ULL); // bytes → MB
-            return 0;
-        #elif defined(__linux__)
-            struct rusage ru{};
-            if (getrusage(RUSAGE_SELF, &ru) == 0) return static_cast<uint64_t>(ru.ru_maxrss) / 1024ULL; // kB → MB
-            return 0;
-        #else
-            return 0; // unsupported platform
-        #endif
-    }
-    
-    inline std::string csv_escape(const std::string& s) 
-    {
-        if (s.find_first_of(",\"\n") == std::string::npos) 
-            return s;
-        std::string out; out.reserve(s.size() + 2);
-        out.push_back('"');
-        for (char c : s) { 
-            if (c == '"') out.push_back('"'); out.push_back(c); 
-        }
-        out.push_back('"');
-        return out;
-    }
-
-    // ---------- plain data container you will bump ----------
+    // ========================== What we record per run ==========================
     struct RunLog 
     {
-        // identity / config
-        std::string instance_relpath;   // e.g. "Sigma/k05/n050/dE2p000/....qdimacs"
-        std::string setting_id;         // "CB", "CB+INF", "CDL", "CDL+CUBE", etc.
-        std::string solver_version;     // git hash or tag
-        int         threads        = 1;
-        uint64_t    solver_seed    = 0;
-        int         timeout_s      = 0;
+        // Identifiers
+        std::string instance_path;   // relative or absolute path to .qdimacs
+        std::string setting;         // e.g. "CB", "CB+INF", "CDL", "CDL+CUBE"
+        std::string build_id;        // e.g. "dev" or git hash
+        int         threads = 1;
 
-        // outcome
-        std::string outcome;            // "TRUE" | "FALSE" | "TIMEOUT" | "UNDEF"
-        int         exit_code      = 0;
+        int n_vars    = 0;
+        int n_clauses = 0;
+        int n_blocks  = 0;
+        int L         = 0;           // if fixed
+        int k         = 0;           // alternation depth if available
+        std::string density_label;   // optional: dE2p250
 
-        // timing & memory (filled by Logger::stop)
-        uint64_t    time_ms        = 0; // wall
-        uint64_t    cpu_time_ms    = 0; // CPU
-        uint64_t    mem_peak_mb    = 0;
+        // Outcome & timing
+        std::string status;          // "SAT"/"UNSAT"/"UNDETERMINED"/...
+        double wall_ms = 0.0;        // wall time in milliseconds
 
-        // plain counters — you just ++ these
-        uint64_t decisions         = 0;
-        uint64_t propagations      = 0;
-        uint64_t conflicts         = 0;
-        uint64_t backtracks        = 0;
-        uint64_t restarts          = 0;
+        // Counters (increment these from the solver)
+        uint64_t decisions_E      = 0;
+        uint64_t decisions_A      = 0;
+        uint64_t decisions_total  = 0;
+
+        uint64_t conflicts        = 0;   // clause-side conflicts
+        uint64_t backtracks       = 0;   // chronological
+        uint64_t backjumps        = 0;   // non-chronological
+
+        uint64_t unit_propagations = 0;  // total literals/unit pushes
+        uint64_t ur_reductions     = 0;  // total literals removed by UR
+        uint64_t pure_literal_sets = 0;  // number of PL assignments
 
         uint64_t learned_clauses   = 0;
         uint64_t learned_cubes     = 0;
 
-        uint64_t sat_leaves        = 0;
-        uint64_t unsat_leaves      = 0;
+        uint64_t leaves_sat        = 0;  // number of SAT leaves explored
+        uint64_t leaves_unsat      = 0;  // number of UNSAT leaves explored
+        uint64_t nodes_visited     = 0;  // optional aggregate search nodes
 
-        // inference / simplifications
-        uint64_t unit_props            = 0;
-        uint64_t universal_reductions  = 0;
-        uint64_t pure_lits_removed     = 0;
-        uint64_t cube_props            = 0;
+        // OPTIONAL: instance seed parsed from file name (for reproducibility)
+        uint64_t instance_seed     = 0;
 
-        // db maintenance
-        uint64_t clause_db_peak    = 0;
-        uint64_t db_reductions     = 0;
-
-        // proofs (if you have them; else ignore)
+        // (Optional) proof bookkeeping if you later add it
         bool     proof_generated   = false;
-        uint64_t proof_size_bytes  = 0;
+        size_t   proof_size_bytes  = 0;
         bool     proof_verified    = false;
-
-        void clear() 
-        { 
-            *this = RunLog(); 
-        }
     };
 
-    // ---------- minimal logger ----------
+    // ========================== CSV logger ==========================
     class Logger 
     {
         public:
-            RunLog log;
+            explicit Logger(std::string csv_path)
+                : csv_path_(std::move(csv_path)) {}
 
-            void start (const std::string& instance_relpath,
-                    const std::string& setting_id,
-                    const std::string& solver_version,
-                    int threads,
-                    uint64_t solver_seed,
-                    int timeout_s)
+            // Start a run (timestamped). No seed parameter.
+            void start( const std::string& instance_path,
+                        const std::string& setting,
+                        const std::string& build_id = "dev",
+                        int threads = 1) 
             {
-                log.clear();
-                log.instance_relpath = instance_relpath;
-                log.setting_id       = setting_id;
-                log.solver_version   = solver_version;
-                log.threads          = threads;
-                log.solver_seed      = solver_seed;
-                log.timeout_s        = timeout_s;
-
-                t0_wall_ms = now_ms();
-                t0_cpu_ms  = cpu_now_ms();
+                log = RunLog{};
+                log.instance_path = instance_path;
+                log.setting       = setting;
+                log.build_id      = build_id;
+                log.threads       = threads;
+                t0_               = Clock::now();
+                // OPTIONAL: instance seed — comment out to remove completely
+                // log.instance_seed = extract_instance_seed_from_path(instance_path);
             }
 
-            void stop(const std::string& outcome, int exit_code = 0) 
+            // Finish the run: set status string and compute wall time.
+            void finish(const std::string& status) 
             {
-                log.time_ms     = now_ms()   - t0_wall_ms;
-                log.cpu_time_ms = cpu_now_ms()- t0_cpu_ms;
-                log.mem_peak_mb = peak_rss_mb();
-                log.outcome     = outcome;
-                log.exit_code   = exit_code;
+                log.status = status;
+                auto t1 = Clock::now();
+                log.wall_ms = std::chrono::duration<double, std::milli>(t1 - t0_).count();
             }
 
-            static void write_csv_header(std::ostream& os) {
-                os << "instance_relpath,setting_id,solver_version,threads,solver_seed,timeout_s,"
-                << "outcome,exit_code,time_ms,cpu_time_ms,mem_peak_mb,"
-                << "decisions,propagations,conflicts,backtracks,restarts,"
-                << "learned_clauses,learned_cubes,sat_leaves,unsat_leaves,"
-                << "unit_props,universal_reductions,pure_lits_removed,cube_props,"
-                << "clause_db_peak,db_reductions,proof_generated,proof_size_bytes,proof_verified"
-                << "\n";
-            }
-
-            void write_csv_row(std::ostream& os) const {
-                os << csv_escape(log.instance_relpath) << ','
-                << csv_escape(log.setting_id)       << ','
-                << csv_escape(log.solver_version)   << ','
-                << log.threads                      << ','
-                << log.solver_seed                  << ','
-                << log.timeout_s                    << ','
-                << csv_escape(log.outcome)          << ','
-                << log.exit_code                    << ','
-                << log.time_ms                      << ','
-                << log.cpu_time_ms                  << ','
-                << log.mem_peak_mb                  << ','
-                << log.decisions                    << ','
-                << log.propagations                 << ','
-                << log.conflicts                    << ','
-                << log.backtracks                   << ','
-                << log.restarts                     << ','
-                << log.learned_clauses              << ','
-                << log.learned_cubes                << ','
-                << log.sat_leaves                   << ','
-                << log.unsat_leaves                 << ','
-                << log.unit_props                   << ','
-                << log.universal_reductions         << ','
-                << log.pure_lits_removed            << ','
-                << log.cube_props                   << ','
-                << log.clause_db_peak               << ','
-                << log.db_reductions                << ','
-                << (log.proof_generated ? 1 : 0)    << ','
-                << log.proof_size_bytes             << ','
-                << (log.proof_verified ? 1 : 0)
-                << "\n";
-            }
-
-            // append a row; create file+header if missing
-            void append_row_to_file(const std::string& csv_path) const 
+            // Append to CSV; creates file with header if it does not exist.
+            void append_row() 
             {
-                bool need_header = false;
+                std::lock_guard<std::mutex> lk(mu_);
 
-                { 
-                    std::ifstream test(csv_path); 
-                    if (!test.good()) 
-                        need_header = true; 
-                }
-
-                std::ofstream out(csv_path, std::ios::app);
-
-                if (!out.good()) 
-                { 
-                    std::cerr << "[logger] cannot open " << csv_path << "\n"; 
-                    return; 
-                }
+                const bool need_header = !file_exists(csv_path_);
+                std::ofstream out(csv_path_, std::ios::app);
+                out.setf(std::ios::fixed);
+                out << std::setprecision(3);
 
                 if (need_header) 
                     write_csv_header(out);
+                write_csv_row(out, log);
+            }
 
-                write_csv_row(out);
+            
+            void inc_decision_E()              { ++log.decisions_E; ++log.decisions_total; }
+            void inc_decision_A()              { ++log.decisions_A; ++log.decisions_total; }
+            void inc_conflict()                { ++log.conflicts; }
+            void inc_backtrack()               { ++log.backtracks; }
+            void inc_backjump()                { ++log.backjumps; }
+            void inc_unit_prop(uint64_t k = 1) { log.unit_propagations += k; }
+            void inc_ur(uint64_t k = 1)        { log.ur_reductions += k; }
+            void inc_pl(uint64_t k = 1)        { log.pure_literal_sets += k; }
+            void inc_lclause(uint64_t k = 1)   { log.learned_clauses += k; }
+            void inc_lcube(uint64_t k = 1)     { log.learned_cubes += k; }
+            void inc_leaf_sat()        { ++log.leaves_sat; }
+            void inc_leaf_unsat()      { ++log.leaves_unsat; }
+            void inc_node()            { ++log.nodes_visited; }
+
+            RunLog log;  // public so you can set parsed fields (n, m, k, L, ...)
+
+            // Utility: extract seed from "..._seed####.qdimacs" → #### (OPTIONAL)
+            static uint64_t extract_instance_seed_from_path(const std::string& path) 
+            {
+                auto pos = path.rfind("seed");
+                if (pos == std::string::npos) 
+                    return 0;
+                pos += 4;
+                uint64_t v = 0; 
+                bool any = false;
+                while (pos < path.size() && std::isdigit(static_cast<unsigned char>(path[pos]))) 
+                {
+                    any = true; v = v * 10 + (path[pos] - '0'); ++pos;
+                }
+                return any ? v : 0;
             }
 
         private:
-            uint64_t t0_wall_ms = 0;
-            uint64_t t0_cpu_ms  = 0;
+            using Clock = std::chrono::steady_clock;
+
+            std::string csv_path_;
+            std::mutex  mu_;
+            Clock::time_point t0_{};
+
+            static bool file_exists(const std::string& p) 
+            {
+                std::ifstream in(p);
+                return in.good();
+            }
+
+            static void write_csv_header(std::ofstream& out) 
+            {
+                out << "instance_path,setting,build_id,threads,"
+                    "n_vars,n_clauses,n_blocks,L,k,density_label,"
+                    "status,wall_ms,"
+                    "decisions_E,decisions_A,decisions_total,"
+                    "conflicts,backtracks,backjumps,"
+                    "unit_propagations,ur_reductions,pure_literal_sets,"
+                    "learned_clauses,learned_cubes,"
+                    "leaves_sat,leaves_unsat,nodes_visited,"
+                    "proof_generated,proof_size_bytes,proof_verified,"
+                    "instance_seed\n"; // ← remove this column if you don’t want it
+            }
+
+            static void write_csv_row(std::ofstream& out, const RunLog& r) 
+            {
+                out << escape(r.instance_path) << ','
+                    << escape(r.setting)       << ','
+                    << escape(r.build_id)      << ','
+                    << r.threads               << ','
+                    << r.n_vars    << ','
+                    << r.n_clauses << ','
+                    << r.n_blocks  << ','
+                    << r.L         << ','
+                    << r.k         << ','
+                    << escape(r.density_label) << ','
+                    << r.status    << ','
+                    << r.wall_ms   << ','
+                    << r.decisions_E     << ','
+                    << r.decisions_A     << ','
+                    << r.decisions_total << ','
+                    << r.conflicts       << ','
+                    << r.backtracks      << ','
+                    << r.backjumps       << ','
+                    << r.unit_propagations << ','
+                    << r.ur_reductions     << ','
+                    << r.pure_literal_sets << ','
+                    << r.learned_clauses   << ','
+                    << r.learned_cubes     << ','
+                    << r.leaves_sat        << ','
+                    << r.leaves_unsat      << ','
+                    << r.nodes_visited     << ','
+                    << (r.proof_generated ? 1 : 0) << ','
+                    << r.proof_size_bytes          << ','
+                    << (r.proof_verified ? 1 : 0)  << ','
+                    << r.instance_seed              // ← delete this if you don’t want it
+                    << "\n";
+            }
+
+            // naive CSV escaping (wraps in quotes if comma present)
+            static std::string escape(const std::string& s) 
+            {
+                if (s.find(',') == std::string::npos) 
+                    return s;
+                std::ostringstream oss;
+                oss << '"' ;
+                for (char c : s) 
+                {
+                    if (c == '"') oss << "\"\""; else oss << c;
+                }
+                oss << '"';
+                return oss.str();
+            }
     };
 
-    // Optional: quick mapper to a compact setting name
-    inline std::string setting_id_from_options(bool qcdcl, bool cube_learning, bool inference_enabled) 
-    {
-        if (!qcdcl && !cube_learning &&  inference_enabled) return "CB+INF";
-        if (!qcdcl && !cube_learning && !inference_enabled) return "CB";
-        if ( qcdcl && !cube_learning)                       return "CDL";
-        if ( qcdcl &&  cube_learning)                       return "CDL+CUBE";
-        return "UNKNOWN";
-    }
-
 } // namespace tqbf
-
 
 #endif // LOGGER_HPP

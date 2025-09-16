@@ -36,8 +36,8 @@ namespace SolverStatus
 class ThQBF
 {   
     private:
-
-        Options opts;
+        Options       opts;
+        tqbf::Logger* logger = nullptr;
 
         int solver_status;
 
@@ -166,11 +166,11 @@ class ThQBF
 
 
     public:
-        ThQBF(const QDimacsParser& parser, const Options& options);
+        ThQBF(const QDimacsParser& parser, const Options& options, tqbf::Logger* lg = nullptr);
 
         int  solve_BT ();
-        int  solve_BJ (); // TODO: solve_BJ
-        void test     ();
+        int  solve_BJ ();
+        int  test     ();
 
         void print_options() const 
         {
@@ -182,7 +182,8 @@ class ThQBF
                     << " up="    << opts.up
                     << " pl="    << opts.pl << "\n";
         }
-        void print_status  ();
+
+        void pprint ();
 
 };
 

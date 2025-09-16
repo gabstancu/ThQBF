@@ -1,8 +1,9 @@
 #include "ThQBF.hpp"
+#include "internal.h"
 #include <assert.h>
 #include <climits>
 
-ThQBF::ThQBF (const QDimacsParser& parser, const Options& options) : opts(options), level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
+ThQBF::ThQBF (const QDimacsParser& parser, const Options& options, tqbf::Logger* lg) : opts(options), logger(lg),  level(UNDEFINED), solver_status(SolverStatus::PRESEARCH)
 {
     this->Clauses              = parser.matrix;
     this->Blocks               = parser.quantifier_prefix;
@@ -37,6 +38,15 @@ ThQBF::ThQBF (const QDimacsParser& parser, const Options& options) : opts(option
     for (int i = 0; i < this->numClauses; i++)
     {
         ClauseHashes.insert(Clauses[i].hash);
+    }
+
+    if (logger)
+    {
+        logger->log.n_vars    = this->numVars;
+        logger->log.n_clauses = this->numClauses;
+        logger->log.n_blocks  = this->numBlocks;
+        logger->log.k         =  0;
+        logger->log.L         = -1;
     }
 }
 
@@ -2381,19 +2391,30 @@ void ThQBF::print_Prefix ()
 }
 
 
+void ThQBF::pprint ()
+{   
+    std::cout << "Variables : " << numVars                << '\n';
+    std::cout << "Clauses   : " << numClauses             << '\n';
+    std::cout << "|S|       : " << numOfExistentialVars   << '\n';
+    std::cout << "|P|       : " << numOfUniversalVars     << '\n';
+    std::cout << "Status    : " << solver_status          << '\n';
+
+    if (logger) /* print logged data if logging object has been initialised */
+    {
+
+    }
+}
+
 int ThQBF::solve_BJ ()
 {
 
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
-
     if (opts.up || opts.pl || opts.ur)
     {
         solver_status = infer();
     }
-    // print_Prefix();
-    // print_Clauses();
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2609,10 +2630,11 @@ int ThQBF::solve_BT ()
 
     /* ===================== search loop ===================== */
     solver_status = SolverStatus::SEARCH;
-    level = 1;
+    level         = 1;
     /* determine first var to assign */
     int blevel, varID;
     decide_next_branch(blevel, varID);
+    logger->inc_node();
 
     int value;
     int top_level;
@@ -2636,10 +2658,12 @@ int ThQBF::solve_BT ()
                 if (Variables[varID].is_existential())
                 {
                     SStack.push({varID, level});
+                    logger->inc_decision_E();
                 }
                 else
                 {
                     PStack.push({varID, level});
+                    logger->inc_decision_A();
                 }
             }
 
@@ -2743,7 +2767,7 @@ int ThQBF::solve_BT ()
 }
 
 
-void ThQBF::test ()
+int ThQBF::test ()
 {       
     // print_Clauses();
     int s = solve_BJ();
@@ -2752,6 +2776,7 @@ void ThQBF::test ()
     {
         print_hashmap(Path);
     }   
+    return s;
 
 
     // /* add some dummy cubes to test assignments and appearances updates */
