@@ -84,7 +84,7 @@ void print_hashmap(const std::unordered_map<K, V>& m)
 {
     for (const auto& [key, value] : m) 
     {
-        std::cout << "  [" << key << "] = " << value << "\n";
+        std::cout << "  [" << key  << "] = " << value << "\n";
     }
     std::cout<<'\n';
 }

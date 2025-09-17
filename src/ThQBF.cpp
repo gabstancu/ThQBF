@@ -428,8 +428,33 @@ void ThQBF::remove_literal_from_cube (int literal, int cubeID, int positionInCub
 
 void ThQBF::restore_level (int search_level)
 {   
-    // std::cout << "restoring level " << search_level << "\n";
+    std::cout << "restoring level " << search_level << "\n";
     // restore clauses that we affected at search_level
+
+   // --- Clear implication metadata for literals implied at this level ---
+    if (implied_e_variables.count(search_level)) {
+        auto &stk = implied_e_variables[search_level];
+        while (!stk.empty()) {
+            int v = stk.top(); stk.pop();
+            Variables[v].antecedent_clause        = UNDEFINED;
+            Variables[v].pos_in_antecedent_clause = UNDEFINED;
+            Variables[v].implication_trail_index  = UNDEFINED; // or 0
+            if (Variables[v].status == qbf::VariableStatus::IMPLIED)
+                Variables[v].status = qbf::VariableStatus::ACTIVE;
+        }
+    }
+    if (implied_a_variables.count(search_level)) {
+        auto &stk = implied_a_variables[search_level];
+        while (!stk.empty()) {
+            int v = stk.top(); stk.pop();
+            Variables[v].antecedent_cube        = UNDEFINED;
+            Variables[v].pos_in_antecedent_cube = UNDEFINED;
+            Variables[v].implication_trail_index= UNDEFINED; // or 0
+            if (Variables[v].status == qbf::VariableStatus::IMPLIED)
+                Variables[v].status = qbf::VariableStatus::ACTIVE;
+        }
+    }
+
     for (const auto& clauseID : Clauses_trail.at(search_level))
     {   
         Clauses[clauseID].level = UNDEFINED;
@@ -507,6 +532,7 @@ void ThQBF::restore_level (int search_level)
                 {
                     int literal = Cubes[cubeID].literals[i];
                     int var     = std::abs(literal) - 1;
+                    varsAffected.insert(var);
 
                     Cubes[cubeID].state[i] = qbf::LiteralStatus::AVAILABLE;
 
@@ -565,7 +591,7 @@ void ThQBF::restore_level (int search_level)
 
 void ThQBF::remove_variable (int variable)
 {   
-    // std::cout << "removing variable " << variable << "\n";
+    std::cout << "removing variable " << variable << "\n";
     int varID           = variable - 1; 
     int blockID         = Variables[varID].blockID;
     int positionInBlock = Variables[varID].positionInBlock;
@@ -604,13 +630,15 @@ void ThQBF::restore_variable (int variable)
     {   
         Variables[varID].antecedent_clause        = UNDEFINED;
         Variables[varID].pos_in_antecedent_clause = UNDEFINED;
+        Variables[varID].implication_trail_index  = UNDEFINED; 
         // Variables[varID].available_values         = 2;
     }
 
     if (Variables[varID].antecedent_cube != UNDEFINED)
     {
-        Variables[varID].antecedent_cube        = UNDEFINED;
-        Variables[varID].pos_in_antecedent_cube = UNDEFINED;
+        Variables[varID].antecedent_cube          = UNDEFINED;
+        Variables[varID].pos_in_antecedent_cube   = UNDEFINED;
+        Variables[varID].implication_trail_index  = UNDEFINED;
         // Variables[varID].available_values         = 2;
     }
 
@@ -852,8 +880,8 @@ int ThQBF::infer ()
         }
         
         if (assignments == Path)
-        {
-            return SolverStatus::SEARCH;
+        {   
+            return solver_status;
         }
     }
 }
@@ -1204,6 +1232,7 @@ int ThQBF::deduce ()
                     assign(variable, 0);
                     implied_a_variables[level].push(varID);
                     Variables[varID].implication_trail_index = implied_a_variables[level].size();
+                    std::cout << "implying " << varID + 1 << " to " << 0 << '\n';
                     // print_Clauses();
                     // print_Cubes();
                     // std::cout << "prefix:\n";
@@ -1216,6 +1245,7 @@ int ThQBF::deduce ()
                     assign(variable, 1);
                     implied_a_variables[level].push(varID);
                     Variables[varID].implication_trail_index = implied_a_variables[level].size();
+                    std::cout << "implying " << varID + 1 << " to " << 1 << '\n';
                     // print_Clauses();
                     // print_Cubes();
                     // std::cout << "prefix:\n";
@@ -1275,6 +1305,10 @@ std::pair<int, int> ThQBF::analyse_conflict ()
     while (!stop_criteria_met(cl))
     {   
         int literal                       = choose_e_literal(cl);
+        if (solver_status == SolverStatus::UNSAT_EXCEPTION)
+        {
+            break;
+        }
         int variable                      = std::abs(literal);
         int varID                         = variable - 1;
         int antecedent_clauseID           = Variables[varID].antecedent_clause;
@@ -1414,7 +1448,13 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
         top_level = std::max(top_level, Variables[varID].level);
     }
 
-    assert(top_level>=0 && "No implied ∃ in clause (should be asserting or UNSAT-root).");
+    if (top_level < 0)
+    {
+        solver_status = SolverStatus::UNSAT_EXCEPTION;
+        return -1;
+    }
+
+    // assert(top_level>=0 && "No implied ∃ in clause (should be asserting or UNSAT-root).");
 
     // pick latest implied existential literal at top level by trail index
     for (const auto& [literal, _] : cc)
@@ -1437,6 +1477,16 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
             continue;
         }
 
+        int  ante               = Variables[varID].antecedent_clause;
+        bool need_pos           = (-literal > 0);
+        int  pos_in_ante        = Variables[varID].get_position_in_clause(ante, need_pos);
+        bool complement_present = (pos_in_ante >= 0 && Clauses[ante].literals[pos_in_ante] == -literal);
+
+        if (!complement_present)
+        {
+            continue;
+        }
+
         int trail_index = Variables[varID].implication_trail_index;
         if (trail_index > best_trail_index)
         {
@@ -1445,18 +1495,24 @@ int ThQBF::choose_e_literal (const std::unordered_map<int, int>& cc)
         }
     }
 
-    assert(most_recently_implied != UNDEFINED && "No implied ∃ at top level (reason: bookkeeping bug?)");
+    if (most_recently_implied == UNDEFINED)
+    {
+        solver_status = SolverStatus::UNSAT_EXCEPTION;
+        return -1;
+    }
 
-    // assert that antecedent contains -most_recently_implied
-    int var = std::abs(most_recently_implied) - 1;
-    int antecedent = Variables[var].antecedent_clause;
+    // assert(most_recently_implied != UNDEFINED && "No implied ∃ at top level (reason: bookkeeping bug?)");
 
-    assert(Variables[var].appears_in_clause(antecedent) && "neg(literal) does not appear in antecedent!");
+    // // assert that antecedent contains -most_recently_implied
+    // int var = std::abs(most_recently_implied) - 1;
+    // int antecedent = Variables[var].antecedent_clause;
+
+    // assert(Variables[var].appears_in_clause(antecedent) && "neg(literal) does not appear in antecedent!");
     
-    bool polarity        = (-most_recently_implied > 0);
-    int position_in_ante = Variables[var].get_position_in_clause(antecedent, polarity);
+    // bool polarity        = (-most_recently_implied > 0);
+    // int position_in_ante = Variables[var].get_position_in_clause(antecedent, polarity);
 
-    assert(Clauses[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent clause!");
+    // assert(Clauses[antecedent].literals[position_in_ante] == -most_recently_implied && "neg(literal) does not appear in antecedent clause!");
     
     return most_recently_implied;
 }
@@ -1498,9 +1554,9 @@ std::unordered_map<int, int> ThQBF::resolve (const std::unordered_map<int, int>&
         /* opposite polarity is found */
         if (new_clause.find(-literal) != new_clause.end())
         {   
-            assert(Variables[varID].is_existential() && "Tautological existential pair: invalid reason or wrong pivot.");
+            assert(Variables[varID].is_universal() && "Tautological existential pair: invalid reason or wrong pivot.");
             assert(Variables[varID].blockID > Variables[pivot_variable-1].blockID && "LD pair left of pivot: invalid reason or wrong pivot.");
-            new_clause.insert({literal, ct});
+            // new_clause.insert({literal, ct});
             continue;
         }
 
@@ -1566,11 +1622,12 @@ bool ThQBF::stop_criteria_met (const std::unordered_map<int, int>& resolvent)
                         2nd condition
         V is in a decision level with an existential variable as the decision variable.
     */
-    int decision_variable_at_V = decision_variable_at[L_max];
-    if (!Variables[decision_variable_at_V-1].is_existential())
-    {   
+    auto it = decision_variable_at.find(L_max);
+    if (it == decision_variable_at.end())
+    {
         return false;
     }
+    int decision_variable_at_V = it->second;
 
     /*
                          3rd condition
@@ -1641,18 +1698,18 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
         clause asserting level -> second highest level among the decision levels of the rest of the existentials
     */
     int asserting_literal      = UNDEFINED;
-    int clause_asserting_level =  0;
-    int max_level              = -1;
+    int clause_asserting_level = 0;
+    int max_level              = UNDEFINED;
 
     std::pair<int, int> p;
 
     /* find max_level */
     for (const auto& [literal, _] : learned_clause)
     {
-        int variable = std::abs(literal);
-        int level    = Variables[variable-1].level; 
+        int varID   = std::abs(literal) - 1;
+        int level    = Variables[varID].level; 
 
-        if (Variables[variable-1].is_universal())
+        if (Variables[varID].is_universal())
         {
             continue;
         }
@@ -1665,12 +1722,14 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
         }
     }
 
+    printf("max level: %d asserting literal: %d\n", max_level, asserting_literal);
+
     assert(max_level >= 0 && "No existentials at max_level (Logical error - check stop criteria).\n");
     
     /* find second highest level: asserting level */
     for (const auto& [literal, _] : learned_clause)
     {
-        int varID    = std::abs(literal);
+        int varID    = std::abs(literal) - 1;
         int level    = Variables[varID].level; 
 
         if (Variables[varID].is_universal())
@@ -1679,11 +1738,13 @@ std::pair<int, int> ThQBF::clause_asserting_level (const std::unordered_map<int,
         }
 
         if (literal == asserting_literal)
-        {
+        {   
+            std::cout << "skipping max level\n";
             continue;
         }
 
         clause_asserting_level = std::max(clause_asserting_level, level);
+        std::cout << "clause asserting level: " << clause_asserting_level << '\n';
     }
 
     p = std::make_pair(clause_asserting_level, asserting_literal);
@@ -1897,8 +1958,8 @@ std::pair<int, int> ThQBF::analyse_SAT ()
         sat_cube                          = consensus(sat_cube, ante, variable); 
     }
 
-    // std::cout << "learned cube:\n";
-    // print_hashmap(sat_cube);
+    std::cout << "learned cube:\n";
+    print_hashmap(sat_cube);
 
     if (solver_status == SolverStatus::SAT_EXCEPTION) /* all existential cube case */
     {   
@@ -1931,6 +1992,7 @@ std::unordered_map<int, int> ThQBF::find_SAT_cube ()
     {   
         std::cout << "Concluded SAT by satisfying cube " << satisfying_cube << " at level " << level << '\n';
         std::cout << "Returning cube " << satisfying_cube << '\n';
+        print_hashmap(Cubes[satisfying_cube].map_representation());
         return Cubes[satisfying_cube].map_representation();
     }
 }
@@ -1972,7 +2034,7 @@ std::unordered_map<int, int> ThQBF::consensus (const std::unordered_map<int, int
         /* opposite polarity is found */
         if (new_cube.find(-literal) != new_cube.end())
         {   
-            assert(Variables[varID].is_universal() && "Tautological universal pair: invalid reason or wrong pivot.");
+            assert(Variables[varID].is_existential() && "Tautological universal pair: invalid reason or wrong pivot.");
             assert(Variables[varID].blockID > Variables[pivot_variable-1].blockID && "LD pair left of pivot: invalid reason or wrong pivot.");
             new_cube.insert({literal, ct});
             continue;
@@ -2412,9 +2474,11 @@ void ThQBF::pprint ()
     }
 }
 
+
 int ThQBF::solve_BJ ()
 {
 
+    print_Prefix();
     solver_status = SolverStatus::PRESEARCH;
     level         = PRESEARCH;
 
@@ -2422,6 +2486,8 @@ int ThQBF::solve_BJ ()
     {
         solver_status = infer();
     }
+
+    print_Prefix();
 
     if (solver_status == SolverStatus::SAT || solver_status == SolverStatus::UNSAT)
     {   
@@ -2441,6 +2507,7 @@ int ThQBF::solve_BJ ()
     while (1)
     {   
         decide_next_branch(blevel, varID);
+        std::cout << "branching on " << varID + 1 << '\n';
         solver_status = SolverStatus::SEARCH;
 
         if (Variables[varID].available_values == 0)
@@ -2448,13 +2515,15 @@ int ThQBF::solve_BJ ()
             return solver_status;
         }
 
+        std::cout << "variable " << varID + 1 << " values: " << Variables[varID].available_values << '\n';
+
         /* choose a value for varID (first branch on 1) */
         if (Variables[varID].available_values == 2)
         {
             value = 1;
         }
         else if (Variables[varID].available_values == 1)
-        {
+        {   
             value = 0;
         }
 
@@ -2473,14 +2542,15 @@ int ThQBF::solve_BJ ()
         std::cout << "***************************** LEVEL " << level << "  branching on: "<<  varID + 1 <<" value: "<< value <<" ***************************** \n";
 
         assign(varID+1, value);
-
+        print_Prefix();
+        // std::cout << "values after assigning: " << Variables[varID].available_values << '\n';
         Search_Stack.push({varID, level});
 
         while (1)
         {   
             if (solver_status != SolverStatus::UNSAT && solver_status != SolverStatus::SAT)
             {   
-                solver_status = deduce();
+                solver_status = infer();
             }
             std::cout << "solver status: " << SolverStatus::to_string(solver_status) << '\n';
 
@@ -2503,11 +2573,29 @@ int ThQBF::solve_BJ ()
                             return SolverStatus::SAT;
                         }
 
+                        std::cout << "backtracking to level " << blevel << '\n';
                         while (level > blevel)
                         {
                             restore_level(level);
+                            Variables[Search_Stack.top().first].available_values = 2;
                             Search_Stack.pop();
                             level--;
+
+                            if (!PStack.empty())
+                            {
+                                if (PStack.top().second > top_level)
+                                {   
+                                    PStack.pop();
+                                }
+                            }
+
+                            if (!SStack.empty())
+                            {
+                                if (SStack.top().second > top_level)
+                                {   
+                                    SStack.pop();
+                                }
+                            }
                         }
                         /* push unit cube to unit cubes stack */
                         int unit_pos = Cubes[Cubes.size()-1].unit_literal_position;
@@ -2525,7 +2613,6 @@ int ThQBF::solve_BJ ()
                         top_level = PStack.top().second;
 
                         PStack.pop();
-
 
                         while (level >= top_level)
                         {
@@ -2565,15 +2652,18 @@ int ThQBF::solve_BJ ()
                         // printf("current level: %d\nasserting level: %d", level, blevel);
                         while (level > blevel)
                         {   
-                            // std::cout << "fdfdfdfdfd\n";
                             restore_level(level);
+                            Variables[Search_Stack.top().first].available_values = 2;
                             Search_Stack.pop();
                             level--;
                         }
 
-                        int unit_pos = Clauses[Clauses.size()-1].unit_literal_position;
-                        int refVar   = std::abs(Clauses[Clauses.size()-1].literals[unit_pos]);
-                        unit_clauses.push({Clauses.size()-1, level});
+                        solver_status = SolverStatus::SEARCH;
+
+                        int unit_pos = Clauses.back().unit_literal_position;
+                        int refVar   = std::abs(Clauses.back().literals[unit_pos]);
+                        unit_clauses.push({(int)Clauses.size()-1, level});
+                        conflict_clause = UNDEFINED;
                     }
                     else /* backtrack to the last existential */
                     {
@@ -2589,10 +2679,7 @@ int ThQBF::solve_BJ ()
                         while (level >= top_level)
                         {
                             restore_level(level);
-                            if (level > top_level)
-                            {
-                                Variables[Search_Stack.top().first].available_values = 2;
-                            }
+                            Variables[Search_Stack.top().first].available_values = 2;
                             level--;
                             Search_Stack.pop();
 
@@ -2604,6 +2691,14 @@ int ThQBF::solve_BJ ()
                                     PStack.pop();
                                 }
                             }
+
+                            // if (!SStack.empty())
+                            // {
+                            //     if (SStack.top().second > top_level)
+                            //     {   
+                            //         SStack.pop();
+                            //     }
+                            // }
 
                         }
                         level++;
@@ -2641,7 +2736,6 @@ int ThQBF::solve_BT ()
     /* determine first var to assign */
     int blevel, varID;
     decide_next_branch(blevel, varID);
-    logger->inc_node();
 
     int value;
     int top_level;
@@ -2665,12 +2759,10 @@ int ThQBF::solve_BT ()
                 if (Variables[varID].is_existential())
                 {
                     SStack.push({varID, level});
-                    logger->inc_decision_E();
                 }
                 else
                 {
                     PStack.push({varID, level});
-                    logger->inc_decision_A();
                 }
             }
 
@@ -2776,9 +2868,9 @@ int ThQBF::solve_BT ()
 
 int ThQBF::test ()
 {       
-    // print_Clauses();
+    print_Clauses();
     int s = solve_BJ();
-    std::cout << "return status: " << s << '\n';
+    std::cout << "return status: " << SolverStatus::to_string(s) << '\n';
     if (s == SolverStatus::SAT)
     {
         print_hashmap(Path);
